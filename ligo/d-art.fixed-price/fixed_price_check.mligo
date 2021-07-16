@@ -1,4 +1,14 @@
 
+// -- Math
+
+let ceil_div_nat (numerator, denominator : nat * nat) : nat =
+  let ediv_result : (nat * nat) option = ediv numerator denominator in
+  match ediv_result with
+    | None -> (failwith "DIVISION_BY_ZERO" : nat)
+    | Some result -> 
+      let (quotient, reminder) = result in
+      quotient    
+
 // -- Admin check
 
 let fail_if_not_admin (storage : admin_storage) : unit =
@@ -98,6 +108,24 @@ let fail_if_not_enough_token_available (token_amount, buy_token : nat * buy_toke
     if token_amount < buy_token.fa2_token.amount
     then failwith "TOKEN_AMOUNT_TO_HIGH"
     else unit
+
+let fail_if_token_amount_to_high_for_private_sale (fixed_price_sale, buy_token : fixed_price_sale * buy_token) : unit =
+    let allowlist_size : nat = Map.size fixed_price_sale.allowlist in
+    if allowlist_size > 0n && ceil_div_nat (fixed_price_sale.token_amount, allowlist_size) > buy_token.fa2_token.amount
+    then unit
+    else failwith "TOKEN_AMOUNT_TO_HIGH"
+
+let fail_if_token_amount_to_high_for_private_drop (fixed_price_drop, buy_token : fixed_price_drop * buy_token) : unit =
+    let allowlist_size : nat = Map.size fixed_price_drop.allowlist in
+    if allowlist_size > 0n && ceil_div_nat (fixed_price_drop.token_amount, allowlist_size) > buy_token.fa2_token.amount
+    then unit
+    else failwith "TOKEN_AMOUNT_TO_HIGH"
+
+let fail_if_token_amount_to_high_for_registration_drop (fixed_price_drop, buy_token : fixed_price_drop * buy_token) : unit =
+    let registration_list_size : nat = Map.size fixed_price_drop.registration_list in
+    if registration_list_size > 0n && ceil_div_nat (fixed_price_drop.token_amount, registration_list_size) > buy_token.fa2_token.amount
+    then unit
+    else failwith "TOKEN_AMOUNT_TO_HIGH"
 
 let fail_if_sender_not_authorized_for_fixed_price_sale (fixed_price_sale : fixed_price_sale ) : unit =
     // If it s a public sale the allowlist will be empty else we check if the sender

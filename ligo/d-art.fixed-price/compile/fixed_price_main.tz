@@ -57,6 +57,12 @@
                                                                          (pair (timestamp %drop_date) (nat %sale_duration))))))))
                                         (pair %fee (address %fee_address) (nat %fee_percent)))))))) ;
   code { LAMBDA
+           (pair nat nat)
+           nat
+           { UNPAIR ;
+             EDIV ;
+             IF_NONE { PUSH string "DIVISION_BY_ZERO" ; FAILWITH } { CAR } } ;
+         LAMBDA
            (pair (pair address key) (big_map (pair bytes signature) unit))
            unit
            { CAR ;
@@ -428,7 +434,7 @@
              CONS } ;
          SWAP ;
          APPLY ;
-         DIG 13 ;
+         DIG 14 ;
          UNPAIR ;
          IF_LEFT
            { DIG 12 ;
@@ -446,7 +452,8 @@
                      DIG 5 ;
                      DIG 6 ;
                      DIG 8 ;
-                     DROP 6 ;
+                     DIG 10 ;
+                     DROP 7 ;
                      IF_LEFT
                        { IF_LEFT
                            { SWAP ;
@@ -641,6 +648,60 @@
                           IF { UNIT }
                              { PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ; FAILWITH } } ;
                      DROP ;
+                     DUP 3 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     DUP ;
+                     GET 9 ;
+                     SIZE ;
+                     DIG 2 ;
+                     CAR ;
+                     GET 4 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     DIG 3 ;
+                     GET 3 ;
+                     PAIR ;
+                     DUP 10 ;
+                     SWAP ;
+                     EXEC ;
+                     COMPARE ;
+                     GT ;
+                     PUSH nat 0 ;
+                     DIG 2 ;
+                     COMPARE ;
+                     GT ;
+                     AND ;
+                     IF {} { PUSH string "TOKEN_AMOUNT_TO_HIGH" ; FAILWITH } ;
+                     DUP 3 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     DUP ;
+                     GET 7 ;
+                     SIZE ;
+                     DIG 2 ;
+                     CAR ;
+                     GET 4 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     DIG 3 ;
+                     GET 3 ;
+                     PAIR ;
+                     DIG 9 ;
+                     SWAP ;
+                     EXEC ;
+                     COMPARE ;
+                     GT ;
+                     PUSH nat 0 ;
+                     DIG 2 ;
+                     COMPARE ;
+                     GT ;
+                     AND ;
+                     IF {} { PUSH string "TOKEN_AMOUNT_TO_HIGH" ; FAILWITH } ;
                      DUP ;
                      DUP 4 ;
                      CAR ;
@@ -752,6 +813,33 @@
                      SWAP ;
                      EXEC ;
                      DROP ;
+                     DUP 3 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     DUP ;
+                     GET 4 ;
+                     SIZE ;
+                     DIG 2 ;
+                     CAR ;
+                     GET 4 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     DIG 3 ;
+                     GET 3 ;
+                     PAIR ;
+                     DIG 9 ;
+                     SWAP ;
+                     EXEC ;
+                     COMPARE ;
+                     GT ;
+                     PUSH nat 0 ;
+                     DIG 2 ;
+                     COMPARE ;
+                     GT ;
+                     AND ;
+                     IF {} { PUSH string "TOKEN_AMOUNT_TO_HIGH" ; FAILWITH } ;
                      DUP ;
                      GET 4 ;
                      SENDER ;
@@ -918,7 +1006,8 @@
                    { DIG 2 ;
                      DIG 3 ;
                      DIG 8 ;
-                     DROP 3 ;
+                     DIG 10 ;
+                     DROP 4 ;
                      PUSH string "Amount sent must be 0mutez" ;
                      PUSH mutez 0 ;
                      AMOUNT ;
@@ -1032,7 +1121,7 @@
                      GET 7 ;
                      SENDER ;
                      MEM ;
-                     IF {} { PUSH string "SENDER_IS_NOT_SELLER" ; FAILWITH } ;
+                     IF {} { PUSH string "SENDER_IS_NOT_AUTHORZED_DROP_SELLER" ; FAILWITH } ;
                      SENDER ;
                      SELF_ADDRESS ;
                      DUP 4 ;
@@ -1094,7 +1183,8 @@
              DIG 9 ;
              DIG 10 ;
              DIG 14 ;
-             DROP 4 ;
+             DIG 15 ;
+             DROP 5 ;
              IF_LEFT
                { DIG 3 ;
                  DIG 9 ;

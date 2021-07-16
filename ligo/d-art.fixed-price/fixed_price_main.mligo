@@ -188,6 +188,7 @@ let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
 
     let concerned_fixed_price_sale : fixed_price_sale = get_fixed_price_sale_in_maps (fa2_token_identifier, buy_token.seller, storage) in
     let _fail_if_not_enough_token_available : unit = fail_if_not_enough_token_available (concerned_fixed_price_sale.token_amount, buy_token) in 
+    let _fail_if_token_amount_to_high_for_private_sale : unit = fail_if_token_amount_to_high_for_private_sale (concerned_fixed_price_sale, buy_token) in
     let _fail_if_sender_not_authorized_for_fixed_price_sale : unit = fail_if_sender_not_authorized_for_fixed_price_sale concerned_fixed_price_sale in
 
     let new_storage : storage = mark_message_as_used (buy_token.authorization_signature, storage) in
@@ -209,6 +210,9 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let _fail_if_drop_date_not_met : unit = fail_if_drop_date_not_met concerned_fixed_price_drop in
     let _fail_if_not_enough_token_available : unit = fail_if_not_enough_token_available (concerned_fixed_price_drop.token_amount, buy_token) in 
     let _fail_if_sender_not_authorized_for_fixed_price_drop : unit = fail_if_sender_not_authorized_for_fixed_price_drop concerned_fixed_price_drop in
+    let _fail_if_token_amount_to_high_for_private_drop : unit = fail_if_token_amount_to_high_for_private_drop (concerned_fixed_price_drop, buy_token) in
+    let _fail_if_token_amount_to_high_for_registration_drop : unit = fail_if_token_amount_to_high_for_registration_drop (concerned_fixed_price_drop, buy_token) in
+    
     // TODO fail during registration period if sender wants to buy more token than available for the amount of person registered or participating at a private sale or drop
     // example : 1000 token 100 registered -> 10 tokens max per buyers (address)
 
