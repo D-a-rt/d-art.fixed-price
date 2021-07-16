@@ -548,3 +548,9 @@ If buyer not authorized to buy from a fixed price drop
 ```
 Error message : "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
 ```
+
+If buyer wants to buy more token than authorized (represented by amount_of_buyers_in_private_sale / token_amount):
+
+```
+Error message : "TOKEN_AMOUNT_TO_HIGH"
+```
