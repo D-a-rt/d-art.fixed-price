@@ -6,7 +6,7 @@ Small introduction on how to compile and deploy the d-art.fixed-price contract. 
 
 #### Introduction:
 
-Creation of a smart contract in order to deposit and withdraw tezos from a liquidity pool.
+Creation of a smart contract in order to perform fixed price sale and drop.
 
 #### Install the CLI (TypeScript):
 
