@@ -1,8 +1,18 @@
+# TODO
+
+- Empty message used big map when changing the pb key done !
+- Get rid of the preconfigured_sale and the logic locking token in the contract in this kind of case
+- Adjust the royalties handling
+- Change the naming of the variables
+- add pause - when updating to a new version
+
+
+
 # d-art.fixed-price
 
 ## Compile and deployed contract
 
-Small introduction on how to compile and deploy the d-art.fixed-price contract. Responsible to perform `private/public` fixed price `sale/drops` 
+Small introduction on how to compile and deploy the d-art.fixed-price contract. Responsible to perform `private/public` fixed price `sale/drops`
 
 #### Introduction:
 
@@ -13,7 +23,7 @@ Creation of a smart contract in order to deposit and withdraw tezos from a liqui
 To install all the dependencies of the project please run:
 
 ```
-$ cd /d-art.fixed-price 
+$ cd /d-art.fixed-price
 $ npm install
 $ npm run-script build
 $ npm install -g
@@ -21,7 +31,7 @@ $ npm install -g
 In order to run the tests:
 ```
 $ npm run-script test
-```         
+```
 
 The different available commands are:
 
@@ -51,7 +61,7 @@ type storage =
 {
     admin: admin_storage;
     sales: (fa2_token_identifier * seller, fixed_price_sale) big_map;
-    preconfigured_sales: (fa2_token_identifier * seller, fixed_price_sale) big_map;
+    for_sale: (fa2_token_identifier * seller, fixed_price_sale) big_map;
     authorized_drops_seller: authorized_drops_sellers_storage;
     fa2_dropped: fa2_dropped_storage;
     drops: drops_storage;
@@ -117,7 +127,7 @@ type fa2_token_identifier =
     token_id : token_id;
 }
 
-type fixed_price_sale = 
+type fixed_price_sale =
 [@layout:comb]
 {
   price : tez;
@@ -130,25 +140,25 @@ The `sales` record is used to hold all the active sales in the contract. A `prec
 
 ``fa2_token_identifier * seller`` : The `key` is composed of the general information of a token and a seller (the seller in the key allow mulptile user to sell the same token and differentiate them)
 
-``fixed_price_sale`` : The `value` is composed of all the necessary information related to the sale: price of a unit, and the amount available. 
+``fixed_price_sale`` : The `value` is composed of all the necessary information related to the sale: price of a unit, and the amount available.
 
 Why `allowlist` in `fixed_price_sale` ?
 
 A sale can be public or private, which will allow the owner of the token to either open the sell to everyone or restrict the access to specific buyers.
 
-### preconfigured_sales
+### for_sale
 
 ``` ocaml
 type storage =
 [@layout:comb]
 {
     ...
-    preconfigured_sales: (fa2_token_identifier * seller, fixed_price_sale) big_map;
+    for_sale: (fa2_token_identifier * seller, fixed_price_sale) big_map;
     ...
 }
 ```
 
-As you can see the storage of the preconfigured_sale is the same as the sale one. The difference lies in the fact that a `preconfigured_sale` can be `edited` or `deleted`. 
+As you can see the storage of the preconfigured_sale is the same as the sale one. The difference lies in the fact that a `preconfigured_sale` can be `edited` or `deleted`.
 
 As soon as a user buy a token the tokens are transfered in `sale` big_map where `edition` and `deletion` will be forbidden to protect the first buyer.
 
@@ -167,7 +177,7 @@ type storage =
 type authorized_drops_sellers_storage = (seller, unit) big_map
 ```
 
-A `drop` is slightly different than a fied price sale. 
+A `drop` is slightly different than a fied price sale.
 
 The main differences are :
 
@@ -244,7 +254,7 @@ Note: it is not possible to have both a registration periode and a private drop 
 
 ``drop_date`` : The time when the sale start.
 
-``sale_duration`` : The amount of time registered buyers will have the priority on the drop sale, once this duration is passed, the drop becomes public. 
+``sale_duration`` : The amount of time registered buyers will have the priority on the drop sale, once this duration is passed, the drop becomes public.
 
 
 ### Fee
@@ -257,7 +267,7 @@ type storage =
     fee: fee_data;
 }
 
-type fee_data = 
+type fee_data =
 [@layout:comb]
 {
     fee_address : address;
@@ -401,7 +411,7 @@ The `DropRegistration` entrypoint is responsible to register to a drop.
 Note: The registration period opens as soon as a drop is configured with `registration: true`, registered buyers will be able to buy at `least one token` from the sale or `total_supply_of_token/registered_buyers` during a `sale_duration` after which the sale will become public (the first to click will then have the privilege to buy a token - of course depending on the gas specified)
 
 ``` ocaml
-type drop_registration = 
+type drop_registration =
 [@layout:comb]
 {
     fa2_token_identifier: fa2_token_identifier;
@@ -419,7 +429,7 @@ The `BuyFixedPriceToken` entrypoint is responsible to buy a token from a `precon
 The `BuyDroppedToken`  entrypoint is responsible to buy a token from a `drop`.
 
 ``` ocaml
-type buy_token = 
+type buy_token =
 [@layout:comb]
 {
     fa2_token: fa2_token;

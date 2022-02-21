@@ -5,9 +5,9 @@ let ceil_div_nat (numerator, denominator : nat * nat) : nat =
   let ediv_result : (nat * nat) option = ediv numerator denominator in
   match ediv_result with
     | None -> (failwith "DIVISION_BY_ZERO" : nat)
-    | Some result -> 
+    | Some result ->
       let (quotient, reminder) = result in
-      quotient    
+      quotient
 
 // -- Admin check
 
@@ -18,31 +18,24 @@ let fail_if_not_admin (storage : admin_storage) : unit =
 
 // -- Fixed price sales checks
 
-let fail_if_token_already_in_sale (fa2_token_identifier, seller, storage : fa2_token_identifier * seller * storage) : unit =
-    if Big_map.mem (fa2_token_identifier, seller) storage.sales
-    then failwith "TOKEN_ALREADY_IN_SALE"
-    else if Big_map.mem (fa2_token_identifier, seller) storage.preconfigured_sales
-    then failwith "TOKEN_ALREADY_PRCONFIGURED_FOR_SALE"
-    else if Big_map.mem (fa2_token_identifier, seller) storage.drops
-    then failwith "TOKEN_ALREADY_IN_DROP"
-    else unit
-
 let fail_if_token_sale_configuration_wrong (fa2_token, price : fa2_token * tez) : unit =
     if price <= 0mutez
-    then failwith "PRICE_NEEDS_TO_BE_GREATER_THAN_0"
+    then failwith "PRICE_SHOULD_BE_GREATER_THAN_0"
     else if fa2_token.amount <= 0n
-    then failwith "AMOUNT_OF_TOKEN_NEEDS_TO_BE_GREATER_THAN_0"
+    then failwith "AMOUNT_OF_TOKEN_SHOULD_BE_GREATER_THAN_0"
     else unit
 
 let fail_if_token_sale_not_configured (fa2_token_identifier, storage : fa2_token_identifier * storage) : unit =
-    if Big_map.mem (fa2_token_identifier, Tezos.sender) storage.preconfigured_sales
+    if Big_map.mem (fa2_token_identifier, Tezos.sender) storage.for_sale
     then unit
-    else failwith "FA2_NOT_PRECONFIGURED_FOR_SALE"
+    else failwith "FA2_NOT_FOR_SALE"
 
-let fail_if_allowlist_to_big (fa2_token, allowlist : fa2_token * (address, unit) map) : unit =
-    if Map.size allowlist > fa2_token.amount 
-    then failwith "ALLOWLIST_CAN_T_BE_BIGGER_THAN_AMOUNT_OF_TOKEN"
-    else unit
+let assert_wrong_allowlist (fa2_token, allowlist : fa2_token * (address, unit) map) : unit =
+    let calc_total_amount = fun (c, b: nat * allowed_buyer) -> {
+        c + fa2_token.amount
+        assert_msg ( c <= fa2_token.amount, "PURCHASE_AMOUNT_GREATER_THAN_TOKEN_AMOUNT")
+    }
+    in Map.iter calc_total_amount 0n allowlist
 
 // -- Fixed price drops checks
 
@@ -56,7 +49,7 @@ let fail_if_wrong_drop_date (drop_date : timestamp ) : unit =
     then failwith "DROP_DATE_MUST_BE_IN_MAXIMUM_TWO_WEEKS"
     else unit
 
-let fail_if_wrong_sale_duration (sale_duration : nat ) : unit = 
+let fail_if_wrong_sale_duration (sale_duration : nat ) : unit =
     if sale_duration <= 86400n
     then failwith "DURATION_OF_THE_SALE_MUST_BE_SUPERIOR_OR_EQUAL_AT_ONE_DAY"
     else unit
@@ -66,7 +59,7 @@ let fail_if_allowlist_and_registration_not_configured_properly ( allowlist, regi
     then failwith "YOU_CAN_NOT_CONFIGURE_A_REGISTRATION_DROP_WITH_AN_ALLOWLIST_IT_SHOULD_BE_ONE_OR_THE_OTHER"
     else unit
 
-let fail_if_token_already_been_dropped (fa2_token_identifier, storage : fa2_token_identifier * storage) : unit = 
+let fail_if_token_already_been_dropped (fa2_token_identifier, storage : fa2_token_identifier * storage) : unit =
     if Big_map.mem fa2_token_identifier storage.fa2_dropped
     then unit
     else failwith "FA2_TOKEN_ALREADY_BEEN_DROPPED"
@@ -82,8 +75,8 @@ let fail_if_drop_not_present_or_sender_already_registered_to_drop (drop_registra
 let fail_if_registration_period_over (drop_registration, storage : drop_registration * storage) : unit =
     match Big_map.find_opt (drop_registration.fa2_token_identifier, drop_registration.seller) storage.drops with
       None -> failwith "DROP_DOES_NOT_EXIST"
-    | Some fixed_price_drop -> 
-        if Tezos.now < fixed_price_drop.drop_date - 1300
+    | Some fixed_price_drop ->
+        if Tezos.now < fixed_price_drop.drop_date - 1200
         then unit
         else failwith "REGISTRATON_IS_CLOSED_FOR_THIS_DROP"
 

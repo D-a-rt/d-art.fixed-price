@@ -8,4 +8,4 @@ export async function loadFile(filePath: string): Promise<string> {
           err ? reject(err) : resolve(buff.toString())
         );
     });
-  }
+ } 

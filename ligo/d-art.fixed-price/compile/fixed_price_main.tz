@@ -1,17 +1,18 @@
 { parameter
     (or (or (or (or %admin
-                   (or (address %addDropSeller) (address %removeDropSeller))
+                   (or (or (address %addDropSeller) (bool %contractWillUpdate))
+                       (or (address %removeDropSeller) (pair %updateFee (address %address) (nat %percent))))
                    (key %updatePublicKey))
                 (pair %buyDroppedToken
-                   (pair %fa2_token (address %fa2_address) (pair (nat %token_id) (nat %amount)))
+                   (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
                    (pair (address %seller)
                          (pair %authorization_signature (bytes %message) (signature %signed)))))
             (or (pair %buyFixedPriceToken
-                   (pair %fa2_token (address %fa2_address) (pair (nat %token_id) (nat %amount)))
+                   (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
                    (pair (address %seller)
                          (pair %authorization_signature (bytes %message) (signature %signed))))
-                (pair %dropConfiguration
-                   (pair %fa2_token (address %fa2_address) (pair (nat %token_id) (nat %amount)))
+                (pair %configureDrop
+                   (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
                    (pair (address %seller)
                          (pair (mutez %price)
                                (pair (map %allowlist address unit)
@@ -19,134 +20,39 @@
                                            (pair (nat %sale_duration)
                                                  (pair (bool %registration)
                                                        (pair %authorization_signature (bytes %message) (signature %signed)))))))))))
-        (or (or (pair %dropRegistration
-                   (pair %fa2_token_identifier (address %fa2_address) (nat %token_id))
+        (or (or (pair %configureSale
+                   (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
+                   (pair (address %seller) (pair (mutez %price) (map %allowlist address unit))))
+                (pair %deleteSale
+                   (pair %fa2_token_identifier (nat %id) (address %address))
+                   (address %seller)))
+            (or (pair %registerToDrop
+                   (pair %fa2_token_identifier (nat %id) (address %address))
                    (pair (address %seller)
                          (pair %authorization_signature (bytes %message) (signature %signed))))
-                (pair %saleConfiguration
-                   (pair %fa2_token (address %fa2_address) (pair (nat %token_id) (nat %amount)))
-                   (pair (address %seller)
-                         (pair (mutez %price)
-                               (pair (map %allowlist address unit)
-                                     (pair %authorization_signature (bytes %message) (signature %signed)))))))
-            (or (pair %saleDeletion
-                   (pair %fa2_token_identifier (address %fa2_address) (nat %token_id))
-                   (address %seller))
-                (pair %saleEdition
-                   (pair %fa2_token (address %fa2_address) (pair (nat %token_id) (nat %amount)))
+                (pair %updateSale
+                   (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
                    (pair (address %seller) (pair (mutez %price) (map %allowlist address unit))))))) ;
   storage
     (pair (pair %admin
-             (pair (address %admin_address) (key %pb_key))
-             (big_map %signed_message_used (pair (bytes %message) (signature %signed)) unit))
-          (pair (big_map %sales
-                   (pair (pair (address %fa2_address) (nat %token_id)) address)
+             (pair (address %admin_address) (bool %contract_will_update))
+             (pair (key %pb_key)
+                   (big_map %signed_message_used (pair (bytes %message) (signature %signed)) unit)))
+          (pair (big_map %for_sale
+                   (pair (pair (nat %id) (address %address)) address)
                    (pair (mutez %price) (pair (nat %token_amount) (map %allowlist address unit))))
-                (pair (big_map %preconfigured_sales
-                         (pair (pair (address %fa2_address) (nat %token_id)) address)
-                         (pair (mutez %price) (pair (nat %token_amount) (map %allowlist address unit))))
-                      (pair (big_map %authorized_drops_seller address unit)
-                            (pair (big_map %fa2_dropped (pair (address %fa2_address) (nat %token_id)) unit)
-                                  (pair (big_map %drops
-                                           (pair (pair (address %fa2_address) (nat %token_id)) address)
-                                           (pair (mutez %price)
-                                                 (pair (nat %token_amount)
-                                                       (pair (bool %registration)
-                                                             (pair (map %registration_list address unit)
-                                                                   (pair (map %allowlist address unit)
-                                                                         (pair (timestamp %drop_date) (nat %sale_duration))))))))
-                                        (pair %fee (address %fee_address) (nat %fee_percent)))))))) ;
+                (pair (big_map %authorized_drops_seller address unit)
+                      (pair (big_map %drops
+                               (pair (pair (nat %id) (address %address)) address)
+                               (pair (mutez %price)
+                                     (pair (nat %token_amount)
+                                           (pair (bool %registration)
+                                                 (pair (map %registration_list address unit)
+                                                       (pair (map %allowlist address unit)
+                                                             (pair (timestamp %drop_date) (nat %sale_duration))))))))
+                            (pair (big_map %fa2_dropped (pair (nat %id) (address %address)) unit)
+                                  (pair %fee (address %address) (nat %percent))))))) ;
   code { LAMBDA
-           (pair nat nat)
-           nat
-           { UNPAIR ;
-             EDIV ;
-             IF_NONE { PUSH string "DIVISION_BY_ZERO" ; FAILWITH } { CAR } } ;
-         LAMBDA
-           (pair (pair address key) (big_map (pair bytes signature) unit))
-           unit
-           { CAR ;
-             CAR ;
-             SENDER ;
-             COMPARE ;
-             NEQ ;
-             IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } { UNIT } } ;
-         LAMBDA
-           (pair (pair address (pair nat nat)) mutez)
-           unit
-           { UNPAIR ;
-             PUSH mutez 0 ;
-             DIG 2 ;
-             COMPARE ;
-             LE ;
-             IF { DROP ; PUSH string "PRICE_NEEDS_TO_BE_GREATER_THAN_0" ; FAILWITH }
-                { PUSH nat 0 ;
-                  SWAP ;
-                  GET 4 ;
-                  COMPARE ;
-                  LE ;
-                  IF { PUSH string "AMOUNT_OF_TOKEN_NEEDS_TO_BE_GREATER_THAN_0" ; FAILWITH }
-                     { UNIT } } } ;
-         LAMBDA
-           (pair (pair address nat)
-                 (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                       (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                             (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                   (pair (big_map address unit)
-                                         (pair (big_map (pair address nat) unit)
-                                               (pair (big_map
-                                                        (pair (pair address nat) address)
-                                                        (pair mutez
-                                                              (pair nat
-                                                                    (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                                     (pair address nat))))))))
-           unit
-           { UNPAIR ;
-             SWAP ;
-             GET 5 ;
-             SENDER ;
-             DIG 2 ;
-             PAIR ;
-             MEM ;
-             IF { UNIT } { PUSH string "FA2_NOT_PRECONFIGURED_FOR_SALE" ; FAILWITH } } ;
-         LAMBDA
-           (pair (pair address (pair nat nat)) (map address unit))
-           unit
-           { UNPAIR ;
-             GET 4 ;
-             SWAP ;
-             SIZE ;
-             COMPARE ;
-             GT ;
-             IF { PUSH string "ALLOWLIST_CAN_T_BE_BIGGER_THAN_AMOUNT_OF_TOKEN" ; FAILWITH }
-                { UNIT } } ;
-         LAMBDA
-           (pair nat (pair (pair address (pair nat nat)) (pair address (pair bytes signature))))
-           unit
-           { UNPAIR ;
-             SWAP ;
-             CAR ;
-             GET 4 ;
-             SWAP ;
-             COMPARE ;
-             LT ;
-             IF { PUSH string "TOKEN_AMOUNT_TO_HIGH" ; FAILWITH } { UNIT } } ;
-         LAMBDA
-           (pair address
-                 (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                       (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                             (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                   (pair (big_map address unit)
-                                         (pair (big_map (pair address nat) unit)
-                                               (pair (big_map
-                                                        (pair (pair address nat) address)
-                                                        (pair mutez
-                                                              (pair nat
-                                                                    (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                                     (pair address nat))))))))
-           bool
-           { UNPAIR ; SWAP ; GET 7 ; SWAP ; MEM } ;
-         LAMBDA
            (pair bool string)
            unit
            { UNPAIR ; NOT ; IF { FAILWITH } { DROP ; UNIT } } ;
@@ -175,12 +81,12 @@
                { PUSH string "Return address does not resolve to contract" ; FAILWITH }
                {} } ;
          LAMBDA
-           (pair (pair (pair address (pair nat nat)) address) address)
+           (pair (pair (pair nat (pair address nat)) address) address)
            operation
            { UNPAIR ;
              UNPAIR ;
              DUP ;
-             CAR ;
+             GET 3 ;
              CONTRACT %transfer
                (list (pair (address %from_)
                            (list %destinations (pair (address %to_) (pair (nat %token_id) (nat %amount)))))) ;
@@ -191,7 +97,7 @@
              NIL (pair address (pair nat nat)) ;
              DIG 6 ;
              DUP 7 ;
-             GET 3 ;
+             CAR ;
              DIG 7 ;
              GET 4 ;
              SWAP ;
@@ -205,59 +111,61 @@
              TRANSFER_TOKENS } ;
          LAMBDA
            (pair (pair bytes signature)
-                 (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                       (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                             (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                   (pair (big_map address unit)
-                                         (pair (big_map (pair address nat) unit)
-                                               (pair (big_map
-                                                        (pair (pair address nat) address)
-                                                        (pair mutez
-                                                              (pair nat
-                                                                    (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                                     (pair address nat))))))))
-           (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                 (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                       (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
+                 (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                       (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
                              (pair (big_map address unit)
-                                   (pair (big_map (pair address nat) unit)
-                                         (pair (big_map
-                                                  (pair (pair address nat) address)
-                                                  (pair mutez
-                                                        (pair nat
-                                                              (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                               (pair address nat)))))))
+                                   (pair (big_map
+                                            (pair (pair nat address) address)
+                                            (pair mutez
+                                                  (pair nat
+                                                        (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                         (pair (big_map (pair nat address) unit) (pair address nat)))))))
+           (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                 (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
+                       (pair (big_map address unit)
+                             (pair (big_map
+                                      (pair (pair nat address) address)
+                                      (pair mutez
+                                            (pair nat
+                                                  (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                   (pair (big_map (pair nat address) unit) (pair address nat))))))
            { UNPAIR ;
              SWAP ;
              DUP ;
              DUP ;
              DUG 3 ;
              CAR ;
+             DIG 3 ;
+             CAR ;
+             CDR ;
              CDR ;
              UNIT ;
-             DIG 3 ;
+             DIG 4 ;
              SWAP ;
              SOME ;
              SWAP ;
              UPDATE ;
-             DIG 2 ;
+             SWAP ;
+             DUP ;
+             DUG 2 ;
+             CDR ;
              CAR ;
+             PAIR ;
+             SWAP ;
              CAR ;
              PAIR ;
              UPDATE 1 } ;
          LAMBDA
            (pair (pair bytes signature)
-                 (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                       (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                             (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                   (pair (big_map address unit)
-                                         (pair (big_map (pair address nat) unit)
-                                               (pair (big_map
-                                                        (pair (pair address nat) address)
-                                                        (pair mutez
-                                                              (pair nat
-                                                                    (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                                     (pair address nat))))))))
+                 (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                       (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
+                             (pair (big_map address unit)
+                                   (pair (big_map
+                                            (pair (pair nat address) address)
+                                            (pair mutez
+                                                  (pair nat
+                                                        (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                         (pair (big_map (pair nat address) unit) (pair address nat)))))))
            unit
            { UNPAIR ;
              SWAP ;
@@ -272,68 +180,57 @@
              CDR ;
              DIG 2 ;
              CAR ;
-             CAR ;
              CDR ;
+             CAR ;
              CHECK_SIGNATURE ;
              NOT ;
              DUG 2 ;
              SWAP ;
              CAR ;
              CDR ;
+             CDR ;
              SWAP ;
              MEM ;
              OR ;
              IF { PUSH string "UNAUTHORIZED_USER" ; FAILWITH } { UNIT } } ;
          LAMBDA
-           (pair (pair (pair address nat) address)
-                 (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                       (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                             (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                   (pair (big_map address unit)
-                                         (pair (big_map (pair address nat) unit)
-                                               (pair (big_map
-                                                        (pair (pair address nat) address)
-                                                        (pair mutez
-                                                              (pair nat
-                                                                    (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                                     (pair address nat))))))))
+           (pair (pair (pair nat address) address)
+                 (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                       (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
+                             (pair (big_map address unit)
+                                   (pair (big_map
+                                            (pair (pair nat address) address)
+                                            (pair mutez
+                                                  (pair nat
+                                                        (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                         (pair (big_map (pair nat address) unit) (pair address nat)))))))
            (pair mutez (pair nat (map address unit)))
            { UNPAIR ;
              UNPAIR ;
-             DUP 3 ;
-             GET 5 ;
-             DUP 3 ;
-             DUP 3 ;
+             DIG 2 ;
+             GET 3 ;
+             DUG 2 ;
              PAIR ;
              GET ;
-             IF_NONE
-               { DIG 2 ;
-                 GET 3 ;
-                 DUG 2 ;
-                 PAIR ;
-                 GET ;
-                 IF_NONE { PUSH string "TOKEN_IS_NOT_IN_SALE" ; FAILWITH } {} }
-               { SWAP ; DIG 2 ; DIG 3 ; DROP 3 } } ;
+             IF_NONE { PUSH string "TOKEN_IS_NOT_IN_SALE" ; FAILWITH } {} } ;
          LAMBDA
-           (pair (pair (pair address nat) address)
-                 (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                       (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                             (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                   (pair (big_map address unit)
-                                         (pair (big_map (pair address nat) unit)
-                                               (pair (big_map
-                                                        (pair (pair address nat) address)
-                                                        (pair mutez
-                                                              (pair nat
-                                                                    (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                                     (pair address nat))))))))
+           (pair (pair (pair nat address) address)
+                 (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                       (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
+                             (pair (big_map address unit)
+                                   (pair (big_map
+                                            (pair (pair nat address) address)
+                                            (pair mutez
+                                                  (pair nat
+                                                        (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                         (pair (big_map (pair nat address) unit) (pair address nat)))))))
            (pair mutez
                  (pair nat
                        (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat))))))
            { UNPAIR ;
              UNPAIR ;
              DIG 2 ;
-             GET 11 ;
+             GET 7 ;
              DUG 2 ;
              PAIR ;
              GET ;
@@ -343,20 +240,18 @@
          DUP 7 ;
          PAIR 3 ;
          LAMBDA
-           (pair (pair (lambda (pair (pair (pair address (pair nat nat)) address) address) operation)
+           (pair (pair (lambda (pair (pair (pair nat (pair address nat)) address) address) operation)
                        (pair (lambda address (contract unit)) (lambda (pair nat mutez) mutez)))
-                 (pair (pair (pair (pair address (pair nat nat)) (pair address (pair bytes signature))) mutez)
-                       (pair (pair (pair address key) (big_map (pair bytes signature) unit))
-                             (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                   (pair (big_map (pair (pair address nat) address) (pair mutez (pair nat (map address unit))))
-                                         (pair (big_map address unit)
-                                               (pair (big_map (pair address nat) unit)
-                                                     (pair (big_map
-                                                              (pair (pair address nat) address)
-                                                              (pair mutez
-                                                                    (pair nat
-                                                                          (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                                           (pair address nat)))))))))
+                 (pair (pair (pair (pair nat (pair address nat)) (pair address (pair bytes signature))) mutez)
+                       (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                             (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
+                                   (pair (big_map address unit)
+                                         (pair (big_map
+                                                  (pair (pair nat address) address)
+                                                  (pair mutez
+                                                        (pair nat
+                                                              (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                               (pair (big_map (pair nat address) unit) (pair address nat))))))))
            (list operation)
            { UNPAIR ;
              UNPAIR 3 ;
@@ -369,19 +264,19 @@
              SWAP ;
              EXEC ;
              DUP 4 ;
-             GET 12 ;
+             GET 10 ;
              CAR ;
              DIG 6 ;
              SWAP ;
              EXEC ;
              DUP 3 ;
              CAR ;
-             CAR ;
+             GET 3 ;
              CONTRACT %minter_royalties (pair (nat %token_id) (mutez %fee)) ;
              IF_NONE { PUSH string "Invalide FA2 Address" ; FAILWITH } {} ;
              DUP 5 ;
              DIG 6 ;
-             GET 12 ;
+             GET 10 ;
              CDR ;
              PAIR ;
              DUP 8 ;
@@ -420,7 +315,7 @@
              DUP 5 ;
              DIG 6 ;
              CAR ;
-             GET 3 ;
+             CAR ;
              DIG 6 ;
              SWAP ;
              PAIR ;
@@ -434,118 +329,249 @@
              CONS } ;
          SWAP ;
          APPLY ;
-         DIG 14 ;
+         LAMBDA
+           (pair nat nat)
+           nat
+           { UNPAIR ;
+             EDIV ;
+             IF_NONE { PUSH string "DIVISION_BY_ZERO" ; FAILWITH } { CAR } } ;
+         LAMBDA
+           (pair (pair nat (pair address nat)) mutez)
+           unit
+           { UNPAIR ;
+             PUSH mutez 0 ;
+             DIG 2 ;
+             COMPARE ;
+             LE ;
+             IF { DROP ; PUSH string "PRICE_SHOULD_BE_GREATER_THAN_0" ; FAILWITH }
+                { PUSH nat 0 ;
+                  SWAP ;
+                  GET 4 ;
+                  COMPARE ;
+                  LE ;
+                  IF { PUSH string "AMOUNT_OF_TOKEN_SHOULD_BE_GREATER_THAN_0" ; FAILWITH }
+                     { UNIT } } } ;
+         LAMBDA
+           (pair (pair nat address)
+                 (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                       (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
+                             (pair (big_map address unit)
+                                   (pair (big_map
+                                            (pair (pair nat address) address)
+                                            (pair mutez
+                                                  (pair nat
+                                                        (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                         (pair (big_map (pair nat address) unit) (pair address nat)))))))
+           unit
+           { UNPAIR ;
+             SWAP ;
+             GET 3 ;
+             SENDER ;
+             DIG 2 ;
+             PAIR ;
+             MEM ;
+             IF { UNIT } { PUSH string "FA2_NOT_FOR_SALE" ; FAILWITH } } ;
+         LAMBDA
+           (pair (pair nat (pair address nat)) (map address unit))
+           unit
+           { UNPAIR ;
+             GET 4 ;
+             SWAP ;
+             SIZE ;
+             COMPARE ;
+             GT ;
+             IF { PUSH string "ALLOWLIST_CAN_T_BE_BIGGER_THAN_AMOUNT_OF_TOKEN" ; FAILWITH }
+                { UNIT } } ;
+         LAMBDA
+           (pair nat (pair (pair nat (pair address nat)) (pair address (pair bytes signature))))
+           unit
+           { UNPAIR ;
+             SWAP ;
+             CAR ;
+             GET 4 ;
+             SWAP ;
+             COMPARE ;
+             LT ;
+             IF { PUSH string "TOKEN_AMOUNT_TO_HIGH" ; FAILWITH } { UNIT } } ;
+         LAMBDA
+           (pair address
+                 (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
+                       (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address unit))))
+                             (pair (big_map address unit)
+                                   (pair (big_map
+                                            (pair (pair nat address) address)
+                                            (pair mutez
+                                                  (pair nat
+                                                        (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                         (pair (big_map (pair nat address) unit) (pair address nat)))))))
+           bool
+           { UNPAIR ; SWAP ; GET 5 ; SWAP ; MEM } ;
+         DIG 13 ;
          UNPAIR ;
          IF_LEFT
-           { DIG 12 ;
-             DIG 13 ;
+           { DIG 5 ;
+             DIG 6 ;
              DROP 2 ;
              IF_LEFT
                { DIG 4 ;
-                 DIG 7 ;
+                 DIG 8 ;
                  DIG 11 ;
                  DROP 3 ;
                  IF_LEFT
-                   { DIG 2 ;
-                     DIG 3 ;
+                   { DIG 3 ;
                      DIG 4 ;
                      DIG 5 ;
                      DIG 6 ;
+                     DIG 7 ;
                      DIG 8 ;
-                     DIG 10 ;
-                     DROP 7 ;
+                     DROP 6 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CAR ;
+                     CAR ;
+                     CAR ;
+                     SENDER ;
+                     COMPARE ;
+                     NEQ ;
+                     IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } {} ;
                      IF_LEFT
                        { IF_LEFT
-                           { SWAP ;
-                             DUP ;
-                             DUG 2 ;
-                             CAR ;
-                             DIG 4 ;
-                             SWAP ;
-                             EXEC ;
+                           { DIG 3 ;
                              DROP ;
-                             SWAP ;
-                             DUP ;
-                             DUG 2 ;
-                             SWAP ;
-                             DUP ;
-                             DUG 2 ;
-                             PAIR ;
-                             DIG 3 ;
-                             SWAP ;
-                             EXEC ;
-                             IF { SWAP ;
-                                  DUP ;
-                                  GET 7 ;
-                                  UNIT ;
-                                  DIG 3 ;
-                                  SWAP ;
-                                  SOME ;
-                                  SWAP ;
-                                  UPDATE ;
-                                  UPDATE 7 ;
-                                  NIL operation ;
-                                  PAIR }
-                                { DROP 2 ; PUSH string "SELLER_ALREADY_ADDED" ; FAILWITH } }
-                           { SWAP ;
-                             DUP ;
-                             DUG 2 ;
-                             CAR ;
-                             DIG 4 ;
-                             SWAP ;
-                             EXEC ;
-                             DROP ;
-                             SWAP ;
-                             DUP ;
-                             DUG 2 ;
-                             SWAP ;
-                             DUP ;
-                             DUG 2 ;
-                             PAIR ;
-                             DIG 3 ;
-                             SWAP ;
-                             EXEC ;
-                             IF { SWAP ;
-                                  DUP ;
-                                  GET 7 ;
-                                  DIG 2 ;
-                                  NONE unit ;
-                                  SWAP ;
-                                  UPDATE ;
-                                  UPDATE 7 ;
-                                  NIL operation ;
-                                  PAIR }
-                                { DROP 2 ; PUSH string "SELLER_NOT_FOUND" ; FAILWITH } } }
+                             IF_LEFT
+                               { SWAP ;
+                                 DUP ;
+                                 DUG 2 ;
+                                 SWAP ;
+                                 DUP ;
+                                 DUG 2 ;
+                                 PAIR ;
+                                 DIG 3 ;
+                                 SWAP ;
+                                 EXEC ;
+                                 IF { SWAP ;
+                                      DUP ;
+                                      GET 5 ;
+                                      UNIT ;
+                                      DIG 3 ;
+                                      SWAP ;
+                                      SOME ;
+                                      SWAP ;
+                                      UPDATE ;
+                                      UPDATE 5 ;
+                                      NIL operation ;
+                                      PAIR }
+                                    { DROP 2 ; PUSH string "ALREADY_SELLER" ; FAILWITH } }
+                               { DIG 2 ;
+                                 DROP ;
+                                 SWAP ;
+                                 DUP ;
+                                 CAR ;
+                                 DUP ;
+                                 CDR ;
+                                 DIG 3 ;
+                                 DIG 2 ;
+                                 CAR ;
+                                 CAR ;
+                                 PAIR ;
+                                 PAIR ;
+                                 UPDATE 1 ;
+                                 NIL operation ;
+                                 PAIR } }
+                           { IF_LEFT
+                               { DIG 3 ;
+                                 DROP ;
+                                 SWAP ;
+                                 DUP ;
+                                 DUG 2 ;
+                                 SWAP ;
+                                 DUP ;
+                                 DUG 2 ;
+                                 PAIR ;
+                                 DIG 3 ;
+                                 SWAP ;
+                                 EXEC ;
+                                 IF { SWAP ;
+                                      DUP ;
+                                      GET 5 ;
+                                      DIG 2 ;
+                                      NONE unit ;
+                                      SWAP ;
+                                      UPDATE ;
+                                      UPDATE 5 ;
+                                      NIL operation ;
+                                      PAIR }
+                                    { DROP 2 ; PUSH string "SELLER_NOT_FOUND" ; FAILWITH } }
+                               { DIG 2 ;
+                                 DROP ;
+                                 PUSH string "Percentage must be between 0 and 100" ;
+                                 PUSH nat 100 ;
+                                 DUP 3 ;
+                                 CDR ;
+                                 COMPARE ;
+                                 GT ;
+                                 PUSH nat 0 ;
+                                 DUP 4 ;
+                                 CDR ;
+                                 COMPARE ;
+                                 LT ;
+                                 OR ;
+                                 PAIR ;
+                                 DIG 3 ;
+                                 SWAP ;
+                                 EXEC ;
+                                 DROP ;
+                                 UPDATE 10 ;
+                                 NIL operation ;
+                                 PAIR } } }
                        { DIG 2 ;
-                         DROP ;
+                         DIG 3 ;
+                         DROP 2 ;
+                         EMPTY_BIG_MAP (pair bytes signature) unit ;
+                         DIG 2 ;
+                         DUP ;
+                         DUP ;
+                         DUG 4 ;
+                         CAR ;
+                         DUP ;
+                         CDR ;
+                         CDR ;
+                         DUP 5 ;
+                         PAIR ;
+                         SWAP ;
+                         CAR ;
+                         PAIR ;
+                         UPDATE 1 ;
+                         DIG 3 ;
+                         DUP ;
+                         CAR ;
+                         DUP ;
+                         CDR ;
+                         CDR ;
+                         DIG 5 ;
+                         PAIR ;
+                         SWAP ;
+                         CAR ;
+                         PAIR ;
+                         UPDATE 1 ;
+                         CAR ;
+                         DIG 2 ;
                          SWAP ;
                          DUP ;
                          DUG 2 ;
-                         CAR ;
-                         DIG 3 ;
-                         SWAP ;
-                         EXEC ;
-                         DROP ;
-                         SWAP ;
-                         DUP ;
-                         DUP ;
-                         DUG 3 ;
-                         CAR ;
                          CDR ;
-                         DIG 2 ;
-                         DIG 3 ;
-                         CAR ;
-                         CAR ;
                          CAR ;
                          PAIR ;
+                         SWAP ;
+                         CAR ;
                          PAIR ;
                          UPDATE 1 ;
                          NIL operation ;
                          PAIR } }
-                   { DIG 7 ;
-                     DIG 9 ;
-                     DROP 2 ;
-                     PUSH string "Seller can not buy a token" ;
+                   { DIG 2 ;
+                     DROP ;
+                     PUSH string "Seller can not buy the token" ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -554,7 +580,7 @@
                      COMPARE ;
                      NEQ ;
                      PAIR ;
-                     DIG 7 ;
+                     DIG 9 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -566,7 +592,7 @@
                      DUG 2 ;
                      GET 4 ;
                      PAIR ;
-                     DIG 5 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -586,7 +612,7 @@
                      DUP 3 ;
                      PAIR ;
                      PAIR ;
-                     DIG 5 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      DUP ;
@@ -601,7 +627,7 @@
                      DUG 2 ;
                      GET 3 ;
                      PAIR ;
-                     DIG 7 ;
+                     DIG 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -664,7 +690,7 @@
                      DIG 3 ;
                      GET 3 ;
                      PAIR ;
-                     DUP 10 ;
+                     DUP 8 ;
                      SWAP ;
                      EXEC ;
                      COMPARE ;
@@ -691,7 +717,7 @@
                      DIG 3 ;
                      GET 3 ;
                      PAIR ;
-                     DIG 9 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      COMPARE ;
@@ -731,7 +757,7 @@
                      IF { DIG 2 ;
                           DROP ;
                           DIG 4 ;
-                          GET 11 ;
+                          GET 7 ;
                           DUP 5 ;
                           GET 3 ;
                           DIG 4 ;
@@ -741,8 +767,8 @@
                                            (pair bool (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))) ;
                           SWAP ;
                           UPDATE }
-                        { DIG 5 ; GET 11 ; DIG 3 ; SOME ; DUP 6 ; GET 3 ; DIG 5 ; PAIR ; UPDATE } ;
-                     UPDATE 11 ;
+                        { DIG 5 ; GET 7 ; DIG 3 ; SOME ; DUP 6 ; GET 3 ; DIG 5 ; PAIR ; UPDATE } ;
+                     UPDATE 7 ;
                      DIG 2 ;
                      GET 4 ;
                      PAIR ;
@@ -751,15 +777,14 @@
                      EXEC ;
                      SWAP ;
                      PAIR } }
-               { DIG 3 ;
-                 DIG 9 ;
-                 DIG 12 ;
-                 DROP 3 ;
+               { DIG 2 ;
+                 DIG 7 ;
+                 DROP 2 ;
                  IF_LEFT
-                   { DIG 6 ;
+                   { DIG 3 ;
                      DIG 9 ;
                      DROP 2 ;
-                     PUSH string "Seller can not buy a token" ;
+                     PUSH string "Seller can not buy the token" ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -768,7 +793,7 @@
                      COMPARE ;
                      NEQ ;
                      PAIR ;
-                     DIG 7 ;
+                     DIG 9 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -780,7 +805,7 @@
                      DUG 2 ;
                      GET 4 ;
                      PAIR ;
-                     DIG 5 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -800,7 +825,7 @@
                      DUP 3 ;
                      PAIR ;
                      PAIR ;
-                     DIG 5 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      DUP 3 ;
@@ -809,7 +834,7 @@
                      DUG 2 ;
                      GET 3 ;
                      PAIR ;
-                     DIG 7 ;
+                     DIG 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -829,7 +854,7 @@
                      DIG 3 ;
                      GET 3 ;
                      PAIR ;
-                     DIG 9 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      COMPARE ;
@@ -867,146 +892,66 @@
                      SWAP ;
                      EXEC ;
                      DUP ;
-                     DUP 5 ;
-                     GET 3 ;
-                     DUP 5 ;
-                     DIG 2 ;
-                     GET 5 ;
                      DUG 2 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CAR ;
+                     DUP 6 ;
                      PAIR ;
-                     MEM ;
-                     IF { DUP ;
-                          DUG 2 ;
-                          SWAP ;
-                          DUP ;
-                          DUG 2 ;
-                          CAR ;
-                          DUP 6 ;
-                          PAIR ;
-                          PAIR ;
-                          DIG 5 ;
-                          SWAP ;
-                          EXEC ;
-                          SWAP ;
-                          DUP ;
-                          DUG 2 ;
-                          DUP 6 ;
-                          CAR ;
-                          GET 4 ;
-                          DIG 3 ;
-                          GET 3 ;
-                          SUB ;
-                          ABS ;
-                          UPDATE 3 ;
-                          PUSH nat 0 ;
-                          SWAP ;
-                          DUP ;
-                          DUG 2 ;
-                          GET 3 ;
-                          COMPARE ;
-                          EQ ;
-                          IF { DROP ;
-                               SWAP ;
-                               DUP ;
-                               GET 5 ;
-                               DIG 4 ;
-                               GET 3 ;
-                               DIG 4 ;
-                               PAIR ;
-                               NONE (pair mutez (pair nat (map address unit))) ;
-                               SWAP ;
-                               UPDATE ;
-                               UPDATE 5 ;
-                               SWAP ;
-                               PAIR }
-                             { DIG 2 ;
-                               DUP ;
-                               DUP ;
-                               DUG 4 ;
-                               GET 5 ;
-                               DUP 7 ;
-                               GET 3 ;
-                               DUP 7 ;
-                               PAIR ;
-                               NONE (pair mutez (pair nat (map address unit))) ;
-                               SWAP ;
-                               UPDATE ;
-                               UPDATE 5 ;
-                               DIG 3 ;
-                               GET 3 ;
-                               DIG 2 ;
-                               DIG 5 ;
-                               GET 3 ;
-                               DIG 5 ;
-                               PAIR ;
-                               SWAP ;
-                               SOME ;
-                               SWAP ;
-                               UPDATE ;
-                               UPDATE 3 ;
-                               SWAP ;
-                               PAIR } }
-                        { DUP ;
-                          DUG 2 ;
-                          SWAP ;
-                          DUP ;
-                          DUG 2 ;
-                          CAR ;
-                          DUP 6 ;
-                          PAIR ;
-                          PAIR ;
-                          DIG 5 ;
-                          SWAP ;
-                          EXEC ;
-                          SWAP ;
-                          DUP ;
-                          DUG 2 ;
-                          DUP 6 ;
-                          CAR ;
-                          GET 4 ;
-                          DIG 3 ;
-                          GET 3 ;
-                          SUB ;
-                          ABS ;
-                          UPDATE 3 ;
-                          PUSH nat 0 ;
-                          SWAP ;
-                          DUP ;
-                          DUG 2 ;
-                          GET 3 ;
-                          COMPARE ;
-                          EQ ;
-                          IF { DROP ;
-                               SWAP ;
-                               DUP ;
-                               GET 3 ;
-                               DIG 4 ;
-                               GET 3 ;
-                               DIG 4 ;
-                               PAIR ;
-                               NONE (pair mutez (pair nat (map address unit))) ;
-                               SWAP ;
-                               UPDATE ;
-                               UPDATE 3 ;
-                               SWAP ;
-                               PAIR }
-                             { DIG 2 ;
-                               DUP ;
-                               GET 3 ;
-                               DIG 2 ;
-                               SOME ;
-                               DIG 5 ;
-                               GET 3 ;
-                               DIG 5 ;
-                               PAIR ;
-                               UPDATE ;
-                               UPDATE 3 ;
-                               SWAP ;
-                               PAIR } } }
-                   { DIG 2 ;
+                     PAIR ;
+                     DIG 5 ;
+                     SWAP ;
+                     EXEC ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     DUP 6 ;
+                     CAR ;
+                     GET 4 ;
                      DIG 3 ;
-                     DIG 8 ;
-                     DIG 10 ;
+                     GET 3 ;
+                     SUB ;
+                     ABS ;
+                     UPDATE 3 ;
+                     PUSH nat 0 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 3 ;
+                     COMPARE ;
+                     EQ ;
+                     IF { DROP ;
+                          SWAP ;
+                          DUP ;
+                          GET 3 ;
+                          DIG 4 ;
+                          GET 3 ;
+                          DIG 4 ;
+                          PAIR ;
+                          NONE (pair mutez (pair nat (map address unit))) ;
+                          SWAP ;
+                          UPDATE ;
+                          UPDATE 3 ;
+                          SWAP ;
+                          PAIR }
+                        { DIG 2 ;
+                          DUP ;
+                          GET 3 ;
+                          DIG 2 ;
+                          SOME ;
+                          DIG 5 ;
+                          GET 3 ;
+                          DIG 5 ;
+                          PAIR ;
+                          UPDATE ;
+                          UPDATE 3 ;
+                          SWAP ;
+                          PAIR } }
+                   { DIG 2 ;
+                     DIG 4 ;
+                     DIG 5 ;
+                     DIG 6 ;
                      DROP 4 ;
                      PUSH string "Amount sent must be 0mutez" ;
                      PUSH mutez 0 ;
@@ -1014,7 +959,7 @@
                      COMPARE ;
                      EQ ;
                      PAIR ;
-                     DUP 7 ;
+                     DUP 8 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1027,7 +972,7 @@
                      COMPARE ;
                      EQ ;
                      PAIR ;
-                     DIG 6 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1039,7 +984,7 @@
                      DUG 2 ;
                      GET 14 ;
                      PAIR ;
-                     DIG 3 ;
+                     DIG 4 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1088,7 +1033,7 @@
                      DUP 3 ;
                      CAR ;
                      PAIR ;
-                     DIG 6 ;
+                     DIG 4 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1118,7 +1063,7 @@
                      MEM ;
                      IF {} { PUSH string "FA2_TOKEN_ALREADY_BEEN_DROPPED" ; FAILWITH } ;
                      DUP 3 ;
-                     GET 7 ;
+                     GET 5 ;
                      SENDER ;
                      MEM ;
                      IF {} { PUSH string "SENDER_IS_NOT_AUTHORZED_DROP_SELLER" ; FAILWITH } ;
@@ -1133,7 +1078,7 @@
                      EXEC ;
                      DIG 3 ;
                      DUP ;
-                     GET 11 ;
+                     GET 7 ;
                      DUP 5 ;
                      GET 5 ;
                      DUP 6 ;
@@ -1168,7 +1113,7 @@
                      SOME ;
                      SWAP ;
                      UPDATE ;
-                     UPDATE 11 ;
+                     UPDATE 7 ;
                      DIG 2 ;
                      GET 14 ;
                      PAIR ;
@@ -1180,19 +1125,229 @@
                      CONS ;
                      PAIR } } }
            { DIG 2 ;
-             DIG 9 ;
-             DIG 10 ;
-             DIG 14 ;
-             DIG 15 ;
-             DROP 5 ;
+             DIG 3 ;
+             DIG 7 ;
+             DIG 8 ;
+             DROP 4 ;
              IF_LEFT
-               { DIG 3 ;
+               { DIG 5 ;
+                 DIG 7 ;
+                 DIG 8 ;
+                 DROP 3 ;
+                 IF_LEFT
+                   { DIG 3 ;
+                     DIG 5 ;
+                     DROP 2 ;
+                     PUSH string "Amount sent must be 0mutez" ;
+                     PUSH mutez 0 ;
+                     AMOUNT ;
+                     COMPARE ;
+                     EQ ;
+                     PAIR ;
+                     DUP 7 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     PUSH string "Only owner can create a sale" ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 3 ;
+                     SENDER ;
+                     COMPARE ;
+                     EQ ;
+                     PAIR ;
+                     DIG 6 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 3 ;
+                     DUP 3 ;
+                     CAR ;
+                     CAR ;
+                     DUP 4 ;
+                     CAR ;
+                     GET 3 ;
+                     SWAP ;
+                     PAIR ;
+                     DUP 3 ;
+                     GET 3 ;
+                     DUP 3 ;
+                     DUP 3 ;
+                     PAIR ;
+                     MEM ;
+                     IF { DROP 3 ; PUSH string "TOKEN_ALREADY_FOR_SALE" ; FAILWITH }
+                        { DIG 2 ;
+                          GET 7 ;
+                          DUG 2 ;
+                          PAIR ;
+                          MEM ;
+                          IF { PUSH string "TOKEN_ALREADY_IN_DROP" ; FAILWITH } {} } ;
+                     DUP ;
+                     GET 5 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CAR ;
+                     PAIR ;
+                     DIG 4 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     DUP ;
+                     GET 6 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CAR ;
+                     PAIR ;
+                     DIG 3 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     SELF_ADDRESS ;
+                     SENDER ;
+                     DUP 3 ;
+                     CAR ;
+                     PAIR ;
+                     PAIR ;
+                     DIG 3 ;
+                     SWAP ;
+                     EXEC ;
+                     DIG 2 ;
+                     DUP ;
+                     GET 3 ;
+                     DUP 4 ;
+                     GET 5 ;
+                     DUP 5 ;
+                     CAR ;
+                     GET 4 ;
+                     DUP 6 ;
+                     GET 6 ;
+                     SWAP ;
+                     PAIR ;
+                     SWAP ;
+                     PAIR ;
+                     DUP 5 ;
+                     GET 3 ;
+                     DUP 6 ;
+                     CAR ;
+                     CAR ;
+                     DIG 6 ;
+                     CAR ;
+                     GET 3 ;
+                     SWAP ;
+                     PAIR ;
+                     PAIR ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 3 ;
+                     NIL operation ;
+                     DIG 2 ;
+                     CONS ;
+                     PAIR }
+                   { DIG 2 ;
+                     DIG 4 ;
+                     DROP 2 ;
+                     PUSH string "Amount sent must be 0mutez" ;
+                     PUSH mutez 0 ;
+                     AMOUNT ;
+                     COMPARE ;
+                     EQ ;
+                     PAIR ;
+                     DUP 7 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     PUSH string "Only seller can remove the token from sale" ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CDR ;
+                     SENDER ;
+                     COMPARE ;
+                     EQ ;
+                     PAIR ;
+                     DIG 6 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CAR ;
+                     PAIR ;
+                     DIG 3 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CDR ;
+                     DUP 3 ;
+                     CAR ;
+                     PAIR ;
+                     PAIR ;
+                     DIG 3 ;
+                     SWAP ;
+                     EXEC ;
+                     SENDER ;
+                     SELF_ADDRESS ;
+                     DUP 4 ;
+                     CAR ;
+                     CAR ;
+                     DUP 5 ;
+                     CAR ;
+                     CDR ;
+                     DIG 4 ;
+                     GET 3 ;
+                     SWAP ;
+                     PAIR ;
+                     SWAP ;
+                     PAIR ;
+                     PAIR ;
+                     PAIR ;
+                     DIG 3 ;
+                     SWAP ;
+                     EXEC ;
+                     DIG 2 ;
+                     DUP ;
+                     GET 3 ;
+                     DUP 4 ;
+                     CDR ;
+                     DIG 4 ;
+                     CAR ;
+                     PAIR ;
+                     NONE (pair mutez (pair nat (map address unit))) ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 3 ;
+                     NIL operation ;
+                     DIG 2 ;
+                     CONS ;
+                     PAIR } }
+               { DIG 6 ;
                  DIG 9 ;
                  DROP 2 ;
                  IF_LEFT
-                   { DIG 5 ;
-                     DIG 7 ;
-                     DIG 8 ;
+                   { DIG 2 ;
+                     DIG 3 ;
+                     DIG 4 ;
                      DROP 3 ;
                      PUSH string "Amount sent must be 0mutez" ;
                      PUSH mutez 0 ;
@@ -1204,7 +1359,7 @@
                      SWAP ;
                      EXEC ;
                      DROP ;
-                     PUSH string "Seller can not register for a drop" ;
+                     PUSH string "Seller can not register for the drop" ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -1236,7 +1391,7 @@
                      DUP ;
                      DUG 2 ;
                      SWAP ;
-                     GET 11 ;
+                     GET 7 ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -1258,7 +1413,7 @@
                      DUP ;
                      DUG 2 ;
                      SWAP ;
-                     GET 11 ;
+                     GET 7 ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -1269,7 +1424,7 @@
                      GET ;
                      IF_NONE
                        { PUSH string "DROP_DOES_NOT_EXIST" ; FAILWITH }
-                       { PUSH int 1300 ;
+                       { PUSH int 1200 ;
                          SWAP ;
                          GET 11 ;
                          SUB ;
@@ -1313,7 +1468,7 @@
                      UPDATE ;
                      DIG 3 ;
                      DUP ;
-                     GET 11 ;
+                     GET 7 ;
                      DIG 3 ;
                      DIG 3 ;
                      UPDATE 7 ;
@@ -1324,250 +1479,24 @@
                      CAR ;
                      PAIR ;
                      UPDATE ;
-                     UPDATE 11 ;
+                     UPDATE 7 ;
                      SWAP ;
                      GET 4 ;
                      PAIR ;
                      EXEC ;
                      NIL operation ;
                      PAIR }
-                   { DIG 2 ;
-                     DROP ;
-                     PUSH string "Amount sent must be 0mutez" ;
-                     PUSH mutez 0 ;
-                     AMOUNT ;
-                     COMPARE ;
-                     EQ ;
-                     PAIR ;
-                     DUP 7 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     PUSH string "Only seller can sell the token" ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     GET 3 ;
-                     SENDER ;
-                     COMPARE ;
-                     EQ ;
-                     PAIR ;
-                     DIG 6 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     GET 8 ;
-                     PAIR ;
-                     DIG 3 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     DUP ;
-                     CAR ;
-                     CAR ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     CAR ;
-                     GET 3 ;
-                     SWAP ;
-                     PAIR ;
-                     DUP 3 ;
-                     DUP 3 ;
-                     GET 3 ;
-                     DUP 3 ;
-                     DUP 3 ;
-                     GET 3 ;
-                     DUP 3 ;
-                     DUP 3 ;
-                     PAIR ;
-                     MEM ;
-                     IF { DROP 3 ; PUSH string "TOKEN_ALREADY_IN_SALE" ; FAILWITH }
-                        { DUP 3 ;
-                          GET 5 ;
-                          DUP 3 ;
-                          DUP 3 ;
-                          PAIR ;
-                          MEM ;
-                          IF { DROP 3 ; PUSH string "TOKEN_ALREADY_PRCONFIGURED_FOR_SALE" ; FAILWITH }
-                             { DIG 2 ;
-                               GET 11 ;
-                               DUG 2 ;
-                               PAIR ;
-                               MEM ;
-                               IF { PUSH string "TOKEN_ALREADY_IN_DROP" ; FAILWITH } {} } } ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     GET 5 ;
-                     DUP 3 ;
-                     CAR ;
-                     PAIR ;
-                     DIG 7 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     GET 7 ;
-                     DUP 3 ;
-                     CAR ;
-                     PAIR ;
-                     DIG 6 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     SELF_ADDRESS ;
-                     SENDER ;
-                     DUP 4 ;
-                     CAR ;
-                     PAIR ;
-                     PAIR ;
-                     DIG 5 ;
-                     SWAP ;
-                     EXEC ;
-                     DIG 3 ;
-                     DUP ;
-                     GET 5 ;
-                     DUP 5 ;
-                     GET 5 ;
-                     DUP 6 ;
-                     CAR ;
-                     GET 4 ;
-                     DUP 7 ;
-                     GET 7 ;
-                     SWAP ;
-                     PAIR ;
-                     SWAP ;
-                     PAIR ;
-                     DUP 6 ;
-                     GET 3 ;
-                     DIG 5 ;
-                     PAIR ;
-                     SWAP ;
-                     SOME ;
-                     SWAP ;
-                     UPDATE ;
-                     UPDATE 5 ;
-                     DIG 2 ;
-                     GET 8 ;
-                     PAIR ;
-                     DIG 2 ;
-                     SWAP ;
-                     EXEC ;
-                     NIL operation ;
-                     DIG 2 ;
-                     CONS ;
-                     PAIR } }
-               { DIG 2 ;
-                 DIG 4 ;
-                 DIG 5 ;
-                 DROP 3 ;
-                 IF_LEFT
                    { DIG 5 ;
+                     DIG 6 ;
                      DIG 7 ;
-                     DROP 2 ;
+                     DROP 3 ;
                      PUSH string "Amount sent must be 0mutez" ;
                      PUSH mutez 0 ;
                      AMOUNT ;
                      COMPARE ;
                      EQ ;
                      PAIR ;
-                     DUP 6 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     PUSH string "Only seller can remove the token from sale" ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     CDR ;
-                     SENDER ;
-                     COMPARE ;
-                     EQ ;
-                     PAIR ;
-                     DIG 5 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     CAR ;
-                     PAIR ;
-                     DIG 5 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     CDR ;
-                     DUP 3 ;
-                     CAR ;
-                     PAIR ;
-                     PAIR ;
-                     DIG 3 ;
-                     SWAP ;
-                     EXEC ;
-                     SENDER ;
-                     SELF_ADDRESS ;
-                     DUP 4 ;
-                     CAR ;
-                     CAR ;
-                     DUP 5 ;
-                     CAR ;
-                     CDR ;
-                     DIG 4 ;
-                     GET 3 ;
-                     SWAP ;
-                     PAIR ;
-                     SWAP ;
-                     PAIR ;
-                     PAIR ;
-                     PAIR ;
-                     DIG 3 ;
-                     SWAP ;
-                     EXEC ;
-                     DIG 2 ;
-                     DUP ;
-                     GET 5 ;
-                     DUP 4 ;
-                     CDR ;
-                     DIG 4 ;
-                     CAR ;
-                     PAIR ;
-                     NONE (pair mutez (pair nat (map address unit))) ;
-                     SWAP ;
-                     UPDATE ;
-                     UPDATE 5 ;
-                     NIL operation ;
-                     DIG 2 ;
-                     CONS ;
-                     PAIR }
-                   { DIG 2 ;
-                     DIG 3 ;
-                     DROP 2 ;
-                     PUSH string "Amount sent must be 0mutez" ;
-                     PUSH mutez 0 ;
-                     AMOUNT ;
-                     COMPARE ;
-                     EQ ;
-                     PAIR ;
-                     DUP 4 ;
+                     DUP 7 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1580,7 +1509,7 @@
                      COMPARE ;
                      EQ ;
                      PAIR ;
-                     DIG 3 ;
+                     DIG 6 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1627,7 +1556,7 @@
                      DROP ;
                      DIG 2 ;
                      DUP ;
-                     GET 5 ;
+                     GET 3 ;
                      DUP 4 ;
                      GET 5 ;
                      DUP 5 ;
@@ -1645,7 +1574,7 @@
                      DIG 4 ;
                      PAIR ;
                      UPDATE ;
-                     UPDATE 5 ;
+                     UPDATE 3 ;
                      NIL operation ;
                      PAIR } } } } }
 

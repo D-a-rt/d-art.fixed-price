@@ -9,6 +9,10 @@ program
     .action(contract.compileContract)
 
 program
+    .command('contract-size')
+    .action(contract.calculateSize)
+
+program
     .command('deploy-contract')
     .action(contract.deployContract)
 

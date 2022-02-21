@@ -19,8 +19,8 @@ export async function activateAccounts(): Promise<void> {
 
             await activateFaucet(signer, faucet.secret);
         }
-    } catch(error) {
-        console.log(kleur.red(error))
+    } catch(error: any) {
+        console.log(kleur.red(error.toString()))
         console.log(kleur.yellow('No owner found for the specified name, try : owner, bob, or alice'))
     }
 }
@@ -43,7 +43,7 @@ async function activateFaucet(signer: InMemorySigner, secret: string): Promise<v
 
 export function createToolkit(signer: InMemorySigner) : TezosToolkit {
     const toolkit = new TezosToolkit('https://florencenet.smartpy.io');
-    
+
     toolkit.setProvider({
         signer: signer,
         config: { confirmationPollingIntervalSecond: 5 }
