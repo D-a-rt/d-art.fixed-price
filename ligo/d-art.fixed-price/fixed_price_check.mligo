@@ -65,11 +65,24 @@ let fail_if_sender_not_authorized (allowlist : (address, nat) map ) : unit =
     then unit
     else failwith "SENDER_NOT_AUTHORIZE_TO_BUY"
 
-let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop : fixed_price_drop ) : unit =
+let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, fa2_base : fixed_price_drop * fa2_base ) : unit =
     if fixed_price_drop.registration.active
     then
-        // Fail if not register to a drop except if drop is a day old open to public
-        // Change to register priority duration to be more explicit
-        if Map.mem Tezos.sender fixed_price_drop.registration_list || abs (Tezos.now - fixed_price_drop.drop_date) > fixed_price_drop.sale_duration
+        if abs (Tezos.now - fixed_price_drop.drop_date) > fixed_price_drop.priority_duration
         then unit
-        else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
+        else
+            // Fail if not register to a drop except if drop is a day old open to public
+            // Change to register priority duration to be more explicit
+            if fixed_price_drop.registration.pass_holder_drop
+            then
+                let request : request = {
+                    owner = Tezos.sender;
+                    token_id = fa2_base.id;
+                } in
+                if handle_utility_access (request, fixed_price_drop.registration.utility_token_address) > 0n && handle_utility_access (request, fa2_base.address) = 0n
+                then unit
+                else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
+            else
+                if Map.mem Tezos.sender fixed_price_drop.registration_list
+                then unit
+                else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"

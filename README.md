@@ -232,7 +232,7 @@ type fixed_price_drop =
     registration_list: (address, unit) map;
     allowlist: (address, unit) map;
     drop_date: timestamp;
-    sale_duration: nat;
+    priority_duration: nat;
 }
 ```
 
@@ -254,7 +254,7 @@ Note: it is not possible to have both a registration periode and a private drop 
 
 ``drop_date`` : The time when the sale start.
 
-``sale_duration`` : The amount of time registered buyers will have the priority on the drop sale, once this duration is passed, the drop becomes public.
+``priority_duration`` : The amount of time registered buyers will have the priority on the drop sale, once this duration is passed, the drop becomes public.
 
 
 ### Fee
@@ -385,7 +385,7 @@ All the needed field to delete a `preconfigured_sale`. The entrypoints only cont
 
 The `DropConfiguration` entrypoint is responsible to configure a drop.
 
-Note: A drop can not be edited or deleted, `registration` drops and private `drops` can not be set at the same time, after a `sale_duration` the sale will go public.
+Note: A drop can not be edited or deleted, `registration` drops and private `drops` can not be set at the same time, after a `priority_duration` the sale will go public.
 
 ``` ocaml
 type drop_configuration =
@@ -396,7 +396,7 @@ type drop_configuration =
     price: tez;
     allowlist: (address, unit) map;
     drop_date: timestamp;
-    sale_duration: nat;
+    priority_duration: nat;
     registration: bool;
     authorization_signature: authorization_signature;
 }
@@ -408,7 +408,7 @@ All the needed field to configure a `drop`. The entrypoints only contains record
 
 The `DropRegistration` entrypoint is responsible to register to a drop.
 
-Note: The registration period opens as soon as a drop is configured with `registration: true`, registered buyers will be able to buy at `least one token` from the sale or `total_supply_of_token/registered_buyers` during a `sale_duration` after which the sale will become public (the first to click will then have the privilege to buy a token - of course depending on the gas specified)
+Note: The registration period opens as soon as a drop is configured with `registration: true`, registered buyers will be able to buy at `least one token` from the sale or `total_supply_of_token/registered_buyers` during a `priority_duration` after which the sale will become public (the first to click will then have the privilege to buy a token - of course depending on the gas specified)
 
 ``` ocaml
 type drop_registration =
