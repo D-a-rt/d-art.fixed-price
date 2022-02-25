@@ -15,8 +15,10 @@ let ceil_div_tez (tz_qty, nat_qty : tez * nat) : tez =
        let (quotient, remainder) = e in
        if remainder > 0mutez then (quotient + 1mutez) else quotient
 
-let calculate_sale_fee (percent, sale_value : nat * tez) : tez =
-  (ceil_div_tez (sale_value *  percent, 100n))
+let calculate_fee (percent, sale_value : (nat option) * tez) : tez =
+  match percent with
+    None -> 0mutez
+    | Some percentage -> ceil_div_tez (sale_value *  percentage, 100n)
 
 // -- Contracts
 
@@ -26,25 +28,33 @@ let address_to_contract_transfer_entrypoint(add : address) : ((transfer list) co
     None -> (failwith "Invalid FA2 Address" : (transfer list) contract)
   | Some contract ->  contract
 
-let minter_to_contract_ownership_entrypoint(contract_address : address) : royalties_param contract =
-  let contract : royalties_param contract option = Tezos.get_entrypoint_opt "%minter_royalties" contract_address in
-  match contract with
-    None -> (failwith "Invalide FA2 Address" : royalties_param contract)
-    | Some contract -> contract
-
 let resolve_contract (add : address) : unit contract =
   match ((Tezos.get_contract_opt add) : (unit contract) option) with
       None -> (failwith "Return address does not resolve to contract" : unit contract)
     | Some c -> c
 
-// Add batch cre
-let transfer_token_to_contract (token, from_, to_ : fa2_token * address * address) : operation =
+type royalties =
+[@layout:comb]
+{
+  address: address;
+  percentage: nat;
+}
+
+let handle_royalties (token, price : fa2_token * tez) : tez * (operation list) =
+  match ((Tezos.call_view "minter_royalties" token.id token.address ): royalties option) with
+    None -> 0mutez, ([]: operation list)
+    | Some royalties_param ->
+      let royalties_fee : tez = calculate_fee ( Some (royalties_param.percentage), price) in
+      let royalties_contract : unit contract = resolve_contract royalties_param.address in
+      royalties_fee, [(Tezos.transaction unit royalties_fee royalties_contract)]
+
+let transfer_token (token, from_, to_ : fa2_token * address * address) : operation =
   let destination : transfer_destination = {
       to_ = to_;
       token_id = token.id;
       amount = token.amount;
    } in
-   let transfer_param = [{from_ = from_; destinations = [destination]}] in
+   let transfer_param = [{from_ = from_; txs = [destination]}] in
    let contract = address_to_contract_transfer_entrypoint token.address in
    (Tezos.transaction transfer_param 0mutez contract)
 
@@ -58,66 +68,48 @@ let signed_message_not_valid (authorization_signature, storage : authorization_s
 
 let mark_message_as_used (authorization_signature, storage : authorization_signature * storage) : storage =
   let new_signed_message_used : signed_message_used = Big_map.add authorization_signature unit storage.admin.signed_message_used in
-  let new_admin_storage : admin_storage = { storage.admin  with signed_message_used = new_signed_message_used } in
+  { storage with admin.signed_message_used = new_signed_message_used }
 
-  { storage with admin = new_admin_storage }
-
-let verify_user (authorization_signature, storage : authorization_signature * storage) : unit =
+let verify_signature (authorization_signature, storage : authorization_signature * storage) : unit =
   if signed_message_used (authorization_signature, storage) || signed_message_not_valid (authorization_signature, storage)
   then failwith "UNAUTHORIZED_USER"
   else unit
 
 // -- Fixed price sale
 
-let get_fixed_price_sale_in_maps (fa2_token_identifier, seller, storage : fa2_token_identifier * address * storage) : fixed_price_sale =
+let get_sale (fa2_base, seller, storage : fa2_base * address * storage) : fixed_price_sale =
     // Fail if fixed price sale is not present
-    match ( Big_map.find_opt (fa2_token_identifier, seller) storage.for_sale ) with
+    match ( Big_map.find_opt (fa2_base, seller) storage.for_sale ) with
           Some fixed_price_sale -> fixed_price_sale
         | None ->  (failwith "TOKEN_IS_NOT_IN_SALE" : fixed_price_sale)
 
-let token_in_preconfigured_sale (fa2_token_identifier, seller, storage : fa2_token_identifier * address * storage) : bool =
-    Big_map.mem (fa2_token_identifier, seller) storage.for_sale
-
-let sender_in_registration_list (fixed_price_drop : fixed_price_drop) : bool =
-    Map.mem Tezos.sender fixed_price_drop.registration_list
-
 // -- Fixed price drop
 
-let get_fixed_price_drop_in_map (fa2_token_identifier, seller, storage : fa2_token_identifier * address * storage) : fixed_price_drop =
-    // Fail if fixed price drop is not present
-    match ( Big_map.find_opt (fa2_token_identifier, seller) storage.drops ) with
+let get_drop (fa2_base, seller, storage : fa2_base * address * storage) : fixed_price_drop =
+    match ( Big_map.find_opt (fa2_base, seller) storage.drops ) with
           Some fixed_price_drop -> fixed_price_drop
         | None ->  (failwith "TOKEN_IS_NOT_IN_DROP" : fixed_price_drop)
 
 // -- Any kind of sale
 
+let reduce_buyer_credit ( allowlist : (address, nat) map ) : (address, nat) map =
+  match ( Map.find_opt Tezos.sender allowlist ) with
+    None -> allowlist
+    | Some buyer_credit -> (Map.update Tezos.sender (Some (abs (buyer_credit - 1n))) allowlist)
+
 let perform_sale_operation (buy_token, price, storage : buy_token * tez * storage) : operation list =
 
-    // Get seller, fee and minter contract to transfer the money
-    let seller_contract : unit contract = resolve_contract buy_token.seller in
-    let fee_contract : unit contract = resolve_contract storage.fee.address in
-    let minter_contract : royalties_param contract = minter_to_contract_ownership_entrypoint buy_token.fa2_token.address in
+  let admin_contract : unit contract = resolve_contract storage.fee.address in
+  let admin_fee : tez = calculate_fee ( Some (storage.fee.percent) , price) in
+  let admin_fee_transfer : operation = Tezos.transaction unit admin_fee admin_contract in
 
-    // Define the sale fee and minter fee
-    let sale_fee : tez = calculate_sale_fee (storage.fee.percent, price) in
-    let minter_fee : tez = calculate_sale_fee (abs(10), price) in
+  let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (buy_token.fa2_token, price) in
 
-    // Transfer token to buyer
-    let fa2_transfer : operation list = [transfer_token_in_contract (buy_token.fa2_token, buy_token.seller, Tezos.sender)] in
+  let seller_contract : unit contract = resolve_contract buy_token.seller in
+  let seller_transfer : operation = Tezos.transaction unit (price - admin_fee - royalties_fee) seller_contract in
 
-    // Transfer tez to seller
-    let tez_transfer : operation = Tezos.transaction unit (price - sale_fee) seller_contract in
+  let buyer_transfer : operation = transfer_token (buy_token.fa2_token, Tezos.self_address, Tezos.sender) in
 
-    // Transfer sale_fee to admin
-    let sale_fee_transfer : operation = Tezos.transaction unit sale_fee fee_contract in
+  // List of all the performed operation
+  (admin_fee_transfer :: buyer_transfer :: seller_transfer :: royalties_transfer )
 
-    let royalties_param : royalties_param = {
-      token_id = buy_token.fa2_token.id;
-      fee = minter_fee;
-    } in
-
-    // Transfer royalties to minter
-    let minter_royalties_transfer : operation = Tezos.transaction royalties_param minter_fee minter_contract in
-
-    // List of all the performed operation
-    (minter_royalties_transfer :: sale_fee_transfer :: tez_transfer :: fa2_transfer)

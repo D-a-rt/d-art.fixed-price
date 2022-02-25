@@ -60,8 +60,8 @@ type storage =
 [@layout:comb]
 {
     admin: admin_storage;
-    sales: (fa2_token_identifier * seller, fixed_price_sale) big_map;
-    for_sale: (fa2_token_identifier * seller, fixed_price_sale) big_map;
+    sales: (fa2_base * seller, fixed_price_sale) big_map;
+    for_sale: (fa2_base * seller, fixed_price_sale) big_map;
     authorized_drops_seller: authorized_drops_sellers_storage;
     fa2_dropped: fa2_dropped_storage;
     drops: drops_storage;
@@ -83,7 +83,7 @@ type storage =
 }
 
 type admin_storage = {
-  admin_address : address;
+  address : address;
   pb_key : key;
   signed_message_used : signed_message_used;
 }
@@ -98,7 +98,7 @@ type authorization_signature = {
 
 The admin storage is used to protect the entrypoints. By giving a message and its signature and performing a check we ensure that the message is coming from the right client. It works in a sense like an allowlist. We created this feature in order to avoid calling the contract each time a user sign in in our platform.
 
-``admin_address`` : Define the address of the administrator of the contract.
+``address`` : Define the address of the administrator of the contract.
 
 ``pb_key`` : Public key responsible to check the authorization_signature sent in order to protect the entrypoint.
 
@@ -116,11 +116,11 @@ type storage =
 [@layout:comb]
 {
     ...
-    sales: (fa2_token_identifier * seller, fixed_price_sale) big_map;
+    sales: (fa2_base * seller, fixed_price_sale) big_map;
     ...
 }
 
-type fa2_token_identifier =
+type fa2_base =
 [@layout:comb]
 {
     fa2_address : address;
@@ -138,7 +138,7 @@ type fixed_price_sale =
 
 The `sales` record is used to hold all the active sales in the contract. A `preconfigured_sale` is considered active after the first sale, of course if the amount bought is lower than the total supply of token.
 
-``fa2_token_identifier * seller`` : The `key` is composed of the general information of a token and a seller (the seller in the key allow mulptile user to sell the same token and differentiate them)
+``fa2_base * seller`` : The `key` is composed of the general information of a token and a seller (the seller in the key allow mulptile user to sell the same token and differentiate them)
 
 ``fixed_price_sale`` : The `value` is composed of all the necessary information related to the sale: price of a unit, and the amount available.
 
@@ -153,7 +153,7 @@ type storage =
 [@layout:comb]
 {
     ...
-    for_sale: (fa2_token_identifier * seller, fixed_price_sale) big_map;
+    for_sale: (fa2_base * seller, fixed_price_sale) big_map;
     ...
 }
 ```
@@ -202,7 +202,7 @@ type storage =
     ...
 }
 
-type fa2_dropped_storage = (fa2_token_identifier, unit) big_map
+type fa2_dropped_storage = (fa2_base, unit) big_map
 ```
 
 
@@ -221,7 +221,7 @@ type storage =
     ...
 }
 
-type drops_storage = (fa2_token_identifier * seller, fixed_price_drop) big_map
+type drops_storage = (fa2_base * seller, fixed_price_drop) big_map
 
 type fixed_price_drop =
 [@layout:comb]
@@ -374,7 +374,7 @@ The `SaleDeletion` entrypoint is responsible to delete a sale.
 type sale_deletion =
 [@layout:comb]
 {
-    fa2_token_identifier: fa2_token_identifier;
+    fa2_base: fa2_base;
     seller: seller;
 }
 
@@ -414,7 +414,7 @@ Note: The registration period opens as soon as a drop is configured with `regist
 type drop_registration =
 [@layout:comb]
 {
-    fa2_token_identifier: fa2_token_identifier;
+    fa2_base: fa2_base;
     seller: seller;
     authorization_signature: authorization_signature;
 }

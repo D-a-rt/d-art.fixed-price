@@ -10,16 +10,15 @@ let is_drop_seller (seller, storage : address * storage) : bool =
   Big_map.mem seller storage.authorized_drops_seller
 
 let admin_main (param, storage : admin_entrypoints * storage) : (operation list) * storage =
-  let fail = fail_if_not_admin (storage.admin) in
+  let () = fail_if_not_admin (storage.admin) in
   match param with
-    | UpdateFee new_fee_data ->
-      let () = assert_msg (new_fee_data.percent < 0n || new_fee_data.percent > 100n, "Percentage must be between 0 and 100") in
+    UpdateFee new_fee_data ->
+      let () = assert_msg (new_fee_data.percent > 0n || new_fee_data.percent < 100n, "Percentage must be between 0 and 100") in
       ([] : operation list), { storage with fee = new_fee_data }
 
     | UpdatePublicKey key ->
       let empty_message_used : signed_message_used = Big_map.empty in
-      let new_storage = { storage with admin.pb_key = key; admin.signed_message_used = empty_message_used } in
-      ([] : operation list), new_storage
+      ([] : operation list), { storage with admin.pb_key = key; admin.signed_message_used = empty_message_used }
 
     | AddDropSeller seller ->
       if is_drop_seller(seller, storage)
