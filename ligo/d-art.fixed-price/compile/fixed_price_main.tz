@@ -53,7 +53,7 @@
                                                     (option %utility_token (pair (nat %id) (address %address)))
                                                     (pair (nat %priority_duration) (bool %active)))
                                                  (pair (map %registration_list address unit)
-                                                       (pair (map %advance_buyers address unit) (timestamp %drop_date)))))))
+                                                       (pair (map %drop_owners address unit) (timestamp %drop_date)))))))
                             (pair (big_map %fa2_dropped (pair (nat %id) (address %address)) unit)
                                   (pair %fee (address %address) (nat %percent))))))) ;
   code { LAMBDA
@@ -86,20 +86,6 @@
              IF_NONE
                { PUSH string "Return address does not resolve to contract" ; FAILWITH }
                {} } ;
-         LAMBDA
-           (pair (pair address nat) address)
-           nat
-           { UNPAIR ;
-             SWAP ;
-             NIL (pair address nat) ;
-             DIG 2 ;
-             CONS ;
-             VIEW "balance_of"
-                  (list (pair (pair %request (address %owner) (nat %token_id)) (nat %balance))) ;
-             IF_NONE
-               { PUSH nat 0 }
-               { IF_CONS { SWAP ; DROP ; SOME } { NONE (pair (pair address nat) nat) } ;
-                 IF_NONE { PUSH nat 0 } { CDR } } } ;
          LAMBDA
            (pair (pair (pair nat (pair address nat)) address) address)
            operation
@@ -207,8 +193,8 @@
              PAIR ;
              GET ;
              IF_NONE { PUSH string "TOKEN_IS_NOT_IN_DROP" ; FAILWITH } {} } ;
-         DIG 6 ;
-         DIG 6 ;
+         DIG 5 ;
+         DIG 5 ;
          DUP 6 ;
          PAIR 3 ;
          LAMBDA
@@ -325,7 +311,7 @@
                                          (pair (big_map (pair nat address) unit) (pair address nat)))))))
            bool
            { UNPAIR ; SWAP ; GET 5 ; SWAP ; MEM } ;
-         DIG 8 ;
+         DIG 7 ;
          UNPAIR ;
          IF_LEFT
            { IF_LEFT
@@ -336,8 +322,7 @@
                    { DIG 3 ;
                      DIG 4 ;
                      DIG 5 ;
-                     DIG 6 ;
-                     DROP 4 ;
+                     DROP 3 ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -466,7 +451,7 @@
                      COMPARE ;
                      NEQ ;
                      PAIR ;
-                     DUP 8 ;
+                     DUP 7 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -507,9 +492,9 @@
                      DUP 3 ;
                      GET 3 ;
                      COMPARE ;
-                     GT ;
+                     GE ;
                      PAIR ;
-                     DIG 7 ;
+                     DUP 7 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -525,6 +510,8 @@
                      SWAP ;
                      DUP ;
                      DUG 2 ;
+                     SWAP ;
+                     DROP ;
                      DUP ;
                      GET 5 ;
                      GET 4 ;
@@ -540,49 +527,79 @@
                           ABS ;
                           COMPARE ;
                           GT ;
-                          IF { SWAP ; DIG 7 ; DROP 3 ; UNIT }
+                          IF { DROP ; UNIT }
                              { DUP ;
                                GET 5 ;
                                CAR ;
                                IF_NONE
-                                 { SWAP ;
-                                   DIG 7 ;
-                                   DROP 2 ;
+                                 { DUP ;
+                                   GET 9 ;
+                                   SENDER ;
+                                   MEM ;
+                                   NOT ;
+                                   SWAP ;
+                                   DUP ;
+                                   DUG 2 ;
                                    GET 7 ;
                                    SENDER ;
                                    MEM ;
-                                   IF { UNIT }
-                                      { PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ; FAILWITH } }
-                                 { SWAP ;
-                                   DROP ;
-                                   DUP ;
+                                   AND ;
+                                   IF { PUSH string "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" ;
+                                        PUSH nat 1 ;
+                                        DIG 2 ;
+                                        GET 3 ;
+                                        COMPARE ;
+                                        EQ ;
+                                        PAIR ;
+                                        DUP 7 ;
+                                        SWAP ;
+                                        EXEC }
+                                      { DROP ;
+                                        PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ;
+                                        FAILWITH } }
+                                 { DUP ;
                                    CAR ;
                                    SENDER ;
                                    PAIR ;
-                                   PUSH nat 0 ;
-                                   DIG 3 ;
-                                   CDR ;
                                    DUP 3 ;
-                                   PAIR ;
-                                   DUP 10 ;
-                                   SWAP ;
-                                   EXEC ;
-                                   COMPARE ;
-                                   EQ ;
+                                   GET 9 ;
+                                   SENDER ;
+                                   MEM ;
+                                   NOT ;
                                    PUSH nat 0 ;
                                    DIG 3 ;
                                    CDR ;
                                    DIG 3 ;
-                                   PAIR ;
-                                   DIG 8 ;
-                                   SWAP ;
-                                   EXEC ;
+                                   VIEW "get_balance" nat ;
+                                   IF_NONE { PUSH nat 0 } {} ;
                                    COMPARE ;
                                    GT ;
                                    AND ;
-                                   IF { UNIT }
-                                      { PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ; FAILWITH } } } }
-                        { SWAP ; DIG 7 ; DROP 3 ; UNIT } ;
+                                   IF { PUSH string "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" ;
+                                        PUSH nat 1 ;
+                                        DIG 2 ;
+                                        GET 3 ;
+                                        COMPARE ;
+                                        EQ ;
+                                        PAIR ;
+                                        DUP 7 ;
+                                        SWAP ;
+                                        EXEC }
+                                      { DROP ;
+                                        PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ;
+                                        FAILWITH } } } }
+                        { DROP ; UNIT } ;
+                     DROP ;
+                     PUSH string "Wrong price specified" ;
+                     AMOUNT ;
+                     DUP 3 ;
+                     CAR ;
+                     COMPARE ;
+                     EQ ;
+                     PAIR ;
+                     DIG 6 ;
+                     SWAP ;
+                     EXEC ;
                      DROP ;
                      DUP ;
                      DUP 4 ;
@@ -594,11 +611,20 @@
                      ABS ;
                      UPDATE 3 ;
                      SWAP ;
+                     DUP ;
+                     DUG 2 ;
                      GET 7 ;
                      NONE unit ;
                      SENDER ;
                      UPDATE ;
                      UPDATE 7 ;
+                     SWAP ;
+                     GET 9 ;
+                     UNIT ;
+                     SOME ;
+                     SENDER ;
+                     UPDATE ;
+                     UPDATE 9 ;
                      PUSH nat 0 ;
                      SWAP ;
                      DUP ;
@@ -661,8 +687,7 @@
                      PAIR } }
                { DIG 2 ;
                  DIG 4 ;
-                 DIG 8 ;
-                 DROP 3 ;
+                 DROP 2 ;
                  IF_LEFT
                    { DIG 5 ;
                      DROP ;
@@ -716,7 +741,7 @@
                      DUP 3 ;
                      GET 3 ;
                      COMPARE ;
-                     GT ;
+                     GE ;
                      PAIR ;
                      DUP 7 ;
                      SWAP ;
@@ -970,7 +995,7 @@
                      DROP ;
                      DUP ;
                      GET 9 ;
-                     PUSH int 172800 ;
+                     PUSH int 120 ;
                      NOW ;
                      ADD ;
                      SWAP ;
@@ -1047,8 +1072,8 @@
                      DUP 7 ;
                      GET 7 ;
                      PAIR 6 ;
-                     SENDER ;
                      SELF_ADDRESS ;
+                     SENDER ;
                      DUP 5 ;
                      GET 5 ;
                      PAIR ;
@@ -1123,8 +1148,7 @@
                      PAIR } } }
            { DIG 2 ;
              DIG 3 ;
-             DIG 8 ;
-             DROP 3 ;
+             DROP 2 ;
              IF_LEFT
                { DIG 3 ;
                  DROP ;
@@ -1344,19 +1368,6 @@
                      SWAP ;
                      EXEC ;
                      DROP ;
-                     PUSH string "Seller can not register for the drop" ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     GET 3 ;
-                     SENDER ;
-                     COMPARE ;
-                     NEQ ;
-                     PAIR ;
-                     DUP 5 ;
-                     SWAP ;
-                     EXEC ;
-                     DROP ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -1371,6 +1382,28 @@
                      DIG 3 ;
                      SWAP ;
                      EXEC ;
+                     PUSH string "Registration is not allowed" ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 5 ;
+                     GET 4 ;
+                     PAIR ;
+                     DUP 5 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     PUSH string "Seller can not register for the drop" ;
+                     DUP 3 ;
+                     GET 3 ;
+                     SENDER ;
+                     COMPARE ;
+                     NEQ ;
+                     PAIR ;
+                     DUP 5 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
                      PUSH string "Utility token drop, no registration possible" ;
                      SWAP ;
                      DUP ;

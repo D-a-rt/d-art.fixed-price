@@ -125,7 +125,7 @@ type fixed_price_drop =
   token_amount: nat;
   registration: registration;
   registration_list: (address, unit) map;
-  advance_buyers: (address, unit) map;
+  drop_owners: (address, unit) map;
   drop_date: timestamp;
 }
 

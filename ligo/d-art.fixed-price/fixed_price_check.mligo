@@ -31,8 +31,11 @@ let assert_wrong_allowlist (fa2_token, allowlist : fa2_token * (address, nat) ma
 
 // -- Fixed price drops checks
 
+  //  let two_days : int = 172800 in
+  //  let one_month : int = 2419200 in
+
 let fail_if_wrong_drop_date (drop_date : timestamp ) : unit =
-    let two_days : int = 172800 in
+    let two_days : int = 120 in
     let one_month : int = 2419200 in
 
     if drop_date < Tezos.now + two_days
@@ -82,18 +85,19 @@ let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, fa2_ba
         else
             // Fail if not register to a drop except if drop is a day old open to public
             // Change to register priority duration to be more explicit
+
             match fixed_price_drop.registration.utility_token with
             | Some token ->
-                let request : request = {
+                let request : balance_req = {
                     owner = Tezos.sender;
                     token_id = token.id;
                 } in
-                if handle_utility_access (request, token.address) > 0n && handle_utility_access (request, fa2_base.address) = 0n
-                then unit
+                if handle_utility_access (request, token.address) > 0n && not Map.mem Tezos.sender fixed_price_drop.drop_owners
+                then assert_msg (fixed_price_drop.token_amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
             | None ->
-                if Map.mem Tezos.sender fixed_price_drop.registration_list
-                then unit
+                if Map.mem Tezos.sender fixed_price_drop.registration_list && not Map.mem Tezos.sender fixed_price_drop.drop_owners
+                then assert_msg (fixed_price_drop.token_amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
 
 let drop_using_utility_token (drop: fixed_price_drop) : bool =

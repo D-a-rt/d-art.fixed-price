@@ -48,28 +48,17 @@ let handle_royalties (token, price : fa2_token * tez) : tez * (operation list) =
       let royalties_contract : unit contract = resolve_contract royalties_param.address in
       royalties_fee, [(Tezos.transaction unit royalties_fee royalties_contract)]
 
-type request =
+type get_balance_param =
 [@layout:comb]
 {
   owner: address;
   token_id: nat;
 }
 
-type callback =
-[@layout:comb]
-{
-  request: request;
-  balance: nat;
-}
-
-let handle_utility_access (request, fa2_address : request * address) : nat =
-  match ((Tezos.call_view "balance_of" [request] fa2_address ): (callback list) option) with
+let handle_utility_access (req, fa2_address : balance_req * address) : nat =
+  match ((Tezos.call_view "get_balance" req fa2_address ): nat option) with
     None -> 0n
-    | Some results -> (
-      match ((List.head_opt results) : callback option) with
-        None -> 0n
-        | Some h -> h.balance
-    )
+    | Some b -> b
 
 let transfer_token (token, from_, to_ : fa2_token * address * address) : operation =
   let destination : transfer_destination = {
