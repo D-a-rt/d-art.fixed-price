@@ -88,7 +88,7 @@ let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, buy_to
 
             match fixed_price_drop.registration.utility_token with
             | Some token ->
-                let request : balance_req = {
+                let request : get_balance_param = {
                     owner = Tezos.sender;
                     token_id = token.id;
                 } in

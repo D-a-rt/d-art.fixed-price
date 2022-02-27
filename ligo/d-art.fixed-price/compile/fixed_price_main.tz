@@ -504,14 +504,10 @@
                      COMPARE ;
                      LT ;
                      IF { PUSH string "DROP_DATE_NOT_MET" ; FAILWITH } {} ;
+                     DUP 3 ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     SWAP ;
-                     DROP ;
                      DUP ;
                      GET 5 ;
                      GET 4 ;
@@ -527,7 +523,7 @@
                           ABS ;
                           COMPARE ;
                           GT ;
-                          IF { DROP ; UNIT }
+                          IF { DROP 2 ; UNIT }
                              { DUP ;
                                GET 5 ;
                                CAR ;
@@ -538,8 +534,6 @@
                                    MEM ;
                                    NOT ;
                                    SWAP ;
-                                   DUP ;
-                                   DUG 2 ;
                                    GET 7 ;
                                    SENDER ;
                                    MEM ;
@@ -547,7 +541,8 @@
                                    IF { PUSH string "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" ;
                                         PUSH nat 1 ;
                                         DIG 2 ;
-                                        GET 3 ;
+                                        CAR ;
+                                        GET 4 ;
                                         COMPARE ;
                                         EQ ;
                                         PAIR ;
@@ -561,7 +556,7 @@
                                    CAR ;
                                    SENDER ;
                                    PAIR ;
-                                   DUP 3 ;
+                                   DIG 2 ;
                                    GET 9 ;
                                    SENDER ;
                                    MEM ;
@@ -578,7 +573,8 @@
                                    IF { PUSH string "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" ;
                                         PUSH nat 1 ;
                                         DIG 2 ;
-                                        GET 3 ;
+                                        CAR ;
+                                        GET 4 ;
                                         COMPARE ;
                                         EQ ;
                                         PAIR ;
@@ -588,7 +584,7 @@
                                       { DROP ;
                                         PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ;
                                         FAILWITH } } } }
-                        { DROP ; UNIT } ;
+                        { DROP 2 ; UNIT } ;
                      DROP ;
                      PUSH string "Wrong price specified" ;
                      AMOUNT ;

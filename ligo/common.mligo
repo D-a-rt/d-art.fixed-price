@@ -55,7 +55,7 @@ type get_balance_param =
   token_id: nat;
 }
 
-let handle_utility_access (req, fa2_address : balance_req * address) : nat =
+let handle_utility_access (req, fa2_address : get_balance_param * address) : nat =
   match ((Tezos.call_view "get_balance" req fa2_address ): nat option) with
     None -> 0n
     | Some b -> b
