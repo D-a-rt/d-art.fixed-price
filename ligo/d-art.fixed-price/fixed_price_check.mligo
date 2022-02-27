@@ -77,7 +77,7 @@ let fail_if_sender_not_authorized (allowlist : (address, nat) map ) : unit =
     then unit
     else failwith "SENDER_NOT_AUTHORIZE_TO_BUY"
 
-let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, fa2_base : fixed_price_drop * fa2_base ) : unit =
+let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, buy_token : fixed_price_drop * buy_token ) : unit =
     if fixed_price_drop.registration.active
     then
         if abs (Tezos.now - fixed_price_drop.drop_date) > fixed_price_drop.registration.priority_duration
@@ -93,11 +93,11 @@ let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, fa2_ba
                     token_id = token.id;
                 } in
                 if handle_utility_access (request, token.address) > 0n && not Map.mem Tezos.sender fixed_price_drop.drop_owners
-                then assert_msg (fixed_price_drop.token_amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
+                then assert_msg (buy_token.fa2_token.amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
             | None ->
                 if Map.mem Tezos.sender fixed_price_drop.registration_list && not Map.mem Tezos.sender fixed_price_drop.drop_owners
-                then assert_msg (fixed_price_drop.token_amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
+                then assert_msg (buy_token.fa2_token.amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
 
 let drop_using_utility_token (drop: fixed_price_drop) : bool =

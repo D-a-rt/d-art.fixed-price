@@ -195,7 +195,7 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let () = assert_msg (concerned_fixed_price_drop.token_amount >= buy_token.fa2_token.amount, "Token amount to high" ) in
 
     let () = fail_if_drop_date_not_met concerned_fixed_price_drop in
-    let () = fail_if_sender_not_authorized_for_fixed_price_drop (concerned_fixed_price_drop, fa2_base) in
+    let () = fail_if_sender_not_authorized_for_fixed_price_drop (concerned_fixed_price_drop, buy_token) in
     let () = assert_msg (concerned_fixed_price_drop.price = Tezos.amount, "Wrong price specified") in
 
     // reigstered buyers can only own one token
