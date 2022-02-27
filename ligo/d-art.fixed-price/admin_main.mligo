@@ -22,8 +22,8 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
 
     | AddDropSeller seller ->
       if is_drop_seller(seller, storage)
-      then ([] : operation list), { storage with authorized_drops_seller = Big_map.add (seller : address) unit storage.authorized_drops_seller }
-      else (failwith "ALREADY_SELLER" : operation list * storage )
+      then (failwith "ALREADY_SELLER" : operation list * storage )
+      else ([] : operation list), { storage with authorized_drops_seller = Big_map.add (seller : address) unit storage.authorized_drops_seller }
 
     | RemoveDropSeller seller ->
       if is_drop_seller(seller, storage)

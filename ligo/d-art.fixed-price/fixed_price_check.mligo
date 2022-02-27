@@ -19,11 +19,15 @@ let fail_if_not_admin (storage : admin_storage) : unit =
 // -- Fixed price sales checks
 
 let assert_wrong_allowlist (fa2_token, allowlist : fa2_token * (address, nat) map) : unit =
-    let c : nat = 0n in
-    let calc_total_amount = fun (_buyer, credit: address * nat) ->
-        let c = c + credit in
-        assert_msg ( c > fa2_token.amount, "PURCHASE_AMOUNT_GREATER_THAN_TOKEN_AMOUNT")
-    in Map.iter calc_total_amount allowlist
+    let total_amount : nat =
+        let calc_amount (acc, buyer: nat * (address * nat)) : nat = acc + buyer.1 in
+    Map.fold calc_amount allowlist 0n in
+    let () = assert_msg ( total_amount = fa2_token.amount, "Buyers amount should be equao to token amount" ) in
+
+    match Big_map.find_opt Tezos.sender allowlist with
+        None -> unit
+        | Some addr -> (failwith "Seller can not be allowlisted")
+
 
 // -- Fixed price drops checks
 
@@ -50,13 +54,18 @@ let fail_if_drop_date_not_met (fixed_price_drop : fixed_price_drop) : unit =
     then failwith "DROP_DATE_NOT_MET"
     else unit
 
+let assert_wrong_registration_conf (drop_info : drop_configuration ) : unit =
+    if drop_info.registration.active && drop_info.registration.priority_duration < 86400n
+    then failwith "Priority duration must be at least 24h"
+    else unit
+
 // -- Buy tokens checks
 
 let fail_if_token_amount_to_high (allowlist, buy_token : (address, nat) map * buy_token) : unit =
     if Map.size allowlist = 0n then unit
     else match (Map.find_opt Tezos.sender allowlist) with
         None -> (failwith "NOT_AUTHORIZED_BUYER" : unit)
-        | Some allowed_amount -> assert_msg (allowed_amount <= buy_token.fa2_token.amount, "Amount specified to high")
+        | Some allowed_amount -> assert_msg (allowed_amount > buy_token.fa2_token.amount, "Amount specified to high")
 
 let fail_if_sender_not_authorized (allowlist : (address, nat) map ) : unit =
     // If it s a public sale the allowlist will be empty else we check if the sender
@@ -68,21 +77,26 @@ let fail_if_sender_not_authorized (allowlist : (address, nat) map ) : unit =
 let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, fa2_base : fixed_price_drop * fa2_base ) : unit =
     if fixed_price_drop.registration.active
     then
-        if abs (Tezos.now - fixed_price_drop.drop_date) > fixed_price_drop.priority_duration
+        if abs (Tezos.now - fixed_price_drop.drop_date) > fixed_price_drop.registration.priority_duration
         then unit
         else
             // Fail if not register to a drop except if drop is a day old open to public
             // Change to register priority duration to be more explicit
-            if fixed_price_drop.registration.pass_holder_drop
-            then
+            match fixed_price_drop.registration.utility_token with
+            | Some token ->
                 let request : request = {
                     owner = Tezos.sender;
-                    token_id = fa2_base.id;
+                    token_id = token.id;
                 } in
-                if handle_utility_access (request, fixed_price_drop.registration.utility_token_address) > 0n && handle_utility_access (request, fa2_base.address) = 0n
+                if handle_utility_access (request, token.address) > 0n && handle_utility_access (request, fa2_base.address) = 0n
                 then unit
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
-            else
+            | None ->
                 if Map.mem Tezos.sender fixed_price_drop.registration_list
                 then unit
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
+
+let drop_using_utility_token (drop: fixed_price_drop) : bool =
+    match drop.registration.utility_token with
+        None -> false
+        | Some token -> true

@@ -89,9 +89,9 @@ let signed_message_used (authorization_signature, storage : authorization_signat
 let signed_message_not_valid (authorization_signature, storage : authorization_signature * storage) : bool =
   not Crypto.check storage.admin.pb_key authorization_signature.signed authorization_signature.message
 
-let mark_message_as_used (authorization_signature, storage : authorization_signature * storage) : storage =
+let mark_message_as_used (authorization_signature, storage : authorization_signature * storage) : signed_message_used =
   let new_signed_message_used : signed_message_used = Big_map.add authorization_signature unit storage.admin.signed_message_used in
-  { storage with admin.signed_message_used = new_signed_message_used }
+  new_signed_message_used
 
 let verify_signature (authorization_signature, storage : authorization_signature * storage) : unit =
   if signed_message_used (authorization_signature, storage) || signed_message_not_valid (authorization_signature, storage)

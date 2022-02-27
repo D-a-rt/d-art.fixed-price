@@ -12,27 +12,29 @@
                    (pair (address %seller)
                          (pair %authorization_signature (bytes %message) (signature %signed))))
                 (pair %createDrop
-                   (pair %authorization_signature (bytes %message) (signature %signed))
-                   (pair (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
-                         (pair (address %seller)
-                               (pair (mutez %price)
-                                     (pair (map %allowlist address nat)
-                                           (pair (timestamp %drop_date)
-                                                 (pair (nat %priority_duration)
-                                                       (pair %registration
-                                                          (bool %active)
-                                                          (pair (bool %pass_holder_drop) (address %utility_token_address))))))))))))
+                   (pair %registration
+                      (option %utility_token (pair (nat %id) (address %address)))
+                      (pair (nat %priority_duration) (bool %active)))
+                   (pair (pair %authorization_signature (bytes %message) (signature %signed))
+                         (pair (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
+                               (pair (mutez %price) (pair (timestamp %drop_date) (address %seller))))))))
         (or (or (pair %createSale
-                   (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
-                   (pair (address %seller) (pair (mutez %price) (map %allowlist address nat))))
+                   (map %allowlist address nat)
+                   (pair (mutez %price)
+                         (pair (address %seller)
+                               (pair (pair %authorization_signature (bytes %message) (signature %signed))
+                                     (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))))))
                 (pair %registerToDrop
                    (pair %fa2_base (nat %id) (address %address))
                    (pair (address %seller)
                          (pair %authorization_signature (bytes %message) (signature %signed)))))
             (or (pair %revokeSale (pair %fa2_base (nat %id) (address %address)) (address %seller))
                 (pair %updateSale
-                   (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))
-                   (pair (address %seller) (pair (mutez %price) (map %allowlist address nat))))))) ;
+                   (map %allowlist address nat)
+                   (pair (mutez %price)
+                         (pair (address %seller)
+                               (pair (pair %authorization_signature (bytes %message) (signature %signed))
+                                     (pair %fa2_token (nat %id) (pair (address %address) (nat %amount)))))))))) ;
   storage
     (pair (pair %admin
              (address %address)
@@ -48,11 +50,10 @@
                                (pair (mutez %price)
                                      (pair (nat %token_amount)
                                            (pair (pair %registration
-                                                    (bool %active)
-                                                    (pair (bool %pass_holder_drop) (address %utility_token_address)))
+                                                    (option %utility_token (pair (nat %id) (address %address)))
+                                                    (pair (nat %priority_duration) (bool %active)))
                                                  (pair (map %registration_list address unit)
-                                                       (pair (map %advance_buyers address unit)
-                                                             (pair (timestamp %drop_date) (nat %priority_duration))))))))
+                                                       (pair (map %advance_buyers address unit) (timestamp %drop_date)))))))
                             (pair (big_map %fa2_dropped (pair (nat %id) (address %address)) unit)
                                   (pair %fee (address %address) (nat %percent))))))) ;
   code { LAMBDA
@@ -133,47 +134,8 @@
                                             (pair (pair nat address) address)
                                             (pair mutez
                                                   (pair nat
-                                                        (pair (pair bool (pair bool address))
-                                                              (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                         (pair (big_map (pair nat address) unit) (pair address nat)))))))
-           (pair (pair address (pair key (pair (big_map (pair bytes signature) unit) bool)))
-                 (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address nat))))
-                       (pair (big_map address unit)
-                             (pair (big_map
-                                      (pair (pair nat address) address)
-                                      (pair mutez
-                                            (pair nat
-                                                  (pair (pair bool (pair bool address))
-                                                        (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
-                                   (pair (big_map (pair nat address) unit) (pair address nat))))))
-           { UNPAIR ;
-             SWAP ;
-             DUP ;
-             DUP ;
-             DUG 3 ;
-             CAR ;
-             DIG 3 ;
-             CAR ;
-             GET 5 ;
-             UNIT ;
-             DIG 4 ;
-             SWAP ;
-             SOME ;
-             SWAP ;
-             UPDATE ;
-             UPDATE 5 ;
-             UPDATE 1 } ;
-         LAMBDA
-           (pair (pair bytes signature)
-                 (pair (pair address (pair key (pair (big_map (pair bytes signature) unit) bool)))
-                       (pair (big_map (pair (pair nat address) address) (pair mutez (pair nat (map address nat))))
-                             (pair (big_map address unit)
-                                   (pair (big_map
-                                            (pair (pair nat address) address)
-                                            (pair mutez
-                                                  (pair nat
-                                                        (pair (pair bool (pair bool address))
-                                                              (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                                        (pair (pair (option (pair nat address)) (pair nat bool))
+                                                              (pair (map address unit) (pair (map address unit) timestamp))))))
                                          (pair (big_map (pair nat address) unit) (pair address nat)))))))
            unit
            { UNPAIR ;
@@ -209,8 +171,8 @@
                                             (pair (pair nat address) address)
                                             (pair mutez
                                                   (pair nat
-                                                        (pair (pair bool (pair bool address))
-                                                              (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                                        (pair (pair (option (pair nat address)) (pair nat bool))
+                                                              (pair (map address unit) (pair (map address unit) timestamp))))))
                                          (pair (big_map (pair nat address) unit) (pair address nat)))))))
            (pair mutez (pair nat (map address nat)))
            { UNPAIR ;
@@ -230,13 +192,13 @@
                                             (pair (pair nat address) address)
                                             (pair mutez
                                                   (pair nat
-                                                        (pair (pair bool (pair bool address))
-                                                              (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                                        (pair (pair (option (pair nat address)) (pair nat bool))
+                                                              (pair (map address unit) (pair (map address unit) timestamp))))))
                                          (pair (big_map (pair nat address) unit) (pair address nat)))))))
            (pair mutez
                  (pair nat
-                       (pair (pair bool (pair bool address))
-                             (pair (map address unit) (pair (map address unit) (pair timestamp nat))))))
+                       (pair (pair (option (pair nat address)) (pair nat bool))
+                             (pair (map address unit) (pair (map address unit) timestamp)))))
            { UNPAIR ;
              UNPAIR ;
              DIG 2 ;
@@ -245,9 +207,9 @@
              PAIR ;
              GET ;
              IF_NONE { PUSH string "TOKEN_IS_NOT_IN_DROP" ; FAILWITH } {} } ;
-         DIG 7 ;
-         DIG 7 ;
-         DUP 7 ;
+         DIG 6 ;
+         DIG 6 ;
+         DUP 6 ;
          PAIR 3 ;
          LAMBDA
            (pair (pair (lambda (pair (pair (pair nat (pair address nat)) address) address) operation)
@@ -260,8 +222,8 @@
                                                   (pair (pair nat address) address)
                                                   (pair mutez
                                                         (pair nat
-                                                              (pair (pair bool (pair bool address))
-                                                                    (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                                              (pair (pair (option (pair nat address)) (pair nat bool))
+                                                                    (pair (map address unit) (pair (map address unit) timestamp))))))
                                                (pair (big_map (pair nat address) unit) (pair address nat))))))))
            (list operation)
            { UNPAIR ;
@@ -358,25 +320,24 @@
                                             (pair (pair nat address) address)
                                             (pair mutez
                                                   (pair nat
-                                                        (pair (pair bool (pair bool address))
-                                                              (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))))
+                                                        (pair (pair (option (pair nat address)) (pair nat bool))
+                                                              (pair (map address unit) (pair (map address unit) timestamp))))))
                                          (pair (big_map (pair nat address) unit) (pair address nat)))))))
            bool
            { UNPAIR ; SWAP ; GET 5 ; SWAP ; MEM } ;
-         DIG 9 ;
+         DIG 8 ;
          UNPAIR ;
          IF_LEFT
            { IF_LEFT
                { DIG 5 ;
-                 DIG 8 ;
+                 DIG 7 ;
                  DROP 2 ;
                  IF_LEFT
                    { DIG 3 ;
                      DIG 4 ;
                      DIG 5 ;
                      DIG 6 ;
-                     DIG 7 ;
-                     DROP 5 ;
+                     DROP 4 ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -401,7 +362,8 @@
                                  DIG 3 ;
                                  SWAP ;
                                  EXEC ;
-                                 IF { SWAP ;
+                                 IF { DROP 2 ; PUSH string "ALREADY_SELLER" ; FAILWITH }
+                                    { SWAP ;
                                       DUP ;
                                       GET 5 ;
                                       UNIT ;
@@ -412,8 +374,7 @@
                                       UPDATE ;
                                       UPDATE 5 ;
                                       NIL operation ;
-                                      PAIR }
-                                    { DROP 2 ; PUSH string "ALREADY_SELLER" ; FAILWITH } }
+                                      PAIR } }
                                { DIG 2 ;
                                  DROP ;
                                  SWAP ;
@@ -505,7 +466,7 @@
                      COMPARE ;
                      NEQ ;
                      PAIR ;
-                     DUP 9 ;
+                     DUP 8 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -539,21 +500,21 @@
                      DIG 5 ;
                      SWAP ;
                      EXEC ;
-                     PUSH string "Token amount to high for the supply" ;
+                     PUSH string "Token amount to high" ;
                      DUP 4 ;
                      CAR ;
                      GET 4 ;
                      DUP 3 ;
                      GET 3 ;
                      COMPARE ;
-                     LE ;
+                     GT ;
                      PAIR ;
-                     DIG 8 ;
+                     DIG 7 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
                      DUP ;
-                     GET 11 ;
+                     GET 10 ;
                      NOW ;
                      COMPARE ;
                      LT ;
@@ -566,61 +527,62 @@
                      DUG 2 ;
                      DUP ;
                      GET 5 ;
-                     CAR ;
+                     GET 4 ;
                      IF { DUP ;
-                          GET 12 ;
+                          GET 5 ;
+                          GET 3 ;
                           SWAP ;
                           DUP ;
                           DUG 2 ;
-                          GET 11 ;
+                          GET 10 ;
                           NOW ;
                           SUB ;
                           ABS ;
                           COMPARE ;
                           GT ;
-                          IF { SWAP ; DIG 8 ; DROP 3 ; UNIT }
+                          IF { SWAP ; DIG 7 ; DROP 3 ; UNIT }
                              { DUP ;
                                GET 5 ;
-                               GET 3 ;
-                               IF { SWAP ;
-                                    DUP ;
-                                    DUG 2 ;
-                                    CAR ;
-                                    SENDER ;
-                                    PAIR ;
-                                    PUSH nat 0 ;
-                                    DIG 3 ;
-                                    CDR ;
-                                    DUP 3 ;
-                                    PAIR ;
-                                    DUP 11 ;
-                                    SWAP ;
-                                    EXEC ;
-                                    COMPARE ;
-                                    EQ ;
-                                    PUSH nat 0 ;
-                                    DIG 3 ;
-                                    GET 5 ;
-                                    GET 4 ;
-                                    DIG 3 ;
-                                    PAIR ;
-                                    DIG 9 ;
-                                    SWAP ;
-                                    EXEC ;
-                                    COMPARE ;
-                                    GT ;
-                                    AND ;
-                                    IF { UNIT }
-                                       { PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ; FAILWITH } }
-                                  { SWAP ;
-                                    DIG 8 ;
-                                    DROP 2 ;
-                                    GET 7 ;
-                                    SENDER ;
-                                    MEM ;
-                                    IF { UNIT }
-                                       { PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ; FAILWITH } } } }
-                        { SWAP ; DIG 8 ; DROP 3 ; UNIT } ;
+                               CAR ;
+                               IF_NONE
+                                 { SWAP ;
+                                   DIG 7 ;
+                                   DROP 2 ;
+                                   GET 7 ;
+                                   SENDER ;
+                                   MEM ;
+                                   IF { UNIT }
+                                      { PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ; FAILWITH } }
+                                 { SWAP ;
+                                   DROP ;
+                                   DUP ;
+                                   CAR ;
+                                   SENDER ;
+                                   PAIR ;
+                                   PUSH nat 0 ;
+                                   DIG 3 ;
+                                   CDR ;
+                                   DUP 3 ;
+                                   PAIR ;
+                                   DUP 10 ;
+                                   SWAP ;
+                                   EXEC ;
+                                   COMPARE ;
+                                   EQ ;
+                                   PUSH nat 0 ;
+                                   DIG 3 ;
+                                   CDR ;
+                                   DIG 3 ;
+                                   PAIR ;
+                                   DIG 8 ;
+                                   SWAP ;
+                                   EXEC ;
+                                   COMPARE ;
+                                   GT ;
+                                   AND ;
+                                   IF { UNIT }
+                                      { PUSH string "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP" ; FAILWITH } } } }
+                        { SWAP ; DIG 7 ; DROP 3 ; UNIT } ;
                      DROP ;
                      DUP ;
                      DUP 4 ;
@@ -637,55 +599,73 @@
                      SENDER ;
                      UPDATE ;
                      UPDATE 7 ;
-                     DUP 4 ;
+                     PUSH nat 0 ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
-                     CAR ;
-                     DUP 5 ;
-                     PAIR ;
-                     PAIR ;
-                     DIG 5 ;
-                     SWAP ;
-                     EXEC ;
-                     DUP 5 ;
-                     PUSH nat 0 ;
-                     DUP 4 ;
                      GET 3 ;
                      COMPARE ;
                      EQ ;
-                     IF { DIG 2 ;
-                          DROP ;
-                          DIG 4 ;
+                     IF { DUP 4 ;
                           GET 7 ;
+                          DUP 4 ;
+                          GET 3 ;
+                          DIG 3 ;
+                          PAIR ;
+                          NONE (pair mutez
+                                     (pair nat
+                                           (pair (pair (option (pair nat address)) (pair nat bool))
+                                                 (pair (map address unit) (pair (map address unit) timestamp))))) ;
+                          SWAP ;
+                          UPDATE }
+                        { DUP 4 ;
+                          GET 7 ;
+                          SWAP ;
+                          DUP ;
+                          DUG 2 ;
+                          SOME ;
                           DUP 5 ;
                           GET 3 ;
                           DIG 4 ;
                           PAIR ;
-                          NONE (pair mutez
-                                     (pair nat
-                                           (pair (pair bool (pair bool address))
-                                                 (pair (map address unit) (pair (map address unit) (pair timestamp nat)))))) ;
-                          SWAP ;
-                          UPDATE }
-                        { DIG 5 ; GET 7 ; DIG 3 ; SOME ; DUP 6 ; GET 3 ; DIG 5 ; PAIR ; UPDATE } ;
-                     UPDATE 7 ;
+                          UPDATE } ;
+                     DUP 4 ;
                      DIG 2 ;
-                     GET 4 ;
+                     CAR ;
+                     DUP 4 ;
                      PAIR ;
-                     DIG 2 ;
+                     PAIR ;
+                     DIG 4 ;
                      SWAP ;
                      EXEC ;
+                     DUP 4 ;
+                     DUP 3 ;
+                     UPDATE 7 ;
+                     DUP 5 ;
+                     DIG 3 ;
+                     UPDATE 7 ;
+                     CAR ;
+                     DIG 4 ;
+                     CAR ;
+                     GET 5 ;
+                     UNIT ;
+                     DIG 5 ;
+                     GET 4 ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 5 ;
+                     UPDATE 1 ;
                      SWAP ;
                      PAIR } }
                { DIG 2 ;
                  DIG 4 ;
-                 DIG 9 ;
+                 DIG 8 ;
                  DROP 3 ;
                  IF_LEFT
                    { DIG 5 ;
-                     DIG 6 ;
-                     DROP 2 ;
+                     DROP ;
                      PUSH string "Seller can not buy the token" ;
                      SWAP ;
                      DUP ;
@@ -729,14 +709,14 @@
                      DIG 5 ;
                      SWAP ;
                      EXEC ;
-                     PUSH string "Token amoun to high for the supply" ;
+                     PUSH string "Token amount to high" ;
                      DUP 4 ;
                      CAR ;
                      GET 4 ;
                      DUP 3 ;
                      GET 3 ;
                      COMPARE ;
-                     LE ;
+                     GT ;
                      PAIR ;
                      DUP 7 ;
                      SWAP ;
@@ -765,7 +745,7 @@
                               GET 4 ;
                               DIG 2 ;
                               COMPARE ;
-                              LE ;
+                              GT ;
                               PAIR ;
                               DUP 7 ;
                               SWAP ;
@@ -773,8 +753,12 @@
                      DROP ;
                      PUSH string "Wrong price specified" ;
                      AMOUNT ;
-                     DUP 3 ;
+                     DUP 5 ;
                      CAR ;
+                     GET 4 ;
+                     DUP 4 ;
+                     CAR ;
+                     MUL ;
                      COMPARE ;
                      EQ ;
                      PAIR ;
@@ -905,8 +889,7 @@
                           PAIR } }
                    { DIG 2 ;
                      DIG 3 ;
-                     DIG 4 ;
-                     DROP 3 ;
+                     DROP 2 ;
                      PUSH string "Amount sent must be 0mutez" ;
                      PUSH mutez 0 ;
                      AMOUNT ;
@@ -917,16 +900,28 @@
                      SWAP ;
                      EXEC ;
                      DROP ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 3 ;
+                     PAIR ;
+                     DIG 3 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
                      PUSH string "Only seller can create a drop" ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
-                     GET 5 ;
+                     GET 10 ;
                      SENDER ;
                      COMPARE ;
                      EQ ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -937,19 +932,19 @@
                      COMPARE ;
                      GT ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
                      PUSH string "Amount should be greater than 0" ;
                      PUSH nat 0 ;
                      DUP 3 ;
-                     GET 3 ;
+                     GET 5 ;
                      GET 4 ;
                      COMPARE ;
                      GT ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -959,7 +954,7 @@
                      GET 6 ;
                      NOT ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -969,12 +964,12 @@
                      SENDER ;
                      MEM ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
                      DUP ;
-                     GET 11 ;
+                     GET 9 ;
                      PUSH int 172800 ;
                      NOW ;
                      ADD ;
@@ -991,52 +986,74 @@
                           COMPARE ;
                           GT ;
                           IF { PUSH string "DROP_DATE_MUST_BE_IN_MAXIMUM_ONE_MONTH" ; FAILWITH } {} } ;
-                     PUSH string "Priority duration must be at least 24h" ;
                      PUSH nat 86400 ;
-                     DUP 3 ;
-                     GET 13 ;
-                     COMPARE ;
-                     LE ;
-                     DUP 3 ;
-                     GET 14 ;
-                     GET 3 ;
-                     DUP 4 ;
-                     GET 14 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
                      CAR ;
-                     OR ;
+                     GET 3 ;
+                     COMPARE ;
+                     LT ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CAR ;
+                     GET 4 ;
                      AND ;
+                     IF { PUSH string "Priority duration must be at least 24h" ; FAILWITH } {} ;
+                     DUP ;
+                     GET 5 ;
+                     GET 3 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 5 ;
+                     CAR ;
+                     PAIR ;
+                     PUSH string "Token has already been dropped" ;
+                     DUP 4 ;
+                     GET 7 ;
+                     SENDER ;
+                     DUP 4 ;
+                     PAIR ;
+                     MEM ;
+                     NOT ;
                      PAIR ;
                      DUP 6 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
-                     DUP ;
-                     GET 3 ;
-                     GET 3 ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     GET 3 ;
-                     CAR ;
-                     PAIR ;
                      PUSH string "Token has already been dropped" ;
                      DUP 4 ;
                      GET 9 ;
                      DUP 3 ;
                      MEM ;
+                     NOT ;
                      PAIR ;
-                     DIG 6 ;
+                     DIG 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
                      EMPTY_MAP address unit ;
+                     DUP 3 ;
+                     GET 9 ;
+                     SWAP ;
+                     DUP ;
+                     DUP 5 ;
+                     CAR ;
+                     DUP 6 ;
+                     GET 5 ;
+                     GET 4 ;
+                     DUP 7 ;
+                     GET 7 ;
+                     PAIR 6 ;
                      SENDER ;
                      SELF_ADDRESS ;
                      DUP 5 ;
-                     GET 3 ;
+                     GET 5 ;
                      PAIR ;
                      PAIR ;
-                     DIG 6 ;
+                     DIG 5 ;
                      SWAP ;
                      EXEC ;
                      DIG 4 ;
@@ -1051,60 +1068,88 @@
                      SWAP ;
                      UPDATE ;
                      UPDATE 9 ;
-                     DIG 5 ;
-                     GET 7 ;
                      DUP 6 ;
-                     GET 13 ;
+                     GET 7 ;
+                     DUP 4 ;
                      DUP 7 ;
-                     GET 11 ;
-                     DIG 5 ;
-                     DUP ;
-                     DUP 9 ;
-                     GET 14 ;
-                     DUP 10 ;
-                     GET 3 ;
-                     GET 4 ;
-                     DUP 11 ;
-                     GET 7 ;
-                     PAIR 7 ;
-                     DUP 6 ;
-                     GET 5 ;
-                     DIG 5 ;
+                     GET 10 ;
+                     DUP 7 ;
                      PAIR ;
                      SWAP ;
                      SOME ;
                      SWAP ;
                      UPDATE ;
                      UPDATE 7 ;
-                     DIG 2 ;
-                     CAR ;
-                     PAIR ;
-                     DIG 2 ;
+                     DIG 5 ;
+                     DUP ;
+                     DUP ;
+                     DUG 7 ;
+                     GET 9 ;
+                     UNIT ;
+                     DUP 7 ;
                      SWAP ;
-                     EXEC ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 9 ;
+                     DUP 7 ;
+                     GET 7 ;
+                     DIG 4 ;
+                     DUP 7 ;
+                     GET 10 ;
+                     DIG 6 ;
+                     PAIR ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 7 ;
+                     CAR ;
+                     DIG 4 ;
+                     CAR ;
+                     GET 5 ;
+                     UNIT ;
+                     DIG 5 ;
+                     GET 3 ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 5 ;
+                     UPDATE 1 ;
                      NIL operation ;
                      DIG 2 ;
                      CONS ;
                      PAIR } } }
            { DIG 2 ;
              DIG 3 ;
-             DIG 9 ;
+             DIG 8 ;
              DROP 3 ;
              IF_LEFT
                { DIG 3 ;
                  DROP ;
                  IF_LEFT
                    { DIG 2 ;
-                     DIG 3 ;
-                     DIG 4 ;
-                     DROP 3 ;
+                     DROP ;
                      PUSH string "Amount sent must be should ne greater 0mutez" ;
                      PUSH mutez 0 ;
                      AMOUNT ;
                      COMPARE ;
                      EQ ;
                      PAIR ;
-                     DUP 5 ;
+                     DUP 6 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 7 ;
+                     PAIR ;
+                     DIG 3 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1112,7 +1157,7 @@
                      SWAP ;
                      DUP ;
                      DUG 2 ;
-                     GET 3 ;
+                     GET 5 ;
                      SENDER ;
                      COMPARE ;
                      EQ ;
@@ -1124,7 +1169,7 @@
                      PUSH string "Price should be greater than 0" ;
                      PUSH mutez 0 ;
                      DUP 3 ;
-                     GET 5 ;
+                     GET 3 ;
                      COMPARE ;
                      GT ;
                      PAIR ;
@@ -1135,7 +1180,7 @@
                      PUSH string "Amount should be greater than 0" ;
                      PUSH nat 0 ;
                      DUP 3 ;
-                     CAR ;
+                     GET 8 ;
                      GET 4 ;
                      COMPARE ;
                      GT ;
@@ -1151,37 +1196,84 @@
                      GET 6 ;
                      NOT ;
                      PAIR ;
-                     DIG 4 ;
+                     DUP 5 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     DUP ;
+                     CAR ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 8 ;
+                     PUSH nat 0 ;
+                     DUP 3 ;
+                     ITER { CDR ; ADD } ;
+                     PUSH string "Buyers amount should be equao to token amount" ;
+                     DIG 2 ;
+                     GET 4 ;
+                     DIG 2 ;
+                     COMPARE ;
+                     EQ ;
+                     PAIR ;
+                     DUP 6 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
+                     SENDER ;
+                     GET ;
+                     IF_NONE {} { DROP ; PUSH string "Seller can not be allowlisted" ; FAILWITH } ;
+                     DUP ;
+                     CAR ;
+                     SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     GET 8 ;
+                     GET 4 ;
+                     DUP 3 ;
+                     GET 3 ;
+                     PAIR 3 ;
+                     PUSH string "Token already for sale, only update or revoke are authorized" ;
+                     DUP 4 ;
+                     GET 3 ;
+                     SENDER ;
+                     DUP 5 ;
+                     GET 8 ;
+                     GET 3 ;
+                     DUP 6 ;
+                     GET 8 ;
+                     CAR ;
+                     PAIR ;
+                     PAIR ;
+                     MEM ;
+                     NOT ;
+                     PAIR ;
+                     DIG 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
                      SELF_ADDRESS ;
                      SENDER ;
-                     DUP 3 ;
-                     CAR ;
+                     DUP 4 ;
+                     GET 8 ;
                      PAIR ;
                      PAIR ;
-                     DIG 3 ;
+                     DIG 4 ;
                      SWAP ;
                      EXEC ;
-                     DIG 2 ;
+                     DIG 3 ;
                      DUP ;
+                     DUP ;
+                     DUG 5 ;
                      GET 3 ;
                      DUP 4 ;
-                     GET 6 ;
-                     DUP 5 ;
-                     CAR ;
-                     GET 4 ;
                      DUP 6 ;
                      GET 5 ;
-                     PAIR 3 ;
-                     DUP 5 ;
+                     DUP 7 ;
+                     GET 8 ;
                      GET 3 ;
-                     DUP 6 ;
-                     CAR ;
-                     GET 3 ;
-                     DIG 6 ;
-                     CAR ;
+                     DUP 8 ;
+                     GET 8 ;
                      CAR ;
                      PAIR ;
                      PAIR ;
@@ -1190,11 +1282,45 @@
                      SWAP ;
                      UPDATE ;
                      UPDATE 3 ;
+                     DIG 4 ;
+                     DUP ;
+                     DUP ;
+                     DUG 6 ;
+                     GET 3 ;
+                     DIG 4 ;
+                     DUP 6 ;
+                     GET 5 ;
+                     DUP 7 ;
+                     GET 8 ;
+                     GET 3 ;
+                     DUP 8 ;
+                     GET 8 ;
+                     CAR ;
+                     PAIR ;
+                     PAIR ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 3 ;
+                     CAR ;
+                     DIG 4 ;
+                     CAR ;
+                     GET 5 ;
+                     UNIT ;
+                     DIG 5 ;
+                     GET 7 ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 5 ;
+                     UPDATE 1 ;
                      NIL operation ;
                      DIG 2 ;
                      CONS ;
                      PAIR }
-                   { DIG 5 ;
+                   { DIG 4 ;
                      DROP ;
                      SWAP ;
                      DUP ;
@@ -1214,7 +1340,7 @@
                      COMPARE ;
                      EQ ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1227,7 +1353,7 @@
                      COMPARE ;
                      NEQ ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1250,10 +1376,11 @@
                      DUP ;
                      DUG 2 ;
                      GET 5 ;
-                     GET 3 ;
+                     CAR ;
+                     IF_NONE { PUSH bool False } { DROP ; PUSH bool True } ;
                      NOT ;
                      PAIR ;
-                     DUP 6 ;
+                     DUP 5 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1271,7 +1398,7 @@
                      GET ;
                      IF_NONE
                        { PUSH string "DROP_DOES_NOT_EXIST" ; FAILWITH }
-                       { GET 11 ;
+                       { GET 10 ;
                          NOW ;
                          COMPARE ;
                          GT ;
@@ -1284,7 +1411,7 @@
                      SENDER ;
                      MEM ;
                      PAIR ;
-                     DIG 5 ;
+                     DIG 4 ;
                      SWAP ;
                      EXEC ;
                      DROP ;
@@ -1297,26 +1424,50 @@
                      UPDATE 7 ;
                      DIG 2 ;
                      DUP ;
+                     DUP ;
+                     DUG 4 ;
                      GET 7 ;
-                     DIG 2 ;
+                     DUP 3 ;
                      SOME ;
-                     DUP 4 ;
-                     GET 3 ;
                      DUP 5 ;
+                     GET 3 ;
+                     DUP 6 ;
                      CAR ;
                      PAIR ;
                      UPDATE ;
                      UPDATE 7 ;
-                     SWAP ;
-                     GET 4 ;
+                     DIG 3 ;
+                     DUP ;
+                     DUP ;
+                     DUG 5 ;
+                     GET 7 ;
+                     DIG 3 ;
+                     SOME ;
+                     DUP 5 ;
+                     GET 3 ;
+                     DUP 6 ;
+                     CAR ;
                      PAIR ;
-                     EXEC ;
+                     UPDATE ;
+                     UPDATE 7 ;
+                     CAR ;
+                     DIG 3 ;
+                     CAR ;
+                     GET 5 ;
+                     UNIT ;
+                     DIG 4 ;
+                     GET 4 ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 5 ;
+                     UPDATE 1 ;
                      NIL operation ;
                      PAIR } }
                { DIG 2 ;
                  DIG 4 ;
-                 DIG 5 ;
-                 DROP 3 ;
+                 DROP 2 ;
                  IF_LEFT
                    { PUSH string "Amount sent must be 0mutez" ;
                      PUSH mutez 0 ;
@@ -1404,7 +1555,7 @@
                      SWAP ;
                      DUP ;
                      DUG 2 ;
-                     GET 3 ;
+                     GET 5 ;
                      SENDER ;
                      COMPARE ;
                      EQ ;
@@ -1416,7 +1567,7 @@
                      PUSH string "Price should be greater than 0" ;
                      PUSH mutez 0 ;
                      DUP 3 ;
-                     GET 5 ;
+                     GET 3 ;
                      COMPARE ;
                      GT ;
                      PAIR ;
@@ -1427,7 +1578,7 @@
                      PUSH string "Amount should be greater than 0" ;
                      PUSH nat 0 ;
                      DUP 3 ;
-                     CAR ;
+                     GET 8 ;
                      GET 4 ;
                      COMPARE ;
                      GT ;
@@ -1437,12 +1588,12 @@
                      EXEC ;
                      DROP ;
                      DUP ;
-                     CAR ;
+                     GET 8 ;
                      GET 3 ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
-                     CAR ;
+                     GET 8 ;
                      CAR ;
                      PAIR ;
                      PUSH string "Token is not for sale" ;
@@ -1461,16 +1612,16 @@
                      DUP ;
                      GET 3 ;
                      DUP 4 ;
-                     GET 6 ;
-                     DUP 5 ;
                      CAR ;
+                     DUP 5 ;
+                     GET 8 ;
                      GET 4 ;
                      DUP 6 ;
-                     GET 5 ;
+                     GET 3 ;
                      PAIR 3 ;
                      SOME ;
                      DIG 4 ;
-                     GET 3 ;
+                     GET 5 ;
                      DIG 4 ;
                      PAIR ;
                      UPDATE ;

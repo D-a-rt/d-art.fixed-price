@@ -66,7 +66,7 @@ export const encodePayload = async (payload: string): Promise<void> => {
       const signature = sodium.crypto_sign_detached(sodium.crypto_generichash(32, Buffer.from(payload)), bs58decode(process.env.SINGER_PRIVATE_KEY, new Uint8Array([43, 246, 78, 7])), 'uint8array')
       const edsignature = bs58Encode(signature, new Uint8Array([9, 245, 205, 134, 18]))
 
-      console.log('Payload: ', payload)
+      console.log('Payload: ', Buffer.from(payload).toString('hex'))
       console.log('Signed payload: ', edsignature)
 
       const result = {

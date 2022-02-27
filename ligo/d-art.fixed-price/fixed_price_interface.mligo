@@ -67,6 +67,7 @@ type allowed_buyer =
   amount: nat
 }
 
+
 type fixed_price_sale =
 [@layout:comb]
 {
@@ -82,10 +83,11 @@ type fixed_price_sale =
 type sale_info =
 [@layout:comb]
 {
-  fa2_token: fa2_token;
-  seller: address;
-  price: tez;
   allowlist: (address, nat) map;
+  price: tez;
+  seller: address;
+  authorization_signature: authorization_signature;
+  fa2_token: fa2_token;
 }
 
 type sale_deletion =
@@ -100,22 +102,20 @@ type sale_deletion =
 type registration =
 [@layout:comb]
 {
+  utility_token: fa2_base option;
+  priority_duration: nat;
   active: bool;
-  pass_holder_drop: bool;
-  utility_token_address: address;
 }
 
 type drop_configuration =
 [@layout:comb]
 {
+  registration: registration;
   authorization_signature: authorization_signature;
   fa2_token: fa2_token;
-  seller: address;
   price: tez;
-  allowlist: (address, nat) map;
   drop_date: timestamp;
-  priority_duration: nat;
-  registration: registration;
+  seller: address;
 }
 
 type fixed_price_drop =
@@ -127,7 +127,6 @@ type fixed_price_drop =
   registration_list: (address, unit) map;
   advance_buyers: (address, unit) map;
   drop_date: timestamp;
-  priority_duration: nat;
 }
 
 type drop_registration =
@@ -139,6 +138,8 @@ type drop_registration =
 }
 
 type drops_storage = (fa2_base * address, fixed_price_drop) big_map
+
+// Contract storage
 
 type storage =
 [@layout:comb]
