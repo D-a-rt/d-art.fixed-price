@@ -290,7 +290,9 @@ type fix_price_entrypoints =
 
     (* Drops entrypoint *)
     | CreateDrop of drop_configuration
+    | RevokeDrop of drop_info
     | RegisterToDrop of drop_info
+    | ClaimUtilityToken of drop_info
 
     (* Buy token in any sales or drops *)
     | BuyFixedPriceToken of buy_token
@@ -374,7 +376,7 @@ All the needed field to edit a sale. The entrypoints only contains record alread
 
 ### RevokeSale
 
-The `RevokeSale` entrypoint is responsible to delete a sale.
+The `RevokeSale` entrypoint is responsible to remove a sale.
 
 
 ``` ocaml
@@ -392,7 +394,13 @@ All the needed field to delete a sale. The entrypoints only contains record alre
 
 The `CreateDrop` entrypoint is responsible to configure a drop.
 
-Note: A drop can not be edited or deleted, `registration` drops and private `drops` can not be set at the same time, after a `priority_duration` the sale will go public.
+There are three different types of drop:
+
+    - Classic drop: similar to a fixed price sale except that drop_date is specified and no one will be able to buy the token before this drop date
+    - Utility token Registration : Buyers owning the fa2 token specified during the creation of the drop (utility token or pass) will have one token reserved after the drop_date (only during the priority period) if buyers do not buy the token by this time, sale will go public
+    - Open registreation : Buyers can pre-register to a drop and have priority to buy one token during the priority duration of the drop
+
+Note: A drop can not be edited, `registration` drops and private `drops` can not be set at the same time, after a `priority_duration` the sale will go public.
 
 ``` ocaml
 type drop_configuration =
@@ -409,9 +417,48 @@ type drop_configuration =
 
 All the needed field to configure a `drop`. The entrypoints only contains record already defined previously.
 
+### RevokeDrop
+
+The `RevokeDrop` entrypoint is responsible to remove a drop, this action is only allowed after the priority duration of the drop has been passed in order to let registered buyers buy a token.
+As the sale go puiblc after this time, it can then be deleted.. (We then prevent tokens from being locked forever in the contract in case seller does not sell all the tokens)
+
+
+``` ocaml
+type drop_info =
+[@layout:comb]
+{
+    fa2_base: fa2_base;
+    seller: address;
+    authorization_signature: authorization_signature;
+}
+```
+
+All the needed field to configure a `drop`. The entrypoints only contains record already defined previously.
+
+### ClaimUtilityToken
+
+The `ClaimUtilityToken` entrypoint is here to prevent utility token being locked forever in the contract in case the seller doesn't revoke the drop or the drop is not sold out.
+
+There are three ways to get utility token back for registered user:
+- Drop is sold out, as soon as it is all the utility token held by the contract will be transfered directly to the previous owner
+- Seller revoke the drop after a certain duration
+- Or owner claim the locked contract (we in this case recommand to as well update the operators big_map in your fa2 token contract)
+
+``` ocaml
+type drop_info =
+[@layout:comb]
+{
+    fa2_base: fa2_base;
+    seller: address;
+    authorization_signature: authorization_signature;
+}
+```
+
+All the needed field to configure a `drop`. The entrypoints only contains record already defined previously.
+
 ### RegisterToDrop
 
-The `RegisterToDrop` entrypoint is responsible to register to a drop.
+The `RegisterToDrop` entrypoint is responsible to register to a drop, in case seller didn't choose to select a utility token drop (in which case the utility token is used as a pass during the priority duration period).
 
 Note: The registration period opens as soon as a drop is created, registered buyers will be able to buy at `most one token` during the `priority_duration` after which the sale will become public.
 
