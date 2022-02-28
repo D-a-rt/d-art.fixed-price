@@ -249,7 +249,7 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     then Big_map.remove (fa2_base, buy_token.seller) storage.drops
     else Big_map.update (fa2_base, buy_token.seller) (Some(new_fixed_price_drop)) storage.drops in
 
-    let utility_token_operation_list : operation list = if new_fixed_price_drop.registration.active && new_fixed_price_drop.registration.priority_duration + new_fixed_price_drop.drop_date < Tezos.now
+    let utility_token_operation_list : operation list = if new_fixed_price_drop.registration.active && new_fixed_price_drop.registration.priority_duration + new_fixed_price_drop.drop_date > Tezos.now
     then match new_fixed_price_drop.registration.utility_token with
         None -> ([] : operation list)
         | Some utility_token ->

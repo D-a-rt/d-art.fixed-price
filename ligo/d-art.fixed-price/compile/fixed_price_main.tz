@@ -696,7 +696,7 @@
                          GET 3 ;
                          ADD ;
                          COMPARE ;
-                         LT ;
+                         GT ;
                          DUP 3 ;
                          GET 5 ;
                          GET 4 ;
