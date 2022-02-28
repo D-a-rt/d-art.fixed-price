@@ -52,7 +52,7 @@
                                            (pair (pair %registration
                                                     (option %utility_token (pair (nat %id) (address %address)))
                                                     (pair (nat %priority_duration) (bool %active)))
-                                                 (pair (map %registration_list address unit)
+                                                 (pair (map %registered_buyers address unit)
                                                        (pair (map %drop_owners address unit) (timestamp %drop_date)))))))
                             (pair (big_map %fa2_dropped (pair (nat %id) (address %address)) unit)
                                   (pair %fee (address %address) (nat %percent))))))) ;

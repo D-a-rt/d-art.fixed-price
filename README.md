@@ -215,7 +215,7 @@ type fixed_price_drop =
   price: tez;
   token_amount: nat;
   registration: registration;
-  registration_list: (address, unit) map;
+  registered_buyers: (address, unit) map;
   drop_owners: (address, unit) map;
   drop_date: timestamp;
 }
@@ -243,7 +243,7 @@ type registration =
 - `priority_duration` : time during which the registered buyer will have the priority to buy
 - `utility_token` : fa2 token that the buyer needs to own in order to have priority on the sale
 
-``registration_list`` : The registration is a `map` of `address` (users) that registered for the sale of the drop. The maximum amount of user is define by the amount of token.
+``registered_buyers`` : The registration is a `map` of `address` (users) that registered for the sale of the drop. The maximum amount of user is define by the amount of token.
 
 ``allowlist`` : If the map is empty the drop is public if not it will be a private drop.
 

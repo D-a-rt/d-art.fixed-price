@@ -124,7 +124,7 @@ type fixed_price_drop =
   price: tez;
   token_amount: nat;
   registration: registration;
-  registration_list: (address, unit) map;
+  registered_buyers: (address, unit) map;
   drop_owners: (address, unit) map;
   drop_date: timestamp;
 }

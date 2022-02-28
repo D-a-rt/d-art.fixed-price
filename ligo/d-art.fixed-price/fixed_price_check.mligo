@@ -96,7 +96,7 @@ let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, buy_to
                 then assert_msg (buy_token.fa2_token.amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
             | None ->
-                if Map.mem Tezos.sender fixed_price_drop.registration_list && not Map.mem Tezos.sender fixed_price_drop.drop_owners
+                if Map.mem Tezos.sender fixed_price_drop.registered_buyers && not Map.mem Tezos.sender fixed_price_drop.drop_owners
                 then assert_msg (buy_token.fa2_token.amount = 1n, "NOT_ALLOWED_TO_PURCHASE_MORE_THAN_ONE_TOKEN" )
                 else failwith "SENDER_NOT_AUTHORIZE_TO_PARTICIPATE_TO_THE_DROP"
 

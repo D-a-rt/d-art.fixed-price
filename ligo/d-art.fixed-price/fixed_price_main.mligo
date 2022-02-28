@@ -142,7 +142,7 @@ let create_drop (drop_info, storage : drop_configuration * storage) : return =
         price = drop_info.price;
         token_amount = drop_info.fa2_token.amount;
         registration = drop_info.registration;
-        registration_list = empty_address_list;
+        registered_buyers = empty_address_list;
         drop_owners = empty_address_list;
         drop_date = drop_info.drop_date;
     } in
@@ -168,9 +168,9 @@ let register_to_drop ( drop_registration, storage : drop_registration * storage 
     let () = assert_msg (Tezos.sender <> drop_registration.seller, "Seller can not register for the drop") in
     let () = assert_msg (not drop_using_utility_token fixed_price_drop, "Utility token drop, no registration possible") in
     let () = fail_if_registration_period_over (drop_registration, storage) in
-    let () = assert_msg (Map.mem Tezos.sender fixed_price_drop.registration_list, "Already registered") in
+    let () = assert_msg (Map.mem Tezos.sender fixed_price_drop.registered_buyers, "Already registered") in
 
-    let new_fixed_price_drop : fixed_price_drop = { fixed_price_drop with registration_list = Map.add Tezos.sender unit fixed_price_drop.registration_list } in
+    let new_fixed_price_drop : fixed_price_drop = { fixed_price_drop with registered_buyers = Map.add Tezos.sender unit fixed_price_drop.registered_buyers } in
 
     let new_strg : storage = {
         storage with
@@ -202,7 +202,7 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let new_fixed_price_drop = {
         concerned_fixed_price_drop with
         token_amount =  abs (concerned_fixed_price_drop.token_amount - buy_token.fa2_token.amount);
-        registration_list = Map.remove Tezos.sender concerned_fixed_price_drop.registration_list;
+        registered_buyers = Map.remove Tezos.sender concerned_fixed_price_drop.registered_buyers;
         drop_owners = Map.add Tezos.sender unit concerned_fixed_price_drop.drop_owners;
     } in
 
