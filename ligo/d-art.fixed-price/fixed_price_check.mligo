@@ -22,11 +22,12 @@ let assert_wrong_allowlist (fa2_token, allowlist : fa2_token * (address, nat) ma
     let total_amount : nat =
         let calc_amount (acc, buyer: nat * (address * nat)) : nat = acc + buyer.1 in
     Map.fold calc_amount allowlist 0n in
-    let () = assert_msg ( total_amount = fa2_token.amount, "Buyers amount should be equao to token amount" ) in
+    let () = assert_msg ( total_amount = fa2_token.amount, "Buyers amount should be equal to token amount" ) in
 
     match Big_map.find_opt Tezos.sender allowlist with
         None -> unit
-        | Some addr -> (failwith "Seller can not be allowlisted")
+        | Some _addr -> (failwith "Seller can not be allowlisted")
+
 
 
 // -- Fixed price drops checks
@@ -44,8 +45,8 @@ let fail_if_wrong_drop_date (drop_date : timestamp ) : unit =
     then failwith "DROP_DATE_MUST_BE_IN_MAXIMUM_ONE_MONTH"
     else unit
 
-let fail_if_registration_period_over (drop_registration, storage : drop_registration * storage) : unit =
-    match Big_map.find_opt (drop_registration.fa2_base, drop_registration.seller) storage.drops with
+let fail_if_registration_period_over (drop_info, storage : drop_info * storage) : unit =
+    match Big_map.find_opt (drop_info.fa2_base, drop_info.seller) storage.drops with
       None -> failwith "DROP_DOES_NOT_EXIST"
     | Some fixed_price_drop ->
         if Tezos.now > fixed_price_drop.drop_date
@@ -58,7 +59,7 @@ let fail_if_drop_date_not_met (fixed_price_drop : fixed_price_drop) : unit =
     else unit
 
 let assert_wrong_registration_conf (drop_info : drop_configuration ) : unit =
-    if drop_info.registration.active && drop_info.registration.priority_duration < 86400n
+    if drop_info.registration.active && drop_info.registration.priority_duration < 86400
     then failwith "Priority duration must be at least 24h"
     else unit
 
@@ -80,7 +81,7 @@ let fail_if_sender_not_authorized (allowlist : (address, nat) map ) : unit =
 let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, buy_token : fixed_price_drop * buy_token ) : unit =
     if fixed_price_drop.registration.active
     then
-        if abs (Tezos.now - fixed_price_drop.drop_date) > fixed_price_drop.registration.priority_duration
+        if Tezos.now - fixed_price_drop.drop_date > fixed_price_drop.registration.priority_duration
         then unit
         else
             // Fail if not register to a drop except if drop is a day old open to public
@@ -103,4 +104,6 @@ let fail_if_sender_not_authorized_for_fixed_price_drop (fixed_price_drop, buy_to
 let drop_using_utility_token (drop: fixed_price_drop) : bool =
     match drop.registration.utility_token with
         None -> false
-        | Some token -> true
+        | Some _token -> true
+
+    // Add entrypoint for claiming the token (only after priority duration finished)

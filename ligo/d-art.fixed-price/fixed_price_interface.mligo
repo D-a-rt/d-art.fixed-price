@@ -103,7 +103,7 @@ type registration =
 [@layout:comb]
 {
   utility_token: fa2_base option;
-  priority_duration: nat;
+  priority_duration: int;
   active: bool;
 }
 
@@ -129,7 +129,7 @@ type fixed_price_drop =
   drop_date: timestamp;
 }
 
-type drop_registration =
+type drop_info =
 [@layout:comb]
 {
   fa2_base: fa2_base;

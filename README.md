@@ -290,7 +290,7 @@ type fix_price_entrypoints =
 
     (* Drops entrypoint *)
     | CreateDrop of drop_configuration
-    | RegisterToDrop of drop_registration
+    | RegisterToDrop of drop_info
 
     (* Buy token in any sales or drops *)
     | BuyFixedPriceToken of buy_token
@@ -416,7 +416,7 @@ The `RegisterToDrop` entrypoint is responsible to register to a drop.
 Note: The registration period opens as soon as a drop is created, registered buyers will be able to buy at `most one token` during the `priority_duration` after which the sale will become public.
 
 ``` ocaml
-type drop_registration =
+type drop_info =
 [@layout:comb]
 {
     fa2_base: fa2_base;

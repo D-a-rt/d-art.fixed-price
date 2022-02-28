@@ -60,15 +60,9 @@ let handle_utility_access (req, fa2_address : get_balance_param * address) : nat
     None -> 0n
     | Some b -> b
 
-let transfer_token (token, from_, to_ : fa2_token * address * address) : operation =
-  let destination : transfer_destination = {
-      to_ = to_;
-      token_id = token.id;
-      amount = token.amount;
-   } in
-   let transfer_param = [{from_ = from_; txs = [destination]}] in
-   let contract = address_to_contract_transfer_entrypoint token.address in
-   (Tezos.transaction transfer_param 0mutez contract)
+let transfer_token (transfer, fa2_address: transfer * address) : operation =
+   let contract = address_to_contract_transfer_entrypoint fa2_address in
+   (Tezos.transaction [transfer] 0mutez contract)
 
 // -- Verify signature
 
@@ -102,6 +96,22 @@ let get_drop (fa2_base, seller, storage : fa2_base * address * storage) : fixed_
           Some fixed_price_drop -> fixed_price_drop
         | None ->  (failwith "TOKEN_IS_NOT_IN_DROP" : fixed_price_drop)
 
+let transfer_utility_token_back_to_buyers (utility_token, drop : fa2_base * fixed_price_drop) : operation list =
+    let txs : transfer_destination list =
+        let get_buyers (acc, buyer : (transfer_destination list) * ( address * unit) ) : transfer_destination list =
+            {to_ = buyer.0; token_id = utility_token.id; amount = 1n} :: acc
+        in Map.fold get_buyers drop.registered_buyers ([] : transfer_destination list)
+    in
+    [transfer_token ({ from_ = Tezos.self_address; txs = txs }, utility_token.address)]
+
+let handle_utility_token (drop : fixed_price_drop) : operation list =
+    match drop.registration.utility_token with
+        None -> ([] : operation list)
+        | Some utility_token ->
+            if drop.token_amount = 0n
+            then transfer_utility_token_back_to_buyers (utility_token, drop)
+            else [transfer_token ({ from_ = Tezos.sender; txs = [{ to_ = Tezos.self_address; token_id = utility_token.id; amount = 1n}] }, utility_token.address)]
+
 // -- Any kind of sale
 
 let reduce_buyer_credit ( allowlist : (address, nat) map ) : (address, nat) map =
@@ -120,7 +130,7 @@ let perform_sale_operation (buy_token, price, storage : buy_token * tez * storag
   let seller_contract : unit contract = resolve_contract buy_token.seller in
   let seller_transfer : operation = Tezos.transaction unit (price - admin_fee - royalties_fee) seller_contract in
 
-  let buyer_transfer : operation = transfer_token (buy_token.fa2_token, Tezos.self_address, Tezos.sender) in
+  let buyer_transfer : operation = transfer_token ({ from_ = Tezos.self_address; txs = [{ to_ = Tezos.sender; token_id = buy_token.fa2_token.id; amount = buy_token.fa2_token.amount}] }, buy_token.fa2_token.address) in
 
   // List of all the performed operation
   (admin_fee_transfer :: buyer_transfer :: seller_transfer :: royalties_transfer )

@@ -9,7 +9,9 @@ type fixed_price_entrypoints =
     | UpdateSale of sale_info
     | RevokeSale of sale_deletion
     | CreateDrop of drop_configuration
-    | RegisterToDrop of drop_registration
+    | RevokeDrop of drop_info
+    | RegisterToDrop of drop_info
+    | ClaimUtilityToken of drop_info
     | BuyFixedPriceToken of buy_token
     | BuyDroppedToken of buy_token
 
@@ -37,7 +39,7 @@ let create_sale (sale_info, storage : sale_info * storage) : return =
 
     let () = assert_msg (not Big_map.mem (fa2_base, Tezos.sender) storage.for_sale, "Token already for sale, only update or revoke are authorized") in
 
-    let fa2_transfer : operation = transfer_token (sale_info.fa2_token, Tezos.sender, Tezos.self_address) in
+    let fa2_transfer : operation = transfer_token ({ from_ = Tezos.sender; txs = [{ to_ = Tezos.self_address; token_id = sale_info.fa2_token.id; amount = sale_info.fa2_token.amount }] }, sale_info.fa2_token.address) in
     let new_strg = {
         storage with
         for_sale = Big_map.add ({ address = sale_info.fa2_token.address; id = sale_info.fa2_token.id; }, sale_info.seller) fixed_price_sale_values storage.for_sale;
@@ -81,7 +83,7 @@ let revoke_sale (sale_info, storage : sale_deletion * storage) : return =
         amount = sale.token_amount;
     } in
 
-    let fa2_transfer : operation = transfer_token (fa2_token, Tezos.self_address, Tezos.sender) in
+    let fa2_transfer : operation = transfer_token ({ from_ = Tezos.self_address; txs = [{ to_ = Tezos.sender; token_id = fa2_token.id; amount = fa2_token.amount }] }, fa2_token.address) in
     let new_strg = { storage with for_sale = Big_map.remove (sale_info.fa2_base, sale_info.seller) storage.for_sale } in
 
     ([fa2_transfer], new_strg)
@@ -147,7 +149,7 @@ let create_drop (drop_info, storage : drop_configuration * storage) : return =
         drop_date = drop_info.drop_date;
     } in
 
-    let transfer : operation = transfer_token (drop_info.fa2_token, Tezos.sender, Tezos.self_address) in
+    let transfer : operation = transfer_token ({ from_ = Tezos.sender; txs = [{ to_ = Tezos.self_address; token_id = drop_info.fa2_token.id; amount = drop_info.fa2_token.amount}] }, drop_info.fa2_token.address) in
 
     let new_strg : storage = {
         storage with
@@ -158,28 +160,66 @@ let create_drop (drop_info, storage : drop_configuration * storage) : return =
 
     [transfer], new_strg
 
-let register_to_drop ( drop_registration, storage : drop_registration * storage ) : return =
-    let () = verify_signature (drop_registration.authorization_signature, storage) in
+let register_to_drop ( drop_info, storage : drop_info * storage ) : return =
+    let () = verify_signature (drop_info.authorization_signature, storage) in
     let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
 
-    let fixed_price_drop : fixed_price_drop = get_drop (drop_registration.fa2_base, drop_registration.seller, storage) in
+    let fixed_price_drop : fixed_price_drop = get_drop (drop_info.fa2_base, drop_info.seller, storage) in
 
     let () = assert_msg (fixed_price_drop.registration.active, "Registration is not allowed") in
-    let () = assert_msg (Tezos.sender <> drop_registration.seller, "Seller can not register for the drop") in
+    let () = assert_msg (Tezos.sender <> drop_info.seller, "Seller can not register for the drop") in
     let () = assert_msg (not drop_using_utility_token fixed_price_drop, "Utility token drop, no registration possible") in
-    let () = fail_if_registration_period_over (drop_registration, storage) in
+    let () = fail_if_registration_period_over (drop_info, storage) in
     let () = assert_msg (Map.mem Tezos.sender fixed_price_drop.registered_buyers, "Already registered") in
 
     let new_fixed_price_drop : fixed_price_drop = { fixed_price_drop with registered_buyers = Map.add Tezos.sender unit fixed_price_drop.registered_buyers } in
 
     let new_strg : storage = {
         storage with
-        drops = Big_map.update (drop_registration.fa2_base, drop_registration.seller) (Some new_fixed_price_drop) storage.drops;
-        admin.signed_message_used = Big_map.add drop_registration.authorization_signature unit storage.admin.signed_message_used
+        drops = Big_map.update (drop_info.fa2_base, drop_info.seller) (Some new_fixed_price_drop) storage.drops;
+        admin.signed_message_used = Big_map.add drop_info.authorization_signature unit storage.admin.signed_message_used
     } in
 
     ([] : operation list), new_strg
 
+let revoke_drop (drop_info, storage : drop_info * storage) : return =
+    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+    let () = assert_msg (Tezos.sender = drop_info.seller, "Only seller can revoke the tokens from a drop") in
+
+    let drop : fixed_price_drop = get_drop (drop_info.fa2_base, drop_info.seller, storage) in
+
+    let () = assert_msg ( Tezos.now > drop.drop_date + drop.registration.priority_duration, "You can only revoke a drop after priority duration") in
+    let new_drop_strg : drops_storage = Big_map.remove (drop_info.fa2_base, drop_info.seller) storage.drops in
+
+    // Transfer all utility tokens back to owner, in case no utility token then send blank operation list
+    let utility_token_operation_list : operation list =
+        match drop.registration.utility_token with
+            None -> (failwith "No utility token found for this drop" : operation list)
+            | Some utility_token -> if Map.size drop.drop_owners > 0n then transfer_utility_token_back_to_buyers (utility_token, drop) else ([] : operation list)
+        in
+
+    utility_token_operation_list, { storage with drops = new_drop_strg }
+
+let claim_utility_token (drop_info, storage : drop_info * storage) : return =
+    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+
+    let drop : fixed_price_drop = get_drop (drop_info.fa2_base, drop_info.seller, storage) in
+
+    let () = assert_msg ( drop.registration.active, "Not a registration drop") in
+    let () = assert_msg ( Tezos.now > drop.drop_date + drop.registration.priority_duration, "You can only claim a utility token after priority duration") in
+    let () = assert_msg ( Map.mem Tezos.sender drop.drop_owners, "Unauthorized to claim token" ) in
+
+    let new_drop : fixed_price_drop = { drop with drop_owners = Map.remove Tezos.sender drop.drop_owners } in
+    let new_drops_strg : drops_storage = Map.update (drop_info.fa2_base, drop_info.seller) (Some new_drop) storage.drops in
+
+    // Transfer utility token back to owner
+    let utility_token_operation_list : operation list =
+        match new_drop.registration.utility_token with
+            None -> (failwith "No utility token found for this drop" : operation list)
+            | Some utility_token -> [transfer_token ({ from_ = Tezos.self_address; txs = [{ to_ = Tezos.sender; token_id = utility_token.id; amount = 1n}] }, utility_token.address)]
+    in
+
+    utility_token_operation_list, { storage with drops = new_drops_strg }
 
 let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let () = assert_msg (Tezos.sender <> buy_token.seller, "Seller can not buy the token") in
@@ -193,7 +233,6 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let concerned_fixed_price_drop : fixed_price_drop = get_drop (fa2_base, buy_token.seller, storage) in
 
     let () = assert_msg (concerned_fixed_price_drop.token_amount >= buy_token.fa2_token.amount, "Token amount to high" ) in
-
     let () = fail_if_drop_date_not_met concerned_fixed_price_drop in
     let () = fail_if_sender_not_authorized_for_fixed_price_drop (concerned_fixed_price_drop, buy_token) in
     let () = assert_msg (concerned_fixed_price_drop.price = Tezos.amount, "Wrong price specified") in
@@ -210,10 +249,23 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     then Big_map.remove (fa2_base, buy_token.seller) storage.drops
     else Big_map.update (fa2_base, buy_token.seller) (Some(new_fixed_price_drop)) storage.drops in
 
+    let utility_token_operation_list : operation list = if new_fixed_price_drop.registration.active && new_fixed_price_drop.registration.priority_duration + new_fixed_price_drop.drop_date < Tezos.now
+    then match new_fixed_price_drop.registration.utility_token with
+        None -> ([] : operation list)
+        | Some utility_token ->
+            if new_fixed_price_drop.token_amount = 0n
+            then transfer_utility_token_back_to_buyers (utility_token, new_fixed_price_drop)
+            else [transfer_token ({ from_ = Tezos.sender; txs = [{ to_ = Tezos.self_address; token_id = utility_token.id; amount = 1n}] }, utility_token.address)]
+    else ([] : operation list) in
+
     let operation_list : operation list = perform_sale_operation (buy_token, new_fixed_price_drop.price, storage) in
+
+    let conct_list ( second_list, el: (operation list) * operation) : (operation list) = (el :: second_list) in
+    let ops : (operation list) = List.fold_left conct_list operation_list utility_token_operation_list in
+
     let new_strg = { storage with drops = new_drops; admin.signed_message_used = Big_map.add buy_token.authorization_signature unit storage.admin.signed_message_used } in
 
-    operation_list, new_strg
+    ops, new_strg
 
 
 let fixed_price_tez_main (p , storage : fixed_price_entrypoints * storage) : return = match p with
@@ -227,6 +279,8 @@ let fixed_price_tez_main (p , storage : fixed_price_entrypoints * storage) : ret
     // Drops entrypoints
     | CreateDrop drop_configuration -> create_drop(drop_configuration, storage)
     | RegisterToDrop registration_param -> register_to_drop(registration_param, storage)
+    | RevokeDrop drop_info -> revoke_drop(drop_info, storage)
+    | ClaimUtilityToken drop_info -> claim_utility_token (drop_info, storage)
 
     // Buy token in any sales or drops
     | BuyFixedPriceToken buy_token -> buy_fixed_price_token(buy_token, storage)
