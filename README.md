@@ -161,7 +161,7 @@ type storage =
 }
 ```
 
-A `drop` is slightly different than a fied price sale.
+A `drop` is slightly different than a fixed price sale.
 
 The main differences are :
 
