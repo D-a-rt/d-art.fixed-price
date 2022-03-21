@@ -1,28 +1,25 @@
-type token_id = nat
-type seller = address
-
 // -- Token types
 
-type fa2_token = 
+type fa2_token =
 [@layout:comb]
 {
-    fa2_address : address;
-    token_id : token_id;
-    amount : nat;
+  id : nat;
+  address : address;
+  amount : nat;
 }
 
-type fa2_token_identifier =
+type fa2_base =
 [@layout:comb]
 {
-    fa2_address : address;
-    token_id : token_id;
+  id : nat;
+  address : address;
 }
 
 type transfer_destination =
 [@layout:comb]
 {
   to_ : address;
-  token_id : token_id;
+  token_id : nat;
   amount : nat;
 }
 
@@ -30,7 +27,7 @@ type transfer =
 [@layout:comb]
 {
   from_ : address;
-  destinations : transfer_destination list;
+  txs : transfer_destination list;
 }
 
 
@@ -43,129 +40,126 @@ type authorization_signature = {
 
 type signed_message_used = (authorization_signature, unit) big_map
 
-type admin_storage = {
-  admin_address : address;
+type admin_storage =
+[@layout:comb]
+{
+  address : address;
   pb_key : key;
   signed_message_used : signed_message_used;
+  contract_will_update: bool;
 }
 
 // -- Fees
 
-type fee_data = 
+type fee_data =
 [@layout:comb]
 {
-    fee_address : address;
-    fee_percent : nat;
-}
-
-type royalties_param =
-[@layout:comb] 
-{
-  token_id: token_id;
-  fee: tez;
+  address : address;
+  percent : nat;
 }
 
 // -- Fixed price sale types
 
-type fixed_price_sale = 
+type allowed_buyer =
+[@layout:comb]
+{
+  buyer: address;
+  amount: nat
+}
+
+
+type fixed_price_sale =
 [@layout:comb]
 {
   price : tez;
   token_amount : nat;
-  allowlist : (address, unit) map;
+  allowlist : (address, nat) map;
 }
-
-type fixed_price_drop =
-[@layout:comb]
-{
-    price: tez;
-    token_amount: nat;
-    registration: bool;
-    registration_list: (address, unit) map;
-    allowlist: (address, unit) map;
-    drop_date: timestamp;
-    sale_duration: nat;
-}
-
-type authorized_drops_sellers_storage = (seller, unit) big_map
-
-type fa2_dropped_storage = (fa2_token_identifier, unit) big_map
-
-type drops_storage = (fa2_token_identifier * seller, fixed_price_drop) big_map
-
-type storage =
-[@layout:comb]
-{
-    admin: admin_storage;
-    sales: (fa2_token_identifier * seller, fixed_price_sale) big_map;
-    preconfigured_sales: (fa2_token_identifier * seller, fixed_price_sale) big_map;
-    authorized_drops_seller: authorized_drops_sellers_storage;
-    fa2_dropped: fa2_dropped_storage;
-    drops: drops_storage;
-    fee: fee_data;
-}
-
-type return = operation list * storage
 
 // Entrypoints record params
 
 // -- Fixed price sale
 
-type sale_configuration =
+type sale_info =
 [@layout:comb]
 {
-    fa2_token: fa2_token;
-    seller: seller;
-    price: tez;
-    allowlist: (address, unit) map;
-    authorization_signature: authorization_signature;
-}
-
-type sale_edition =
-[@layout:comb]
-{
-    fa2_token: fa2_token;
-    seller: seller;
-    price: tez;
-    allowlist: (address, unit) map;
+  allowlist: (address, nat) map;
+  price: tez;
+  seller: address;
+  authorization_signature: authorization_signature;
+  fa2_token: fa2_token;
 }
 
 type sale_deletion =
 [@layout:comb]
 {
-    fa2_token_identifier: fa2_token_identifier;
-    seller: seller;
+  fa2_base: fa2_base;
+  seller: address;
 }
 
 // -- Fixed price drop
 
+type registration =
+[@layout:comb]
+{
+  utility_token: fa2_base option;
+  priority_duration: int;
+  active: bool;
+}
+
 type drop_configuration =
 [@layout:comb]
 {
-    fa2_token: fa2_token;
-    seller: seller;
-    price: tez;
-    allowlist: (address, unit) map;
-    drop_date: timestamp;
-    sale_duration: nat;
-    registration: bool;
-    authorization_signature: authorization_signature;
+  registration: registration;
+  authorization_signature: authorization_signature;
+  fa2_token: fa2_token;
+  price: tez;
+  drop_date: timestamp;
+  seller: address;
 }
 
-type drop_registration = 
+type fixed_price_drop =
 [@layout:comb]
 {
-    fa2_token_identifier: fa2_token_identifier;
-    seller: seller;
-    authorization_signature: authorization_signature;
+  price: tez;
+  token_amount: nat;
+  registration: registration;
+  registered_buyers: (address, unit) map;
+  drop_owners: (address, unit) map;
+  drop_date: timestamp;
 }
+
+type drop_info =
+[@layout:comb]
+{
+  fa2_base: fa2_base;
+  seller: address;
+  authorization_signature: authorization_signature;
+}
+
+type drops_storage = (fa2_base * address, fixed_price_drop) big_map
+
+// Contract storage
+
+type storage =
+[@layout:comb]
+{
+  admin: admin_storage;
+  for_sale: (fa2_base * address, fixed_price_sale) big_map;
+  authorized_drops_seller: (address, unit) big_map;
+  drops: drops_storage;
+  fa2_dropped: (fa2_base, unit) big_map;
+  fee: fee_data;
+}
+
+type return = operation list * storage
 
 // -- Buy token
 
-type buy_token = 
+type buy_token =
 [@layout:comb]
 {
-    fa2_token: fa2_token;
-    seller: seller;
-    authorization_signature: authorization_signature;
+  fa2_token: fa2_token;
+  seller: address;
+  authorization_signature: authorization_signature;
 }

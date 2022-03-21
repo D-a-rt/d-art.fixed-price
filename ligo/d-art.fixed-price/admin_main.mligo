@@ -1,34 +1,33 @@
 
 type admin_entrypoints =
+    | UpdateFee of fee_data
     | UpdatePublicKey of key
-    | AddDropSeller of seller
-    | RemoveDropSeller of seller
+    | AddDropSeller of address
+    | RemoveDropSeller of address
+    | ContractWillUpdate of bool
 
-let is_drop_seller (seller, storage : seller * storage) : bool =
+let is_drop_seller (seller, storage : address * storage) : bool =
   Big_map.mem seller storage.authorized_drops_seller
 
-let admin_main (param, storage : admin_entrypoints * storage) : (operation list) * storage = match param with
+let admin_main (param, storage : admin_entrypoints * storage) : (operation list) * storage =
+  let () = fail_if_not_admin (storage.admin) in
+  match param with
+    UpdateFee new_fee_data ->
+      let () = assert_msg (new_fee_data.percent > 0n || new_fee_data.percent < 100n, "Percentage must be between 0 and 100") in
+      ([] : operation list), { storage with fee = new_fee_data }
 
-  | UpdatePublicKey key -> 
-    let fail = fail_if_not_admin (storage.admin) in
-    let new_admin_storage : admin_storage = {
-      admin_address = storage.admin.admin_address;
-      pb_key = key;
-      signed_message_used = storage.admin.signed_message_used;
-    } in
-    let new_storage = { storage with admin = new_admin_storage } in
-    ([] : operation list), new_storage
+    | UpdatePublicKey key ->
+      let empty_message_used : signed_message_used = Big_map.empty in
+      ([] : operation list), { storage with admin.pb_key = key; admin.signed_message_used = empty_message_used }
 
-  | AddDropSeller seller -> 
-    let fail = fail_if_not_admin (storage.admin) in
-    
-    if is_drop_seller(seller, storage)
-    then ([] : operation list), { storage with authorized_drops_seller = Big_map.add (seller : seller) unit storage.authorized_drops_seller }
-    else (failwith "SELLER_ALREADY_ADDED" : operation list * storage )
+    | AddDropSeller seller ->
+      if is_drop_seller(seller, storage)
+      then (failwith "ALREADY_SELLER" : operation list * storage )
+      else ([] : operation list), { storage with authorized_drops_seller = Big_map.add (seller : address) unit storage.authorized_drops_seller }
 
-  | RemoveDropSeller seller ->
-    let fail = fail_if_not_admin (storage.admin) in
-    
-    if is_drop_seller(seller, storage)
-    then ([] : operation list), { storage with authorized_drops_seller = Big_map.remove (seller : seller) storage.authorized_drops_seller }
-    else (failwith "SELLER_NOT_FOUND" : operation list * storage )
+    | RemoveDropSeller seller ->
+      if is_drop_seller(seller, storage)
+      then ([] : operation list), { storage with authorized_drops_seller = Big_map.remove (seller : address) storage.authorized_drops_seller }
+      else (failwith "SELLER_NOT_FOUND" : operation list * storage )
+
+    | ContractWillUpdate bool -> ([] : operation list), { storage with admin.contract_will_update = bool }
