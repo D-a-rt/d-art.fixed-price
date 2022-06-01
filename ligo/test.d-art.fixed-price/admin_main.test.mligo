@@ -169,7 +169,7 @@ let test_update_public_key_not_admin =
         )
     |   Fail _ -> failwith "Internal test failure"
 
-// Should fialt if amount passed as parameter
+// Should fail if amount passed as parameter
 let test_update_public_key_with_amount =
     let contract_add = get_initial_storage () in
     let init_str = Test.get_storage contract_add in
@@ -182,9 +182,9 @@ let test_update_public_key_with_amount =
     let result = Test.transfer_to_contract contract (Admin (UpdatePublicKey (new_account.1))) 1tez in
     
     match result with
-        Success _gas -> failwith "Admin -> UpdatePublicKey - Wrong admin : This test should fail"
+        Success _gas -> failwith "Admin -> UpdatePublicKey - No amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> UpdatePublicKey - Wrong admin : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> UpdatePublicKey - No amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
@@ -256,6 +256,116 @@ let test_remove_non_existing_drop_seller =
         Success _gas -> failwith "Admin -> RemoveDropSeller - Not existing : This test should fail"
     |   Fail (Rejected (err, _)) -> (
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_FOUND") ) "Admin -> RemoveDropSeller - Not existing : Should not work if seller not authorized" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if not admin
+let test_add_remove_drop_seller_not_admin =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_drop_seller = Test.nth_bootstrap_account 1 in
+    
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
+    
+    let () = match result with
+            Success _gas -> failwith "Admin -> AddDropSeller - Not admin : This test should fail"
+        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> AddDropSeller - Not admin : Should not work if sender not admin"
+        |   Fail _ -> failwith "Internal test failure" 
+    in
+    let result = Test.transfer_to_contract contract (Admin  (RemoveDropSeller (new_drop_seller))) 0tez in
+    
+    let () = match result with
+            Success _gas -> failwith "Admin -> RemoveDropSeller - Not admin : This test should fail"
+        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> RemoveDropSeller - Not admin : Should not work if sender not admin"
+        |   Fail _ -> failwith "Internal test failure" 
+    in
+    "Passed"
+
+// Should fail if amount passed as parameter
+let test_add_remove_drop_seller_with_amount =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_drop_seller = Test.nth_bootstrap_account 1 in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 1tez in
+    
+    let () = match result with
+            Success _gas -> failwith "Admin -> AddDropSeller - No amount : This test should fail"
+        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> AddDropSeller - No amount : Should not work if amount specified"
+        |   Fail _ -> failwith "Internal test failure" 
+    in
+    let result = Test.transfer_to_contract contract (Admin  (RemoveDropSeller (new_drop_seller))) 1tez in
+    
+    let () = match result with
+            Success _gas -> failwith "Admin -> RemoveDropSeller - Not admin : This test should fail"
+        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> RemoveDropSeller - Not admin : Should not work if amount specified"
+        |   Fail _ -> failwith "Internal test failure" 
+    in
+    "Passed"
+// -- CONTRACT WILL UPDATE --
+
+// Success
+let test_contract_will_update =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (ContractWillUpdate (true))) 0tez in    
+
+    let new_str = Test.get_storage contract_add in
+    let () = assert_with_error (new_str.admin.contract_will_update = true) "Admin -> ContractWillUpdate - True : Should be true" in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (ContractWillUpdate (false))) 0tez in    
+
+    let new_str = Test.get_storage contract_add in
+    let () = assert_with_error (new_str.admin.contract_will_update = false) "Admin -> ContractWillUpdate - True : Should be true" in
+    "Passed"
+
+// Should fail if not admin
+let test_contract_will_update_not_admin =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+    
+    let contract = Test.to_contract contract_add in
+    let result = Test.transfer_to_contract contract (Admin  (ContractWillUpdate (true))) 0tez in    
+
+    match result with
+        Success _gas -> failwith "Admin -> ContractWillUpdate - Not admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> ContractWillUpdate - Not admin : Should not work if sender not admin" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if amount passed as parameter
+let test_contract_will_update_with_amount =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+    let result = Test.transfer_to_contract contract (Admin  (ContractWillUpdate (true))) 1tez in    
+
+    match result with
+        Success _gas -> failwith "Admin -> ContractWillUpdate - No amount : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> ContractWillUpdate - No amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
