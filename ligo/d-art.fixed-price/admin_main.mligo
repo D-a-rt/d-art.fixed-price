@@ -17,8 +17,7 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
       ([] : operation list), { storage with fee = new_fee_data }
 
     | UpdatePublicKey key ->
-      let empty_message_used : signed_message_used = Big_map.empty in
-      ([] : operation list), { storage with admin.pb_key = key; admin.signed_message_used = empty_message_used }
+      ([] : operation list), { storage with admin.pb_key = key; }
 
     | AddDropSeller seller ->
       if is_drop_seller(seller, storage)

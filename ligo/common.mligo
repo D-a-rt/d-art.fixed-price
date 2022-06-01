@@ -20,6 +20,11 @@ let calculate_fee (percent, sale_value : (nat option) * tez) : tez =
     None -> 0mutez
     | Some percentage -> ceil_div_tez (sale_value *  percentage, 100n)
 
+let sub_tez (tez_val, tez_minus : tez * tez ) : tez =
+  match (tez_val - tez_minus) with
+    Some tez -> tez
+    | None -> 0mutez
+
 // -- Contracts
 
 let address_to_contract_transfer_entrypoint(add : address) : ((transfer list) contract) =
@@ -128,9 +133,11 @@ let perform_sale_operation (buy_token, price, storage : buy_token * tez * storag
   let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (buy_token.fa2_token, price) in
 
   let seller_contract : unit contract = resolve_contract buy_token.seller in
-  let seller_transfer : operation = Tezos.transaction unit (price - admin_fee - royalties_fee) seller_contract in
+  let seller_tez_amount : tez = sub_tez(sub_tez(price, admin_fee), royalties_fee) in
 
-  let buyer_transfer : operation = transfer_token ({ from_ = Tezos.self_address; txs = [{ to_ = Tezos.sender; token_id = buy_token.fa2_token.id; amount = buy_token.fa2_token.amount}] }, buy_token.fa2_token.address) in
+  let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
+
+  let buyer_transfer : operation = transfer_token ({ from_ = buy_token.seller; txs = [{ to_ = Tezos.sender; token_id = buy_token.fa2_token.id; amount = buy_token.fa2_token.amount}] }, buy_token.fa2_token.address) in
 
   // List of all the performed operation
   (admin_fee_transfer :: buyer_transfer :: seller_transfer :: royalties_transfer )

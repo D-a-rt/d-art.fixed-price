@@ -13,7 +13,7 @@ export async function compileContract(): Promise<void> {
     await new Promise<void>((resolve, reject) =>
         // Compile the contract
         child.exec(
-            path.join(__dirname, "../ligo/exec_ligo compile contract " + path.join(__dirname, "../ligo/d-art.fixed-price/fixed_price_main.mligo") + " -e fixed_price_tez_main -p hangzhou"),
+            path.join(__dirname, "../ligo/exec_ligo compile contract " + path.join(__dirname, "../ligo/d-art.fixed-price/fixed_price_main.mligo") + " -e fixed_price_tez_main"),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to compile the contract.'));
@@ -35,7 +35,7 @@ export async function calculateSize(): Promise<void> {
     await new Promise<void>((resolve, reject) =>
         // Compile the contract
         child.exec(
-            path.join(__dirname, "../ligo/exec_ligo info measure-contract " + path.join(__dirname, "../ligo/d-art.fixed-price/fixed_price_main.mligo") + "  -e fixed_price_tez_main -p hangzhou"),
+            path.join(__dirname, "../ligo/exec_ligo info measure-contract " + path.join(__dirname, "../ligo/d-art.fixed-price/fixed_price_main.mligo") + "  -e fixed_price_tez_main"),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to calculate the contract size.'));
@@ -74,7 +74,7 @@ export async function deployContract(): Promise<void> {
     }
 
     try {
-        const toolkit = await new TezosToolkit('http://art-basel.tzconnect.berlin:18732');
+        const toolkit = await new TezosToolkit('https://ithaca-archive.tzconnect.berlin');
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ADMIN_PRIVATE_KEY!) });
 

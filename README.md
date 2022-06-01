@@ -168,7 +168,7 @@ The main differences are :
     - drop_date
     - registration
         - with a registration period (will reserve one token for each participant that registered before the drop date)
-        - using utility token (only buyers owning this token will be able to access the drop)
+        - using utility token (only buyers owning the utility token will be able to access the drop)
     - immutable (you can not edit or delete a drop)
     - can only be configured once per set of token
     - can only be configured by the minter of the token

@@ -5,73 +5,65 @@
 
 type fixed_price_entrypoints =
     | Admin of admin_entrypoints
-    | CreateSale of sale_info
-    | UpdateSale of sale_info
+    | CreateSale of sale_configuration
+    | UpdateSale of sale_configuration
     | RevokeSale of sale_deletion
     | CreateDrop of drop_configuration
     | RevokeDrop of drop_info
-    | RegisterToDrop of drop_info
-    | ClaimUtilityToken of drop_info
     | BuyFixedPriceToken of buy_token
     | BuyDroppedToken of buy_token
 
 // Fixed price sales functions
 
-let create_sale (sale_info, storage : sale_info * storage) : return =
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be should ne greater 0mutez") in
-    let () = verify_signature (sale_info.authorization_signature, storage) in
-    let () = assert_msg (Tezos.sender = sale_info.seller, "Only owner can create a sale") in
-    let () = assert_msg (sale_info.price > 0mutez, "Price should be greater than 0" ) in
-    let () = assert_msg (sale_info.fa2_token.amount > 0n, "Amount should be greater than 0" ) in
-    let () = assert_msg (not storage.admin.contract_will_update, "This contract is or will be deprecated, you can not create sale on it") in
-    let () = assert_wrong_allowlist (sale_info.fa2_token, sale_info.allowlist) in
-
-    let fixed_price_sale_values : fixed_price_sale = {
-        price = sale_info.price;
-        token_amount = sale_info.fa2_token.amount;
-        allowlist = sale_info.allowlist;
-    } in
-
-    let fa2_base : fa2_base = {
-        address= sale_info.fa2_token.address;
-        id=sale_info.fa2_token.id;
-    } in
-
-    let () = assert_msg (not Big_map.mem (fa2_base, Tezos.sender) storage.for_sale, "Token already for sale, only update or revoke are authorized") in
-
-    let fa2_transfer : operation = transfer_token ({ from_ = Tezos.sender; txs = [{ to_ = Tezos.self_address; token_id = sale_info.fa2_token.id; amount = sale_info.fa2_token.amount }] }, sale_info.fa2_token.address) in
-    let new_strg = {
-        storage with
-        for_sale = Big_map.add ({ address = sale_info.fa2_token.address; id = sale_info.fa2_token.id; }, sale_info.seller) fixed_price_sale_values storage.for_sale;
-        admin.signed_message_used = Big_map.add sale_info.authorization_signature unit storage.admin.signed_message_used
-    } in
-
-    ([fa2_transfer], new_strg)
-
-let update_sale (sale_info, storage : sale_info * storage ) : return =
+let create_sales (sale_configuration, storage : sale_configuration * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
-    let () = assert_msg (Tezos.sender = sale_info.seller, "Only seller can update the sale") in
-    let () = assert_msg (sale_info.price > 0mutez, "Price should be greater than 0" ) in
-    let () = assert_msg (sale_info.fa2_token.amount > 0n, "Amount should be greater than 0" ) in
+    let () = assert_msg (not storage.admin.contract_will_update, "This contract is or will be deprecated, you can not create sale on it") in
+    let () = assert_msg (Tezos.sender = sale_configuration.seller, "Only owner can create a sale") in
 
-    let fa2_base : fa2_base = {
-        address = sale_info.fa2_token.address;
-        id = sale_info.fa2_token.id;
-    } in
+    let create_sale : (storage * sale_info ) -> storage =
+        fun (strg, sale_param : storage * sale_info ) ->
+            let () = verify_signature (sale_info.authorization_signature, storage) in
+            let () = assert_msg (sale_param.price > 0mutez, "Price should be greater than 0" ) in
 
-    let () = assert_msg (Big_map.mem (fa2_base, Tezos.sender) storage.for_sale, "Token is not for sale") in
+            let fixed_price_sale_values : fixed_price_sale = {
+                price = sale_param.price;
+                token_amount = 1n;
+                buyer = sale_param.buyer;
+            } in
 
-    let fixed_price_sale_values : fixed_price_sale = {
-        price = sale_info.price;
-        token_amount = sale_info.fa2_token.amount;
-        allowlist = sale_info.allowlist;
-    } in
+            let () = assert_msg (not Big_map.mem (sale_param.fa2_base, Tezos.sender) storage.for_sale, "Token already for sale, only update or revoke are authorized") in
 
-    let new_strg = { storage with for_sale = Big_map.update (fa2_base, sale_info.seller) (Some fixed_price_sale_values) storage.for_sale } in
+            {
+                storage with
+                for_sale = Big_map.add ({ address = sale_param.fa2_base.address; id = sale_param.fa2_base.id; }, sale_param.seller) fixed_price_sale_values storage.for_sale;
+                admin.signed_message_used = Big_map.add sale_param.authorization_signature unit storage.admin.signed_message_used
+            }
+    in
 
-    ([] : operation list), new_strg
+    let new_storage = List.fold create_sale sale_configuration.sale_infos storage in
+    ([] : operation list), new_storage
 
-let revoke_sale (sale_info, storage : sale_deletion * storage) : return =
+let update_sales (sale_configuration, storage : sale_configuration * storage ) : return =
+    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+    let () = assert_msg (Tezos.sender = sale_configuration.seller, "Only seller can update the sale") in
+
+    let update_sale : (storage * sale_info ) -> storage =
+        fun (strg, sale_param : storage * sale_info ) ->
+            let () = assert_msg (sale_param.price > 0mutez, "Price should be greater than 0" ) in
+            let () = assert_msg (Big_map.mem (sale_param.fa2_base, Tezos.sender) storage.for_sale, "Token is not for sale") in
+
+            let fixed_price_sale_values : fixed_price_sale = {
+                price = sale_param.price;
+                token_amount = 1n;
+                buyer = sale_param.buyer;
+            } in
+
+            { storage with for_sale = Big_map.update (sale_param.fa2_base, sale_param.seller) (Some fixed_price_sale_values) storage.for_sale }
+    in
+    let new_storage = List.fold update_sale sale_configuration storage in
+    ([] : operation list), new_storage
+
+let revoke_sales (sale_info, storage : sale_deletion * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
     let () = assert_msg (Tezos.sender = sale_info.seller, "Only seller can remove the token from sale") in
 
@@ -127,7 +119,6 @@ let create_drop (drop_info, storage : drop_configuration * storage) : return =
     let () = assert_msg (not storage.admin.contract_will_update, "This contract is deprecated, you can not create sale on it") in
     let () = assert_msg(Big_map.mem Tezos.sender storage.authorized_drops_seller, "Not authorized drop seller") in
     let () = fail_if_wrong_drop_date (drop_info.drop_date) in
-    let () = assert_wrong_registration_conf (drop_info) in
 
     // Registration
     let fa2_base : fa2_base = {
@@ -138,45 +129,15 @@ let create_drop (drop_info, storage : drop_configuration * storage) : return =
     let () = assert_msg (not Big_map.mem (fa2_base, Tezos.sender) storage.drops, "Token has already been dropped") in
     let () = assert_msg (not Big_map.mem fa2_base storage.fa2_dropped, "Token has already been dropped") in
 
-    let empty_address_list : (address, unit) map = Map.empty in
-
     let fixed_price_drop : fixed_price_drop = {
         price = drop_info.price;
-        token_amount = drop_info.fa2_token.amount;
-        registration = drop_info.registration;
-        registered_buyers = empty_address_list;
-        drop_owners = empty_address_list;
         drop_date = drop_info.drop_date;
     } in
-
-    let transfer : operation = transfer_token ({ from_ = Tezos.sender; txs = [{ to_ = Tezos.self_address; token_id = drop_info.fa2_token.id; amount = drop_info.fa2_token.amount}] }, drop_info.fa2_token.address) in
 
     let new_strg : storage = {
         storage with
         fa2_dropped = Big_map.add fa2_base unit storage.fa2_dropped;
         drops = Big_map.add (fa2_base, drop_info.seller) fixed_price_drop storage.drops;
-        admin.signed_message_used = Big_map.add drop_info.authorization_signature unit storage.admin.signed_message_used
-    } in
-
-    [transfer], new_strg
-
-let register_to_drop ( drop_info, storage : drop_info * storage ) : return =
-    let () = verify_signature (drop_info.authorization_signature, storage) in
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
-
-    let fixed_price_drop : fixed_price_drop = get_drop (drop_info.fa2_base, drop_info.seller, storage) in
-
-    let () = assert_msg (fixed_price_drop.registration.active, "Registration is not allowed") in
-    let () = assert_msg (Tezos.sender <> drop_info.seller, "Seller can not register for the drop") in
-    let () = assert_msg (not drop_using_utility_token fixed_price_drop, "Utility token drop, no registration possible") in
-    let () = fail_if_registration_period_over (drop_info, storage) in
-    let () = assert_msg (Map.mem Tezos.sender fixed_price_drop.registered_buyers, "Already registered") in
-
-    let new_fixed_price_drop : fixed_price_drop = { fixed_price_drop with registered_buyers = Map.add Tezos.sender unit fixed_price_drop.registered_buyers } in
-
-    let new_strg : storage = {
-        storage with
-        drops = Big_map.update (drop_info.fa2_base, drop_info.seller) (Some new_fixed_price_drop) storage.drops;
         admin.signed_message_used = Big_map.add drop_info.authorization_signature unit storage.admin.signed_message_used
     } in
 
@@ -199,27 +160,6 @@ let revoke_drop (drop_info, storage : drop_info * storage) : return =
         in
 
     utility_token_operation_list, { storage with drops = new_drop_strg }
-
-let claim_utility_token (drop_info, storage : drop_info * storage) : return =
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
-
-    let drop : fixed_price_drop = get_drop (drop_info.fa2_base, drop_info.seller, storage) in
-
-    let () = assert_msg ( drop.registration.active, "Not a registration drop") in
-    let () = assert_msg ( Tezos.now > drop.drop_date + drop.registration.priority_duration, "You can only claim a utility token after priority duration") in
-    let () = assert_msg ( Map.mem Tezos.sender drop.drop_owners, "Unauthorized to claim token" ) in
-
-    let new_drop : fixed_price_drop = { drop with drop_owners = Map.remove Tezos.sender drop.drop_owners } in
-    let new_drops_strg : drops_storage = Map.update (drop_info.fa2_base, drop_info.seller) (Some new_drop) storage.drops in
-
-    // Transfer utility token back to owner
-    let utility_token_operation_list : operation list =
-        match new_drop.registration.utility_token with
-            None -> (failwith "No utility token found for this drop" : operation list)
-            | Some utility_token -> [transfer_token ({ from_ = Tezos.self_address; txs = [{ to_ = Tezos.sender; token_id = utility_token.id; amount = 1n}] }, utility_token.address)]
-    in
-
-    utility_token_operation_list, { storage with drops = new_drops_strg }
 
 let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let () = assert_msg (Tezos.sender <> buy_token.seller, "Seller can not buy the token") in
@@ -272,15 +212,13 @@ let fixed_price_tez_main (p , storage : fixed_price_entrypoints * storage) : ret
     | Admin admin_param -> admin_main (admin_param, storage)
 
     // Fixed price sales entrypoints
-    | CreateSale sale_info -> create_sale(sale_info, storage)
-    | UpdateSale updated_sale -> update_sale(updated_sale, storage)
+    | CreateSale sale_configuration -> create_sales(sale_configuration, storage)
+    | UpdateSale update_sales -> update_sale(update_sales, storage)
     | RevokeSale token_info -> revoke_sale(token_info, storage)
 
     // Drops entrypoints
     | CreateDrop drop_configuration -> create_drop(drop_configuration, storage)
-    | RegisterToDrop registration_param -> register_to_drop(registration_param, storage)
     | RevokeDrop drop_info -> revoke_drop(drop_info, storage)
-    | ClaimUtilityToken drop_info -> claim_utility_token (drop_info, storage)
 
     // Buy token in any sales or drops
     | BuyFixedPriceToken buy_token -> buy_fixed_price_token(buy_token, storage)

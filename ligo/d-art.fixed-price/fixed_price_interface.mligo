@@ -41,7 +41,6 @@ type authorization_signature = {
 type signed_message_used = (authorization_signature, unit) big_map
 
 type admin_storage =
-[@layout:comb]
 {
   address : address;
   pb_key : key;
@@ -73,7 +72,7 @@ type fixed_price_sale =
 {
   price : tez;
   token_amount : nat;
-  allowlist : (address, nat) map;
+  buyer : address option;
 }
 
 // Entrypoints record params
@@ -83,11 +82,17 @@ type fixed_price_sale =
 type sale_info =
 [@layout:comb]
 {
-  allowlist: (address, nat) map;
+  buyer : address option;
   price: tez;
-  seller: address;
   authorization_signature: authorization_signature;
-  fa2_token: fa2_token;
+  fa2_token: fa2_base;
+}
+
+type sale_configuration =
+[@layout:comb]
+{
+  sale_infos : sale_info list;
+  seller : address;
 }
 
 type sale_deletion =
@@ -99,18 +104,9 @@ type sale_deletion =
 
 // -- Fixed price drop
 
-type registration =
-[@layout:comb]
-{
-  utility_token: fa2_base option;
-  priority_duration: int;
-  active: bool;
-}
-
 type drop_configuration =
 [@layout:comb]
 {
-  registration: registration;
   authorization_signature: authorization_signature;
   fa2_token: fa2_token;
   price: tez;
@@ -123,9 +119,6 @@ type fixed_price_drop =
 {
   price: tez;
   token_amount: nat;
-  registration: registration;
-  registered_buyers: (address, unit) map;
-  drop_owners: (address, unit) map;
   drop_date: timestamp;
 }
 

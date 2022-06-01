@@ -854,7 +854,7 @@
                                   GET 4 ;
                                   DIG 2 ;
                                   COMPARE ;
-                                  GT ;
+                                  GE ;
                                   PAIR ;
                                   DUP 7 ;
                                   SWAP ;
@@ -1440,11 +1440,16 @@
                          DUP 3 ;
                          ITER { CDR ; ADD } ;
                          PUSH string "Buyers amount should be equal to token amount" ;
-                         DIG 2 ;
-                         GET 4 ;
-                         DIG 2 ;
+                         PUSH nat 0 ;
+                         DUP 3 ;
                          COMPARE ;
                          EQ ;
+                         DIG 3 ;
+                         GET 4 ;
+                         DIG 3 ;
+                         COMPARE ;
+                         EQ ;
+                         AND ;
                          PAIR ;
                          DUP 6 ;
                          SWAP ;

@@ -22,9 +22,9 @@ let assert_wrong_allowlist (fa2_token, allowlist : fa2_token * (address, nat) ma
     let total_amount : nat =
         let calc_amount (acc, buyer: nat * (address * nat)) : nat = acc + buyer.1 in
     Map.fold calc_amount allowlist 0n in
-    let () = assert_msg ( total_amount = fa2_token.amount, "Buyers amount should be equal to token amount" ) in
+    let () = assert_msg ( total_amount = fa2_token.amount && total_amount = 0n, "Buyers amount should be equal to token amount" ) in
 
-    match Big_map.find_opt Tezos.sender allowlist with
+    match Map.find_opt Tezos.sender allowlist with
         None -> unit
         | Some _addr -> (failwith "Seller can not be allowlisted")
 
@@ -58,10 +58,6 @@ let fail_if_drop_date_not_met (fixed_price_drop : fixed_price_drop) : unit =
     then failwith "DROP_DATE_NOT_MET"
     else unit
 
-let assert_wrong_registration_conf (drop_info : drop_configuration ) : unit =
-    if drop_info.registration.active && drop_info.registration.priority_duration < 86400
-    then failwith "Priority duration must be at least 24h"
-    else unit
 
 // -- Buy tokens checks
 
@@ -69,7 +65,7 @@ let fail_if_token_amount_to_high (allowlist, buy_token : (address, nat) map * bu
     if Map.size allowlist = 0n then unit
     else match (Map.find_opt Tezos.sender allowlist) with
         None -> (failwith "NOT_AUTHORIZED_BUYER" : unit)
-        | Some allowed_amount -> assert_msg (allowed_amount > buy_token.fa2_token.amount, "Amount specified to high")
+        | Some allowed_amount -> assert_msg (allowed_amount >= buy_token.fa2_token.amount, "Amount specified to high")
 
 let fail_if_sender_not_authorized (allowlist : (address, nat) map ) : unit =
     // If it s a public sale the allowlist will be empty else we check if the sender
