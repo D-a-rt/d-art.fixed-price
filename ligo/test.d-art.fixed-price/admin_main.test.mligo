@@ -1,0 +1,261 @@
+#import "../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
+#import "../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
+
+let get_initial_storage () = 
+    let admin = Test.nth_bootstrap_account 0 in
+    let account : (string * key) = Test.new_account () in
+    let signed_ms = (Big_map.empty : FP_I.signed_message_used) in
+    
+    let admin_str : FP_I.admin_storage = {
+        address = admin;
+        pb_key = account.1;
+        signed_message_used = signed_ms;
+        contract_will_update = false;
+    } in
+
+    let empty_sales = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_sale) big_map ) in
+    let empty_sellers = (Big_map.empty : (address, unit) big_map ) in
+    let empty_drops = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
+    let empty_dropped = (Big_map.empty : (FP_I.fa2_base, unit) big_map) in
+
+    let str = {
+        admin = admin_str;
+        for_sale = empty_sales ;
+        authorized_drops_seller = empty_sellers;
+        drops = empty_drops;
+        fa2_dropped = empty_dropped;
+        fee = {
+            address = admin;
+            percent = 3n;
+        }
+    } in
+
+    let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+    taddr
+
+// -- UPDATE FEE --
+
+// Success update fee
+let test_update_fee =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let current_fee_addr = init_str.admin.address in
+
+    let contract = Test.to_contract contract_add in
+    let () = Test.set_source current_fee_addr in
+    
+    // Test change fee percentage
+    let _gas_0 = Test.transfer_to_contract_exn contract
+        (Admin
+            (UpdateFee ({
+                address = init_str.admin.address;
+                percent = 4n;
+            } : FP_I.fee_data ))) 0tez in
+    
+    let new_fee_percent_str = Test.get_storage contract_add in
+    let () = assert_with_error (new_fee_percent_str.fee.percent = 4n) "Admin -> UpdateFee - Success (percentage): Wrong fee percent after update" in
+
+    // Test change fee address
+    let new_fee_addr = Test.nth_bootstrap_account 1 in
+    let _gas_1 = Test.transfer_to_contract_exn contract
+        (Admin
+            (UpdateFee ({
+                address = new_fee_addr;
+                percent = 4n;
+            } : FP_I.fee_data ))) 0tez in
+
+    let new_fee_addr_str = Test.get_storage contract_add in
+    let () = assert_with_error (new_fee_addr_str.fee.address = new_fee_addr) "Admin -> UpdateFee - Success (address) : Wrong fee address after update" in
+
+    // Test change fee address & percentage
+    let _gas_2 = Test.transfer_to_contract_exn contract
+        (Admin
+            (UpdateFee ({
+                address = current_fee_addr;
+                percent = 5n;
+            } : FP_I.fee_data ))) 0tez in
+
+    let second_new_fee_addr_str = Test.get_storage contract_add in
+    let () = assert_with_error (second_new_fee_addr_str.fee.address = current_fee_addr) "Admin -> UpdateFee - Success (address & percentage) : Wrong fee address after update" in
+    let () = assert_with_error (second_new_fee_addr_str.fee.percent = 5n) "Admin -> UpdateFee - Success (address & percentage) : Wrong fee percent after update" in
+    "Passed"
+
+// Should fail if not admin
+let test_update_fee_no_admin = 
+    let contract_add = get_initial_storage () in
+    let contract = Test.to_contract contract_add in
+    
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+    
+    // Test change fee value
+    let result = Test.transfer_to_contract contract
+        (Admin
+            (UpdateFee ({
+                address = no_admin_addr;
+                percent = 4n;
+            } : FP_I.fee_data ))) 0tez in
+    
+    match result with
+        Success _gas -> failwith "Admin -> UpdateFee - Wrong admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> UpdateFee - Wrong admin : Should not work if not admin" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+    
+// Should fail if amount passed as parameter
+let test_update_fee_with_amount = 
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+    // Test change fee value
+    let result = Test.transfer_to_contract contract
+        (Admin
+            (UpdateFee ({
+                address = init_str.admin.address;
+                percent = 4n;
+            } : FP_I.fee_data ))) 1tez in
+    
+    match result with
+        Success _gas -> failwith "Admin -> UpdateFee - No amount : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> UpdateFee - No amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+
+// -- UPDATE PUBLIC KEY --
+
+// Success update public_key
+let test_update_public_key = 
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_account : (string * key) = Test.new_account () in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (UpdatePublicKey (new_account.1))) 0tez in
+
+    let new_str = Test.get_storage contract_add in
+    let () = assert_with_error (Test.eval(new_str.admin.pb_key) = Test.eval(new_account.1)) "Admin -> UpdatePublicKey - Success : Wrong key after update" in
+    "Passed"
+
+// Should fail if not admin
+let test_update_public_key_not_admin = 
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_account : (string * key) = Test.new_account () in
+    
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+
+    let contract = Test.to_contract contract_add in
+    
+    let result = Test.transfer_to_contract contract (Admin (UpdatePublicKey (new_account.1))) 0tez in
+    
+    match result with
+        Success _gas -> failwith "Admin -> UpdatePublicKey - Wrong admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> UpdatePublicKey - Wrong admin : Should not work if not admin" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// Should fialt if amount passed as parameter
+let test_update_public_key_with_amount =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_account : (string * key) = Test.new_account () in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract (Admin (UpdatePublicKey (new_account.1))) 1tez in
+    
+    match result with
+        Success _gas -> failwith "Admin -> UpdatePublicKey - Wrong admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> UpdatePublicKey - Wrong admin : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// -- ADD/REMOVE DROP Seller --
+
+// Success Add & Remove drop seller
+let test_add_remove_drop_seller =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_drop_seller = Test.nth_bootstrap_account 1 in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
+    let new_str = Test.get_storage contract_add in
+    
+    let () = match (Big_map.find_opt new_drop_seller new_str.authorized_drops_seller) with
+        Some _ -> unit
+        | None -> failwith "Admin -> AddDropSeller - Success : Seller is not in authorized list"
+    in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (RemoveDropSeller (new_drop_seller))) 0tez in
+    let new_str = Test.get_storage contract_add in
+    
+    let () = match (Big_map.find_opt new_drop_seller new_str.authorized_drops_seller) with
+        Some _ -> failwith "Admin -> RemoveDropSeller - Success : Seller is still in authorized list"
+        | None -> unit
+    in
+
+    "Passed"
+
+// Add drop seller twice
+let test_add_drop_seller_twice = 
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_drop_seller = Test.nth_bootstrap_account 1 in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
+    let result = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin -> AddDropSeller - Add seller twice : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_SELLER") ) "Admin -> AddDropSeller - Add seller twice : Should not work if seller already present" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Remove non existing drop seller
+let test_remove_non_existing_drop_seller = 
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let new_drop_seller = Test.nth_bootstrap_account 1 in
+    
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract (Admin  (RemoveDropSeller (new_drop_seller))) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin -> RemoveDropSeller - Not existing : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_FOUND") ) "Admin -> RemoveDropSeller - Not existing : Should not work if seller not authorized" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    

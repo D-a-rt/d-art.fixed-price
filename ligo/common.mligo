@@ -45,7 +45,7 @@ type royalties =
   percentage: nat;
 }
 
-let handle_royalties (token, price : fa2_token * tez) : tez * (operation list) =
+let handle_royalties (token, price : fa2_base * tez) : tez * (operation list) =
   match ((Tezos.call_view "minter_royalties" token.id token.address ): royalties option) with
     None -> 0mutez, ([]: operation list)
     | Some royalties_param ->
@@ -59,11 +59,6 @@ type get_balance_param =
   owner: address;
   token_id: nat;
 }
-
-let handle_utility_access (req, fa2_address : get_balance_param * address) : nat =
-  match ((Tezos.call_view "get_balance" req fa2_address ): nat option) with
-    None -> 0n
-    | Some b -> b
 
 let transfer_token (transfer, fa2_address: transfer * address) : operation =
    let contract = address_to_contract_transfer_entrypoint fa2_address in
@@ -101,43 +96,21 @@ let get_drop (fa2_base, seller, storage : fa2_base * address * storage) : fixed_
           Some fixed_price_drop -> fixed_price_drop
         | None ->  (failwith "TOKEN_IS_NOT_IN_DROP" : fixed_price_drop)
 
-let transfer_utility_token_back_to_buyers (utility_token, drop : fa2_base * fixed_price_drop) : operation list =
-    let txs : transfer_destination list =
-        let get_buyers (acc, buyer : (transfer_destination list) * ( address * unit) ) : transfer_destination list =
-            {to_ = buyer.0; token_id = utility_token.id; amount = 1n} :: acc
-        in Map.fold get_buyers drop.registered_buyers ([] : transfer_destination list)
-    in
-    [transfer_token ({ from_ = Tezos.self_address; txs = txs }, utility_token.address)]
-
-let handle_utility_token (drop : fixed_price_drop) : operation list =
-    match drop.registration.utility_token with
-        None -> ([] : operation list)
-        | Some utility_token ->
-            if drop.token_amount = 0n
-            then transfer_utility_token_back_to_buyers (utility_token, drop)
-            else [transfer_token ({ from_ = Tezos.sender; txs = [{ to_ = Tezos.self_address; token_id = utility_token.id; amount = 1n}] }, utility_token.address)]
-
 // -- Any kind of sale
-
-let reduce_buyer_credit ( allowlist : (address, nat) map ) : (address, nat) map =
-  match ( Map.find_opt Tezos.sender allowlist ) with
-    None -> allowlist
-    | Some buyer_credit -> (Map.update Tezos.sender (Some (abs (buyer_credit - 1n))) allowlist)
 
 let perform_sale_operation (buy_token, price, storage : buy_token * tez * storage) : operation list =
 
   let admin_contract : unit contract = resolve_contract storage.fee.address in
   let admin_fee : tez = calculate_fee ( Some (storage.fee.percent) , price) in
-  let admin_fee_transfer : operation = Tezos.transaction unit admin_fee admin_contract in
 
   let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (buy_token.fa2_token, price) in
 
   let seller_contract : unit contract = resolve_contract buy_token.seller in
   let seller_tez_amount : tez = sub_tez(sub_tez(price, admin_fee), royalties_fee) in
 
+  let admin_fee_transfer : operation = Tezos.transaction unit admin_fee admin_contract in
   let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
-
-  let buyer_transfer : operation = transfer_token ({ from_ = buy_token.seller; txs = [{ to_ = Tezos.sender; token_id = buy_token.fa2_token.id; amount = buy_token.fa2_token.amount}] }, buy_token.fa2_token.address) in
+  let buyer_transfer : operation = transfer_token ({ from_ = buy_token.seller; txs = [{ to_ = Tezos.sender; token_id = buy_token.fa2_token.id; amount = 1n}] }, buy_token.fa2_token.address) in
 
   // List of all the performed operation
   (admin_fee_transfer :: buyer_transfer :: seller_transfer :: royalties_transfer )

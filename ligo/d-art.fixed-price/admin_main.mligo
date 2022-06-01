@@ -1,3 +1,6 @@
+#include "fixed_price_interface.mligo"
+#include "../common.mligo"
+#include "fixed_price_check.mligo"
 
 type admin_entrypoints =
     | UpdateFee of fee_data
@@ -11,6 +14,7 @@ let is_drop_seller (seller, storage : address * storage) : bool =
 
 let admin_main (param, storage : admin_entrypoints * storage) : (operation list) * storage =
   let () = fail_if_not_admin (storage.admin) in
+  let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
   match param with
     UpdateFee new_fee_data ->
       let () = assert_msg (new_fee_data.percent > 0n || new_fee_data.percent < 100n, "Percentage must be between 0 and 100") in
