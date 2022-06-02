@@ -415,6 +415,110 @@ let test_create_sale_buyer_is_seller =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
+// Should fail if wrong signature
+let test_create_sale_wrong_signature = 
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateSale - Wrong signature : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "CreateSale - Wrong signature : Should not work if signature is not correct" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if signature already used
+let test_create_sale_wrong_signature = 
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    let result = Test.transfer_to_contract contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 2n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 3n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateSale - Already used signature : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "CreateSale - Already used signature : Should not work if signature is already used" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
 // -- UPDATE SALES --
 
 // Success
@@ -807,3 +911,7 @@ let test_update_sales_not_created =
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
+
+// -- REVOKE SALE --
+
+// Success
