@@ -870,7 +870,6 @@ let test_update_sale_not_owner =
     match result with
         Success _gas -> failwith "UpdateSale - Not sale owner : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-        let () = Test.log("err: ", err) in
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_SELLER_OR_NOT_FOR_SALE") ) "UpdateSale - Not sale owner : Should not work if sender is not seller" in
             "Passed"
         )
@@ -915,3 +914,198 @@ let test_update_sales_not_created =
 // -- REVOKE SALE --
 
 // Success
+let test_revoke_sales = 
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    // Changing sale infos (switching buyer option and prices) - Changing two times the same sale and verify last result is taken
+    let result = Test.transfer_to_contract contract
+        (RevokeSales ({
+            fa2_tokens = [
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 0n 
+            } : FP_I.fa2_base ); 
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 1n
+            }: FP_I.fa2_base)
+        ]} : FP_I.revoke_sales_param)) 0tez
+    in
+
+    let new_str = Test.get_storage contract_add in
+    match result with
+          Success _gas -> (
+                // Check first sale if well saved
+                let first_deleted_sale_key : FP_I.fa2_base * address = (
+                    {
+                        address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                        id = 0n
+                    },
+                    init_str.admin.address
+                 ) in
+                let () = match Big_map.find_opt first_deleted_sale_key new_str.for_sale with
+                        Some fixed_price_saved -> (failwith "RevokeSale - Success : This test should pass (err: First sale should be deleted)" : unit)
+                    |   None -> unit
+                in
+                // Check second sale if well saved
+                let second_deleted_sale_key : FP_I.fa2_base * address = (
+                    {
+                        address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                        id = 1n
+                    },
+                    init_str.admin.address
+                 ) in
+                let () = match Big_map.find_opt second_deleted_sale_key new_str.for_sale with
+                        Some fixed_price_saved -> (failwith "RevokeSale - Success : This test should pass (err: Second sale should be deleted)" : unit)
+                    |   None -> unit
+                in
+                "Passed"
+          )
+        |   Fail (Rejected (err, _)) -> "RevokeSale - Success : This test should pass"
+        |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if amount specified
+let test_revoke_sales_with_amount = 
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (RevokeSales ({
+            fa2_tokens = [
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 0n 
+            } : FP_I.fa2_base ); 
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 1n
+            }: FP_I.fa2_base)
+        ]} : FP_I.revoke_sales_param)) 1tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeSale - No amount : This test should fail (err: Amount specified for revoke_sales entrypoint)"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "RevokeSale - No amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if sale is not created
+let test_revoke_sales_not_owner =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+   let result = Test.transfer_to_contract contract
+        (RevokeSales ({
+            fa2_tokens = [
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 0n 
+            } : FP_I.fa2_base ); 
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 1n
+            }: FP_I.fa2_base)
+        ]} : FP_I.revoke_sales_param)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeSale - Sale is not created : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_SELLER_OR_NOT_FOR_SALE") ) "RevokeSale - Sale is not created : Should not work if sale is not created" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+
+// Should fail if sale is not created
+let test_revoke_sales_not_created =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+
+   let result = Test.transfer_to_contract contract
+        (RevokeSales ({
+            fa2_tokens = [
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 0n 
+            } : FP_I.fa2_base ); 
+            ({
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 1n
+            }: FP_I.fa2_base)
+        ]} : FP_I.revoke_sales_param)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeSale - Not sale owner : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_SELLER_OR_NOT_FOR_SALE") ) "RevokeSale - Not sale owner : Should not work if not sale owner" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
