@@ -26,7 +26,7 @@ let create_sales (sale_configuration, storage : sale_configuration * storage) : 
                 buyer = sale_param.buyer;
             } in
 
-            let () = assert_msg (not Big_map.mem (sale_param.fa2_token, Tezos.sender) strg.for_sale, "Token already for sale, only update or revoke are authorized") in
+            let () = assert_msg (not Big_map.mem (sale_param.fa2_token, Tezos.sender) strg.for_sale, "ALREADY_ON_SALE") in
 
             {
                 storage with

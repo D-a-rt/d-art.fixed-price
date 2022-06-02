@@ -1,19 +1,6 @@
 #import "../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
 #import "../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 
-module List_helper = struct
-    let nth_exn (type a) (i : int) (a: a list) : a =
-        let rec aux (remaining: a list) (cur: int) : a =
-            match remaining with
-                [] -> failwith "Not found in list"
-            |   hd :: tl ->
-                    if cur = i then
-                        hd
-                    else aux tl (cur + 1)
-        in
-        aux a 0
-end 
-
 // Create initial storage
 let get_initial_storage (will_update : bool) = 
     let admin = Test.nth_bootstrap_account 0 in
@@ -211,6 +198,7 @@ let test_create_sales_deprecated =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
+// Should fail if price not met minimum price
 let test_create_sale_price_to_small_first_el =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
@@ -251,7 +239,7 @@ let test_create_sale_price_to_small_first_el =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
-
+// Should fail if price not met minimum price
 let test_create_sale_price_to_small_third_el =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
@@ -298,3 +286,100 @@ let test_create_sale_price_to_small_third_el =
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if already on sale
+let test_create_sale_already_on_sale_one_call =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    // One call verifying that bulk operation fail
+    let result = Test.transfer_to_contract contract
+        (CreateSales ({
+            seller = init_str.admin.address;
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 100000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n
+                }
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateSale - Already on sale one call : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ON_SALE") ) "CreateSale - Already on sale one call : Should not work if already on sale" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+    
+
+// Should fail if already on sale
+let test_create_sale_already_on_sale_second_call =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            seller = init_str.admin.address;
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 100000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                }
+            } : FP_I.sale_info )]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    // Second call to verify that if fails
+    let result = Test.transfer_to_contract contract
+        (CreateSales ({
+            seller = init_str.admin.address;
+            authorization_signature = ({
+                signed = ("edsigtruMgRd6FbVWg5pbfFabZC7DS7gr88xT1x4DPxkuGxvUG4S7ttXoAsqy3QfyK62Woj7CmjzCgFW2igdhAhgUuBHfjrLeUv" : signature);
+                message = ("54657374206d6573736167652074657374" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 100000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                }
+            } : FP_I.sale_info )]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateSale - Already on sale second call : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ON_SALE") ) "CreateSale - Already on sale second call : Should not work if already on sale" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+    
