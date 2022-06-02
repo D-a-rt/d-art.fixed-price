@@ -2,7 +2,7 @@
 #import "../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 
 // Create initial storage
-let get_initial_storage (will_update, isDropped : bool * bool) = 
+let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * bool * bool * timestamp) = 
     let admin = Test.nth_bootstrap_account 0 in
     let signed_ms = (Big_map.empty : FP_I.signed_message_used) in
     
@@ -24,6 +24,31 @@ let get_initial_storage (will_update, isDropped : bool * bool) =
                 } : FP_I.fa2_base), ());
             ]) in
 
+    let fa2_b_1 : FP_I.fa2_base = {
+                    id = 0n;
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                } in
+    
+    let fa2_b_2 : FP_I.fa2_base = {
+                    id = 1n;
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                } in
+
+    let drops_str : FP_I.drops_storage = Big_map.literal ([
+        ((fa2_b_1, admin),
+            ({
+                price = 1000000mutez;
+                drop_date = drop_date;
+            })
+        );
+        ((fa2_b_2, admin),
+            ({
+                price = 1000000mutez;
+                drop_date = drop_date;
+            })
+        );
+    ]) in
+
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
@@ -38,13 +63,30 @@ let get_initial_storage (will_update, isDropped : bool * bool) =
 
     if isDropped
     then (
-        let str = { str with fa2_dropped = dropped } in
-        let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
-        taddr
+        if isInDrops
+        then (
+             let str = { str with drops = drops_str; fa2_dropped = dropped } in
+            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            taddr
+        )
+        else (
+            let str = { str with fa2_dropped = dropped } in
+            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            taddr
+        )
     )
     else (
-        let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
-        taddr
+        if isInDrops
+        then (
+             let str = { str with drops = drops_str } in
+            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            taddr
+        )
+        else (
+            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            taddr
+
+        )
     )
 
 
@@ -52,7 +94,7 @@ let get_initial_storage (will_update, isDropped : bool * bool) =
 
 // Success
 let test_create_drops =
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -136,7 +178,7 @@ let test_create_drops =
     
 // Should fail if amount specified
 let test_create_drops_with_amount = 
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -185,7 +227,7 @@ let test_create_drops_with_amount =
 
 // Should fail if contract will be deprecated
 let test_create_drops_deprecated = 
-    let contract_add = get_initial_storage (true, false) in
+    let contract_add = get_initial_storage (true, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -234,7 +276,7 @@ let test_create_drops_deprecated =
     
 // Should fail if price do not meet minimum price
 let test_create_drops_price_to_small_first_el =
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -283,7 +325,7 @@ let test_create_drops_price_to_small_first_el =
 
 // Should fail if price do not meet minimum price
 let test_create_drops_price_to_small_second_el = 
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -332,7 +374,7 @@ let test_create_drops_price_to_small_second_el =
 
 // Should fail if already in drop
 let test_create_drops_already_in_drop = 
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -381,7 +423,7 @@ let test_create_drops_already_in_drop =
 
 // Should fail if already dropped
 let test_create_drops_already_dropped =
-    let contract_add = get_initial_storage (false, true) in
+    let contract_add = get_initial_storage (false, true, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -423,7 +465,7 @@ let test_create_drops_already_dropped =
 
 // Should fail if wrong signature
 let test_create_drops_wrong_signature = 
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -465,7 +507,7 @@ let test_create_drops_wrong_signature =
 
 // Should fail if signature already used
 let test_create_drops_already_used_signature = 
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -524,7 +566,7 @@ let test_create_drops_already_used_signature =
 
 // Should fail if wrong drop date
 let test_create_drops_wrong_drop_date = 
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -589,7 +631,7 @@ let test_create_drops_wrong_drop_date =
 
 // Should fail if not an authorized drop seller
 let test_create_drops_not_authorized_drop_seller = 
-    let contract_add = get_initial_storage (false, false) in
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -623,3 +665,309 @@ let test_create_drops_not_authorized_drop_seller =
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
+
+// -- REVOKE DROPS --
+
+// Should sucess if token been already revoked before drop date
+
+// Success before drop date and token removed from dropped big_map
+let test_revoke_drops_before_drop_date =
+    let contract_add = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (RevokeDrops ({
+            fa2_tokens = [({
+                id = 0n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base );
+            ({
+                id = 1n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base )
+            ]
+        })) 0tez
+    in
+
+    let new_str = Test.get_storage contract_add in
+    match result with
+        Success _gas -> (
+                // Check if drops is revoked from the currently drops big map
+                let first_revoke_sale_key : FP_I.fa2_base * address = (
+                {
+                    address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n
+                },
+                init_str.admin.address
+                ) in
+                let () = match Big_map.find_opt first_revoke_sale_key new_str.drops with
+                        Some first_revoke_sale_key -> (failwith "RevokeSale - Success : This test should pass (err: First drop should be deleted)" : unit)
+                    |   None -> unit
+                in
+                // Check if the drop is revoked from the dropped big_map
+                let first_revoke_sale_dropped_key : FP_I.fa2_base = {
+                    address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n
+                } in
+                let () = match Big_map.find_opt first_revoke_sale_dropped_key new_str.fa2_dropped with
+                        Some first_revoke_sale_dropped_key -> (failwith "RevokeSale - Success : This test should pass (err: First drop should be deleted from dropped big_map)" : unit)
+                    |   None -> unit
+                in
+            // Check second sale if well saved
+            let second_revoke_sale_key : FP_I.fa2_base * address = (
+                {
+                    address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                },
+                init_str.admin.address
+                ) in
+            let () = match Big_map.find_opt second_revoke_sale_key new_str.drops with
+                    Some second_revoke_sale_key -> (failwith "RevokeSale - Success : This test should pass (err: Second drop should be deleted)" : unit)
+                |   None -> unit
+            in
+            // Check if the drop is revoked from the dropped big_map
+            let second_revoke_sale_dropped_key : FP_I.fa2_base = {
+                address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 0n
+            } in
+            let () = match Big_map.find_opt second_revoke_sale_dropped_key new_str.fa2_dropped with
+                    Some second_revoke_sale_dropped_key -> (failwith "RevokeSale - Success : This test should pass (err: Second drop should be deleted from dropped big_map)" : unit)
+                |   None -> unit
+            in
+            "Passed"
+        )
+    |   Fail (Rejected (err, _)) -> (
+        let () = Test.log("err: ", err) in
+        "RevokeSale - Success : This test should pass"
+    )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Success after drop date + 1 day and token stay in dropped big_map
+let test_revoke_drops_after_drope_date =
+    let contract_add = get_initial_storage (false, true, true, Tezos.now - 87800) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (RevokeDrops ({
+            fa2_tokens = [({
+                id = 0n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base );
+            ({
+                id = 1n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base )
+            ]
+        })) 0tez
+    in
+
+    let new_str = Test.get_storage contract_add in
+    match result with
+        Success _gas -> (
+                // Check if drops is revoked from the currently drops big map
+                let first_revoke_sale_key : FP_I.fa2_base * address = (
+                {
+                    address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n
+                },
+                init_str.admin.address
+                ) in
+                let () = match Big_map.find_opt first_revoke_sale_key new_str.drops with
+                        Some first_revoke_sale_key -> (failwith "RevokeSale - Success : This test should pass (err: First drop should be deleted)" : unit)
+                    |   None -> unit
+                in
+                // Check if the drop is revoked from the dropped big_map
+                let first_revoke_sale_dropped_key : FP_I.fa2_base = {
+                    address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n
+                } in
+                let () = match Big_map.find_opt first_revoke_sale_dropped_key new_str.fa2_dropped with
+                        Some first_revoke_sale_dropped_key -> unit
+                    |   None -> (failwith "RevokeSale - Success : This test should pass (err: First drop should not be deleted from dropped big_map)" : unit)
+                in
+            // Check second sale if well saved
+            let second_revoke_sale_key : FP_I.fa2_base * address = (
+                {
+                    address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                },
+                init_str.admin.address
+                ) in
+            let () = match Big_map.find_opt second_revoke_sale_key new_str.drops with
+                    Some second_revoke_sale_key -> (failwith "RevokeSale - Success : This test should pass (err: Second drop should be deleted)" : unit)
+                |   None -> unit
+            in
+            // Check if the drop is revoked from the dropped big_map
+            let second_revoke_sale_dropped_key : FP_I.fa2_base = {
+                address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 0n
+            } in
+            let () = match Big_map.find_opt second_revoke_sale_dropped_key new_str.fa2_dropped with
+                    Some second_revoke_sale_dropped_key -> unit
+                |   None -> (failwith "RevokeSale - Success : This test should pass (err: Second drop should not be deleted from dropped big_map)" : unit)
+            in
+            "Passed"
+        )
+    |   Fail (Rejected (err, _)) -> (
+        let () = Test.log("err: ", err) in
+        "RevokeSale - Success : This test should pass"
+    )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if amount specified
+let test_revoke_drops_with_amount =
+    let contract_add = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (RevokeDrops ({
+            fa2_tokens = [({
+                id = 0n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base );
+            ({
+                id = 1n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base )
+            ]
+        })) 1tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeDrops - No amount : This test should fail (err: Amount specified for revoke_sales entrypoint)"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "RevokeDrops - No amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if drops not created
+let test_revoke_drops_not_created =
+    let contract_add = get_initial_storage (false, false, false, Tezos.now + 22800) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (RevokeDrops ({
+            fa2_tokens = [({
+                id = 0n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base );
+            ({
+                id = 1n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base )
+            ]
+        })) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeDrops - Drops are not created : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "RevokeDrops - Drops are not created : Should not work if drop is not created" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if sender not owner
+let test_revoke_drops_sender_not_owner =
+    let contract_add = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let init_str = Test.get_storage contract_add in
+
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+    
+    let contract = Test.to_contract contract_add in
+    let result = Test.transfer_to_contract contract
+        (RevokeDrops ({
+            fa2_tokens = [({
+                id = 0n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base );
+            ({
+                id = 1n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base )
+            ]
+        })) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeDrops - Drops sender not owner : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "RevokeDrops - Drops sender not owner : Should not work if sender is not owner" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if drop_date in less than 6 hours
+let test_revoke_drops_less_than_6_hours_before_drop_date =
+    let contract_add = get_initial_storage (false, true, true, Tezos.now + 20800) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (RevokeDrops ({
+            fa2_tokens = [({
+                id = 0n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base );
+            ({
+                id = 1n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base )
+            ]
+        })) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeDrops - Drop date in less than 6 hours : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_CANNOT_BE_REVOKED") ) "RevokeDrops - Drop date in less than 6 hours : Should not work if drop date less than 6 hours" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if drop_date < now < 1 day 
+let test_revoke_drops_between_drop_date_and_one_day =
+    let contract_add = get_initial_storage (false, true, true, Tezos.now + 84800) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (RevokeDrops ({
+            fa2_tokens = [({
+                id = 0n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base );
+            ({
+                id = 1n;
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            }: FP_I.fa2_base )
+            ]
+        })) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "RevokeDrops - Drop date was in less than a day : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_CANNOT_BE_REVOKED") ) "RevokeDrops - Drop date was in less than a day : Should not work if drop date was in less than a day" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+

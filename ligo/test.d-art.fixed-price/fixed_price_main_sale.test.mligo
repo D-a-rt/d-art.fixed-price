@@ -1023,7 +1023,7 @@ let test_revoke_sales_with_amount =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if sale is not created
-let test_revoke_sales_not_owner =
+let test_revoke_sales_not_created =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -1052,9 +1052,8 @@ let test_revoke_sales_not_owner =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
-
-// Should fail if sale is not created
-let test_revoke_sales_not_created =
+// Should fail if sender not owner
+let test_revoke_sales_not_owner =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 

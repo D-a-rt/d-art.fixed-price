@@ -114,7 +114,7 @@ let get_sale (fa2_base, seller, storage : fa2_base * address * storage) : fixed_
 let get_drop (fa2_base, seller, storage : fa2_base * address * storage) : fixed_price_drop =
     match ( Big_map.find_opt (fa2_base, seller) storage.drops ) with
           Some fixed_price_drop -> fixed_price_drop
-        | None ->  (failwith "TOKEN_IS_NOT_IN_DROP" : fixed_price_drop)
+        | None ->  (failwith "TOKEN_IS_NOT_DROPPED" : fixed_price_drop)
 
 // -- Any kind of sale
 

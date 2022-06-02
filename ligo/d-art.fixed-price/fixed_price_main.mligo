@@ -125,15 +125,20 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
     ([] : operation list), new_storage
 
 let revoke_drops (revoke_drops_param, storage : revoke_drops_param * storage) : return =
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+    let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
 
     let revoke_drop : (storage * fa2_base) -> storage =
         fun (strg, fa2_b : storage * fa2_base ) ->
 
             let drop : fixed_price_drop = get_drop (fa2_b, Tezos.sender, strg) in
-            let () = assert_msg ( Tezos.now > drop.drop_date, "You can only revoke a drop after the drop date") in
+            let () = assert_msg (drop.drop_date - 21600 > Tezos.now, "DROP_CANNOT_BE_REVOKED") in
+            let () = assert_msg (Tezos.now > drop.drop_date + 84600, "DROP_CANNOT_BE_REVOKED") in
+            
+            // Erase the token from drop
+            if drop.drop_date - 21600 > Tezos.now 
+            then { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops; fa2_dropped = Big_map.remove fa2_b strg.fa2_dropped }
+            else { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops }
 
-            { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops }
     in
     let new_storage = List.fold revoke_drop revoke_drops_param.fa2_tokens storage in
     ([]: operation list), new_storage
