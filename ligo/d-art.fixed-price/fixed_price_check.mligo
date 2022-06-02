@@ -8,14 +8,11 @@ let fail_if_not_admin (storage : admin_storage) : unit =
 
 // -- Fixed price drops checks
 
-  //  let two_days : int = 172800 in
-  //  let one_month : int = 2419200 in
-
 let fail_if_wrong_drop_date (drop_date : timestamp ) : unit =
-    let two_days : int = 120 in
+    let one_day : int = 86400 in
     let one_month : int = 2419200 in
 
-    if drop_date < Tezos.now + two_days
+    if drop_date < Tezos.now + one_day
     then failwith "DROP_DATE_MUST_BE_AT_LEAST_IN_A_DAY"
     else if drop_date > Tezos.now + one_month
     then failwith "DROP_DATE_MUST_BE_IN_MAXIMUM_ONE_MONTH"

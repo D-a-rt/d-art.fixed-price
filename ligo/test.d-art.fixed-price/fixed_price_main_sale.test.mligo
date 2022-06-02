@@ -456,7 +456,7 @@ let test_create_sale_wrong_signature =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if signature already used
-let test_create_sale_wrong_signature = 
+let test_create_sale_already_used_signature = 
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 

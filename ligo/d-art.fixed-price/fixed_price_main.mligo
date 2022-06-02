@@ -103,11 +103,11 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
     let create_drop : ( storage * drop_info ) -> storage =
         fun (strg, drop_param : storage * drop_info ) ->
             
-            let () = assert_msg (drop_param.price >= 100000mutez, "Price should be greater than 0.1 tez" ) in
+            let () = assert_msg (drop_param.price >= 100000mutez, "Price should be at least 0.1tez" ) in
             let () = fail_if_wrong_drop_date (drop_param.drop_date) in
 
-            let () = assert_msg (not Big_map.mem (drop_param.fa2_token, Tezos.sender) strg.drops, "Token has already been dropped") in
-            let () = assert_msg (not Big_map.mem drop_param.fa2_token storage.fa2_dropped, "Token has already been dropped") in
+            let () = assert_msg (not Big_map.mem (drop_param.fa2_token, Tezos.sender) strg.drops, "ALREADY_DROPED") in
+            let () = assert_msg (not Big_map.mem drop_param.fa2_token storage.fa2_dropped, "ALREADY_DROPED") in
 
             let fixed_price_drop : fixed_price_drop = {
                 price = drop_param.price;
