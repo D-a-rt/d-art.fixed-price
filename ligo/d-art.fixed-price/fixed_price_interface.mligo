@@ -90,7 +90,6 @@ type sale_configuration =
 [@layout:comb]
 {
   sale_infos : sale_info list;
-  seller : address;
   authorization_signature: authorization_signature;
 }
 
@@ -98,7 +97,6 @@ type revoke_sales_param =
 [@layout:comb]
 {
   fa2_tokens: fa2_base list;
-  seller: address;
 }
 
 type buy_token =

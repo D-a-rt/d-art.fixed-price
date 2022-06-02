@@ -45,7 +45,6 @@ let test_create_sales =
 
     let result = Test.transfer_to_contract contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -126,7 +125,6 @@ let test_create_sales_with_amount =
 
     let result = Test.transfer_to_contract contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -167,7 +165,6 @@ let test_create_sales_deprecated =
 
     let result = Test.transfer_to_contract contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -208,7 +205,6 @@ let test_create_sale_price_to_small_first_el =
 
     let result = Test.transfer_to_contract contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -249,7 +245,6 @@ let test_create_sale_price_to_small_third_el =
 
     let result = Test.transfer_to_contract contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -298,7 +293,6 @@ let test_create_sale_already_on_sale_one_call =
     // One call verifying that bulk operation fail
     let result = Test.transfer_to_contract contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -340,7 +334,6 @@ let test_create_sale_already_on_sale_second_call =
 
     let _gas = Test.transfer_to_contract_exn contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -359,7 +352,6 @@ let test_create_sale_already_on_sale_second_call =
     // Second call to verify that if fails
     let result = Test.transfer_to_contract contract
         (CreateSales ({
-            seller = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigtruMgRd6FbVWg5pbfFabZC7DS7gr88xT1x4DPxkuGxvUG4S7ttXoAsqy3QfyK62Woj7CmjzCgFW2igdhAhgUuBHfjrLeUv" : signature);
                 message = ("54657374206d6573736167652074657374" : bytes);

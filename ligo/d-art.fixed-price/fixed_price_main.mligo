@@ -40,7 +40,6 @@ let create_sales (sale_configuration, storage : sale_configuration * storage) : 
 
 let update_sales (sale_configuration, storage : sale_configuration * storage ) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
-    let () = assert_msg (Tezos.sender = sale_configuration.seller, "Only seller can update the sale") in
 
     let update_sale : (storage * sale_info ) -> storage =
         fun (strg, sale_param : storage * sale_info ) ->
@@ -52,20 +51,19 @@ let update_sales (sale_configuration, storage : sale_configuration * storage ) :
                 buyer = sale_param.buyer;
             } in
 
-           { storage with for_sale = Big_map.update (sale_param.fa2_token, sale_configuration.seller) (Some fixed_price_sale_values) storage.for_sale; }
+           { storage with for_sale = Big_map.update (sale_param.fa2_token, Tezos.sender) (Some fixed_price_sale_values) storage.for_sale; }
     in
     let new_storage = List.fold update_sale sale_configuration.sale_infos storage in
     ([] : operation list), new_storage
 
 let revoke_sales (revoke_sales_param, storage : revoke_sales_param * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
-    let () = assert_msg (Tezos.sender = revoke_sales_param.seller, "Only seller can remove the token from sale") in
 
     let revoke_sale : (storage * fa2_base) -> storage =
         fun (strg, fa2_b : storage * fa2_base ) ->
             let () = assert_msg (Big_map.mem (fa2_b, Tezos.sender) storage.for_sale, "Token is not for sale") in
 
-            { storage with for_sale = Big_map.remove (fa2_b, revoke_sales_param.seller) storage.for_sale }
+            { storage with for_sale = Big_map.remove (fa2_b, Tezos.sender) storage.for_sale }
     in
     let new_strg =  List.fold revoke_sale revoke_sales_param.fa2_tokens storage in
     ([] : operation list), new_strg
