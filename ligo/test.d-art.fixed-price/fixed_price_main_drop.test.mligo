@@ -739,10 +739,7 @@ let test_revoke_drops_before_drop_date =
             in
             "Passed"
         )
-    |   Fail (Rejected (err, _)) -> (
-        let () = Test.log("err: ", err) in
-        "RevokeSale - Success : This test should pass"
-    )
+    |   Fail (Rejected (err, _)) -> "RevokeSale - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"    
 
 // Success after drop date + 1 day and token stay in dropped big_map
@@ -943,7 +940,7 @@ let test_revoke_drops_less_than_6_hours_before_drop_date =
 
 // Should fail if drop_date < now < 1 day 
 let test_revoke_drops_between_drop_date_and_one_day =
-    let contract_add = get_initial_storage (false, true, true, Tezos.now + 84800) in
+    let contract_add = get_initial_storage (false, true, true, Tezos.now - 84400) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in

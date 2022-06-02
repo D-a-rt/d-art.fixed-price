@@ -131,9 +131,9 @@ let revoke_drops (revoke_drops_param, storage : revoke_drops_param * storage) : 
         fun (strg, fa2_b : storage * fa2_base ) ->
 
             let drop : fixed_price_drop = get_drop (fa2_b, Tezos.sender, strg) in
-            let () = assert_msg (drop.drop_date - 21600 > Tezos.now, "DROP_CANNOT_BE_REVOKED") in
-            let () = assert_msg (Tezos.now > drop.drop_date + 84600, "DROP_CANNOT_BE_REVOKED") in
-            
+            // let () = assert_msg (drop.drop_date - 21600 > Tezos.now, "DROP_CANNOT_BE_REVOKED") in
+            let () = assert_msg (Tezos.now > drop.drop_date + 84600 || drop.drop_date - 21600 > Tezos.now, "DROP_CANNOT_BE_REVOKED") in
+
             // Erase the token from drop
             if drop.drop_date - 21600 > Tezos.now 
             then { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops; fa2_dropped = Big_map.remove fa2_b strg.fa2_dropped }
