@@ -95,19 +95,18 @@ let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
 // Drop functions
 
 let create_drops (drop_configuration, storage : drop_configuration * storage) : return =
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+    let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
-    let () = assert_msg (Tezos.sender = drop_configuration.seller, "Only seller can create a drop") in
-    // let () = verify_signature (drop_configuration.authorization_signature, storage) in
-    let () = assert_msg (Big_map.mem Tezos.sender storage.authorized_drops_seller, "Not authorized drop seller") in
+    let () = verify_signature (drop_configuration.authorization_signature, storage) in
+    let () = assert_msg (Big_map.mem Tezos.sender storage.authorized_drops_seller, "NOT_AUTHORIZED_DROP_SELLER") in
     
     let create_drop : ( storage * drop_info ) -> storage =
         fun (strg, drop_param : storage * drop_info ) ->
             
-            let () = assert_msg (drop_param.price > 100000mutez, "Price should be greater than 0.1 tez" ) in
+            let () = assert_msg (drop_param.price >= 100000mutez, "Price should be greater than 0.1 tez" ) in
             let () = fail_if_wrong_drop_date (drop_param.drop_date) in
 
-            let () = assert_msg (not Big_map.mem (drop_param.fa2_token, Tezos.sender) storage.drops, "Token has already been dropped") in
+            let () = assert_msg (not Big_map.mem (drop_param.fa2_token, Tezos.sender) strg.drops, "Token has already been dropped") in
             let () = assert_msg (not Big_map.mem drop_param.fa2_token storage.fa2_dropped, "Token has already been dropped") in
 
             let fixed_price_drop : fixed_price_drop = {
@@ -117,9 +116,9 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
 
             {
                 storage with
-                fa2_dropped = Big_map.add drop_param.fa2_token unit storage.fa2_dropped;
-                drops = Big_map.add (drop_param.fa2_token, drop_configuration.seller) fixed_price_drop storage.drops;
-                admin.signed_message_used = Big_map.add drop_configuration.authorization_signature.message unit storage.admin.signed_message_used
+                fa2_dropped = Big_map.add drop_param.fa2_token unit strg.fa2_dropped;
+                drops = Big_map.add (drop_param.fa2_token, Tezos.sender) fixed_price_drop strg.drops;
+                admin.signed_message_used = Big_map.add drop_configuration.authorization_signature.message unit strg.admin.signed_message_used
             } 
     in
     let new_storage = List.fold create_drop drop_configuration.drop_infos storage in
@@ -127,15 +126,14 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
 
 let revoke_drops (revoke_drops_param, storage : revoke_drops_param * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
-    let () = assert_msg (Tezos.sender = revoke_drops_param.seller, "Only seller can revoke the tokens from a drop") in
 
     let revoke_drop : (storage * fa2_base) -> storage =
         fun (strg, fa2_b : storage * fa2_base ) ->
 
-            let drop : fixed_price_drop = get_drop (fa2_b, revoke_drops_param.seller, storage) in
+            let drop : fixed_price_drop = get_drop (fa2_b, Tezos.sender, strg) in
             let () = assert_msg ( Tezos.now > drop.drop_date, "You can only revoke a drop after the drop date") in
 
-            { storage with drops = Big_map.remove (fa2_b, revoke_drops_param.seller) storage.drops }
+            { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops }
     in
     let new_storage = List.fold revoke_drop revoke_drops_param.fa2_tokens storage in
     ([]: operation list), new_storage

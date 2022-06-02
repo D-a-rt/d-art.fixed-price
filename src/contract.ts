@@ -79,7 +79,7 @@ export async function deployContract(): Promise<void> {
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
 
-        const originationOp =  await toolkit.contract.originate(originateParam);
+        const originationOp = await toolkit.contract.originate(originateParam);
 
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
@@ -94,8 +94,9 @@ export async function deployContract(): Promise<void> {
 
 
 export async function testContract(): Promise<void> {
-    await new Promise<void>((resolve, reject) =>
-        // Compile the contract
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing admin entrypoints...`))
+
         child.exec(
             path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/admin_main.test.mligo")}`),
             (err, stdout) => {
@@ -104,10 +105,26 @@ export async function testContract(): Promise<void> {
                     console.log(kleur.yellow().dim(err.toString()))
                     reject();
                 } else {
-                    console.log(kleur.green(`Logs: ${stdout}`))
-                    resolve();
+                    console.log(`Results: ${stdout}`)
+                    resolve()
                 }
             }
         )
-    );
+    })
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fixed_price_sale entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/fixed_price_main_sale.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                }
+            }
+        )
+    });
 }

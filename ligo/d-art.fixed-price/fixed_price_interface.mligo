@@ -123,14 +123,12 @@ type drop_configuration =
 {
   authorization_signature: authorization_signature;
   drop_infos: drop_info list; 
-  seller: address;
 }
 
 type revoke_drops_param =
 [@layout:comb]
 {
   fa2_tokens: fa2_base list;
-  seller: address;
 }
 
 type fixed_price_drop =
