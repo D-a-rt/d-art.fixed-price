@@ -17,7 +17,7 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
   let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
   match param with
     UpdateFee new_fee_data ->
-      let () = assert_msg (new_fee_data.percent > 0n || new_fee_data.percent < 100n, "Percentage must be between 0 and 100") in
+      let () = assert_msg (new_fee_data.percent <= 50n, "PERCENTAGE_MUST_BE_MAXIUM_50") in
       ([] : operation list), { storage with fee = new_fee_data }
 
     | UpdatePublicKey key ->

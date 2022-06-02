@@ -18,6 +18,12 @@ let ceil_div_tez (tz_qty, nat_qty : tez * nat) : tez =
 let calculate_fee (percent, sale_value : (nat option) * tez) : tez =
   match percent with
     None -> 0mutez
+    | Some percentage -> ceil_div_tez (sale_value *  percentage, 1000n)
+
+
+let calculate_royalties_fee (percent, sale_value : (nat option) * tez) : tez =
+  match percent with
+    None -> 0mutez
     | Some percentage -> ceil_div_tez (sale_value *  percentage, 100n)
 
 let sub_tez (tez_val, tez_minus : tez * tez ) : tez =
@@ -49,7 +55,7 @@ let handle_royalties (token, price : fa2_base * tez) : tez * (operation list) =
   match ((Tezos.call_view "minter_royalties" token.id token.address ): royalties option) with
     None -> 0mutez, ([]: operation list)
     | Some royalties_param ->
-      let royalties_fee : tez = calculate_fee ( Some (royalties_param.percentage), price) in
+      let royalties_fee : tez = calculate_royalties_fee ( Some (royalties_param.percentage), price) in
       let royalties_contract : unit contract = resolve_contract royalties_param.address in
       royalties_fee, [(Tezos.transaction unit royalties_fee royalties_contract)]
 
@@ -64,16 +70,30 @@ let transfer_token (transfer, fa2_address: transfer * address) : operation =
    let contract = address_to_contract_transfer_entrypoint fa2_address in
    (Tezos.transaction [transfer] 0mutez contract)
 
+
+type get_balance_param =
+[@layout:comb]
+{
+  owner: address;
+  token_id: nat;
+}
+
+let get_token_balance (req, fa2_address : get_balance_param * address) : nat =
+  match ((Tezos.call_view "get_balance" req fa2_address ): nat option) with
+    None -> 0n
+    | Some b -> b
+
+
 // -- Verify signature
 
 let signed_message_used (authorization_signature, storage : authorization_signature * storage) : bool =
-  Big_map.mem authorization_signature storage.admin.signed_message_used
+  Big_map.mem authorization_signature.message storage.admin.signed_message_used
 
 let signed_message_not_valid (authorization_signature, storage : authorization_signature * storage) : bool =
   not Crypto.check storage.admin.pb_key authorization_signature.signed authorization_signature.message
 
 let mark_message_as_used (authorization_signature, storage : authorization_signature * storage) : signed_message_used =
-  let new_signed_message_used : signed_message_used = Big_map.add authorization_signature unit storage.admin.signed_message_used in
+  let new_signed_message_used : signed_message_used = Big_map.add authorization_signature.message unit storage.admin.signed_message_used in
   new_signed_message_used
 
 let verify_signature (authorization_signature, storage : authorization_signature * storage) : unit =

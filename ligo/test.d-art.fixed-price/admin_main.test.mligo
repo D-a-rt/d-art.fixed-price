@@ -1,6 +1,9 @@
 #import "../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
 #import "../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 
+// TEST FILE FOR ADMIN ENTRYPOINTS
+
+// Create initial storage
 let get_initial_storage () = 
     let admin = Test.nth_bootstrap_account 0 in
     let account : (string * key) = Test.new_account () in
@@ -80,6 +83,32 @@ let test_update_fee =
     let () = assert_with_error (second_new_fee_addr_str.fee.address = current_fee_addr) "Admin -> UpdateFee - Success (address & percentage) : Wrong fee address after update" in
     let () = assert_with_error (second_new_fee_addr_str.fee.percent = 5n) "Admin -> UpdateFee - Success (address & percentage) : Wrong fee percent after update" in
     "Passed"
+
+// Should fail if percentage is greater than 50
+let test_update_fee_negative_value =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+    
+    let current_fee_addr = init_str.admin.address in
+
+    let contract = Test.to_contract contract_add in
+    let () = Test.set_source current_fee_addr in
+    
+    // Test change fee percentage
+    let result = Test.transfer_to_contract contract
+        (Admin
+            (UpdateFee ({
+                address = init_str.admin.address;
+                percent = 51n;
+            } : FP_I.fee_data ))) 0tez in
+    
+    match result with
+        Success _gas -> failwith "Admin -> UpdateFee - Greater than 50 : This test should fail"
+    |   Fail (Rejected (err, _)) ->  (
+        let () = assert_with_error ( Test.michelson_equal err (Test.eval "PERCENTAGE_MUST_BE_MAXIUM_50") ) "Admin -> UpdateFee - Greater than 50 : Should not work if percentage is greater than 50" in
+        "Passed"
+    )
+    |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if not admin
 let test_update_fee_no_admin = 

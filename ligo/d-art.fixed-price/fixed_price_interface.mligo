@@ -38,7 +38,7 @@ type authorization_signature = {
   message : bytes;
 }
 
-type signed_message_used = (authorization_signature, unit) big_map
+type signed_message_used = (bytes, unit) big_map
 
 type admin_storage =
 {

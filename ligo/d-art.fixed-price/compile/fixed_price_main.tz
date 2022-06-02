@@ -11,27 +11,27 @@
                    (pair %fa2_token (nat %id) (address %address))
                    (address %seller)
                    (pair %authorization_signature (bytes %message) (signature %signed)))
-                (pair %createDrop
+                (pair %createDrops
                    (pair %authorization_signature (bytes %message) (signature %signed))
                    (list %drop_infos
                       (pair (pair %fa2_token (nat %id) (address %address))
                             (mutez %price)
                             (timestamp %drop_date)))
                    (address %seller))))
-        (or (or (pair %createSale
+        (or (or (pair %createSales
                    (list %sale_infos
                       (pair (option %buyer address)
                             (mutez %price)
                             (pair %fa2_token (nat %id) (address %address))))
                    (address %seller)
                    (pair %authorization_signature (bytes %message) (signature %signed)))
-                (pair %revokeDrop
+                (pair %revokeDrops
                    (list %fa2_tokens (pair (nat %id) (address %address)))
                    (address %seller)))
-            (or (pair %revokeSale
+            (or (pair %revokeSales
                    (list %fa2_tokens (pair (nat %id) (address %address)))
                    (address %seller))
-                (pair %updateSale
+                (pair %updateSales
                    (list %sale_infos
                       (pair (option %buyer address)
                             (mutez %price)
@@ -57,24 +57,18 @@
            unit
            { UNPAIR ; NOT ; IF { FAILWITH } { DROP ; UNIT } } ;
          LAMBDA
-           (pair (option nat) mutez)
+           (pair mutez nat)
            mutez
            { UNPAIR ;
+             EDIV ;
              IF_NONE
-               { DROP ; PUSH mutez 0 }
-               { PUSH nat 100 ;
-                 SWAP ;
+               { PUSH string "DIVISION_BY_ZERO" ; FAILWITH }
+               { UNPAIR ;
+                 PUSH mutez 0 ;
                  DIG 2 ;
-                 MUL ;
-                 EDIV ;
-                 IF_NONE
-                   { PUSH string "DIVISION_BY_ZERO" ; FAILWITH }
-                   { UNPAIR ;
-                     PUSH mutez 0 ;
-                     DIG 2 ;
-                     COMPARE ;
-                     GT ;
-                     IF { PUSH mutez 1 ; ADD } {} } } } ;
+                 COMPARE ;
+                 GT ;
+                 IF { PUSH mutez 1 ; ADD } {} } } ;
          LAMBDA
            (pair mutez mutez)
            mutez
@@ -139,7 +133,7 @@
          PAIR 3 ;
          LAMBDA
            (pair (pair (lambda address (contract unit))
-                       (pair (lambda (pair mutez mutez) mutez) (lambda (pair (option nat) mutez) mutez)))
+                       (pair (lambda (pair mutez mutez) mutez) (lambda (pair mutez nat) mutez)))
                  (pair (pair (pair (pair nat address) address (pair bytes signature)) mutez)
                        (pair (pair (pair address bool) (pair key (big_map (pair bytes signature) unit)))
                              (big_map (pair (pair nat address) address) (pair mutez (option address)))
@@ -159,31 +153,25 @@
              DUP 5 ;
              SWAP ;
              EXEC ;
-             DUP 3 ;
-             DIG 4 ;
+             DIG 3 ;
              GET 10 ;
              CDR ;
              SOME ;
-             PAIR ;
-             DUP 7 ;
-             SWAP ;
-             EXEC ;
+             IF_NONE
+               { PUSH mutez 0 }
+               { PUSH nat 1000 ; SWAP ; DUP 5 ; MUL ; PAIR ; DUP 7 ; SWAP ; EXEC } ;
              DUP 3 ;
              CAR ;
              UNPAIR ;
              VIEW "minter_royalties" (pair (address %address) (nat %percentage)) ;
              IF_NONE
                { DIG 6 ; DROP ; NIL operation ; PUSH mutez 0 ; PAIR }
-               { DUP 5 ;
-                 SWAP ;
-                 DUP ;
-                 DUG 2 ;
+               { DUP ;
                  CDR ;
                  SOME ;
-                 PAIR ;
-                 DIG 8 ;
-                 SWAP ;
-                 EXEC ;
+                 IF_NONE
+                   { DIG 7 ; DROP ; PUSH mutez 0 }
+                   { PUSH nat 100 ; SWAP ; DUP 7 ; MUL ; PAIR ; DIG 8 ; SWAP ; EXEC } ;
                  SWAP ;
                  CAR ;
                  DUP 7 ;
@@ -282,6 +270,16 @@
                      COMPARE ;
                      NEQ ;
                      IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } {} ;
+                     PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
+                     PUSH mutez 0 ;
+                     AMOUNT ;
+                     COMPARE ;
+                     EQ ;
+                     PAIR ;
+                     DUP 5 ;
+                     SWAP ;
+                     EXEC ;
+                     DROP ;
                      IF_LEFT
                        { IF_LEFT
                            { DIG 3 ;
@@ -352,18 +350,12 @@
                                     { DROP 2 ; PUSH string "SELLER_NOT_FOUND" ; FAILWITH } }
                                { DIG 2 ;
                                  DROP ;
-                                 PUSH string "Percentage must be between 0 and 100" ;
-                                 PUSH nat 100 ;
+                                 PUSH string "PERCENTAGE_MUST_BE_MAXIUM_50" ;
+                                 PUSH nat 50 ;
                                  DUP 3 ;
                                  CDR ;
                                  COMPARE ;
-                                 LT ;
-                                 PUSH nat 0 ;
-                                 DUP 4 ;
-                                 CDR ;
-                                 COMPARE ;
-                                 GT ;
-                                 OR ;
+                                 LE ;
                                  PAIR ;
                                  DIG 3 ;
                                  SWAP ;
@@ -722,7 +714,7 @@
                             DUG 2 ;
                             COMPARE ;
                             LT ;
-                            IF { DROP ; PUSH string "DROP_DATE_MUST_BE_AT_LEAST_IN_TWO_DAYS" ; FAILWITH }
+                            IF { DROP ; PUSH string "DROP_DATE_MUST_BE_AT_LEAST_IN_A_DAY" ; FAILWITH }
                                { PUSH int 2419200 ;
                                  NOW ;
                                  ADD ;
@@ -872,7 +864,7 @@
                      SWAP ;
                      EXEC ;
                      DROP ;
-                     PUSH string "Only seller can create a sale" ;
+                     PUSH string "Seller must be sender" ;
                      SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -906,12 +898,12 @@
                      CAR ;
                      ITER { SWAP ;
                             DROP ;
-                            PUSH string "Price should be greater than 0.1tez" ;
+                            PUSH string "Price should be at least 0.1tez" ;
                             PUSH mutez 10000 ;
                             DUP 3 ;
                             GET 3 ;
                             COMPARE ;
-                            GT ;
+                            GE ;
                             PAIR ;
                             DUP 5 ;
                             SWAP ;

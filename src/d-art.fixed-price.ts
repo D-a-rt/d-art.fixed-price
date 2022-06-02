@@ -5,6 +5,11 @@ import * as ver from './ver';
 import * as contract from './contract';
 import * as helper from './helper';
 
+
+program
+    .command('test-contract')
+    .action(contract.testContract)
+
 program
     .command('compile-contract')
     .action(contract.compileContract)

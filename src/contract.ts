@@ -57,7 +57,7 @@ export async function deployContract(): Promise<void> {
         code: code,
         storage: {
             admin: {
-                address: process.env.ADMIN_PUBLIC_KEY,
+                address: process.env.ADMIN_PUBLIC_KEY_HASH,
                 pb_key: process.env.SIGNER_PUBLIC_KEY,
                 signed_message_used: new MichelsonMap(),
                 contract_will_update: false
@@ -67,16 +67,16 @@ export async function deployContract(): Promise<void> {
             drops: MichelsonMap.fromLiteral({}),
             fa2_dropped: MichelsonMap.fromLiteral({}),
             fee: {
-                address: process.env.ADMIN_PUBLIC_KEY,
+                address: process.env.ADMIN_PUBLIC_KEY_HASH,
                 percent: 10,
             }
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ithaca-archive.tzconnect.berlin');
+        const toolkit = await new TezosToolkit('https://ithacanet.ecadinfra.com');
 
-        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ADMIN_PRIVATE_KEY!) });
+        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
 
         const originationOp =  await toolkit.contract.originate(originateParam);
@@ -90,4 +90,24 @@ export async function deployContract(): Promise<void> {
         const jsonError = JSON.stringify(error);
         console.log(kleur.red(`Fixed price sale (tez) origination error ${jsonError}`));
     }
+}
+
+
+export async function testContract(): Promise<void> {
+    await new Promise<void>((resolve, reject) =>
+        // Compile the contract
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/admin_main.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(kleur.green(`Logs: ${stdout}`))
+                    resolve();
+                }
+            }
+        )
+    );
 }
