@@ -14,8 +14,7 @@ type fixed_price_entrypoints =
 
 let create_sales (sale_configuration, storage : sale_configuration * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
-    let () = assert_msg (not storage.admin.contract_will_update, "This contract is or will be deprecated, you can not create sale on it") in
-    let () = assert_msg (Tezos.sender = sale_configuration.seller, "Seller must be sender") in
+    let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
     let () = verify_signature (sale_configuration.authorization_signature, storage) in
 
     let create_sale : (storage * sale_info ) -> storage =
@@ -31,7 +30,7 @@ let create_sales (sale_configuration, storage : sale_configuration * storage) : 
 
             {
                 storage with
-                for_sale = Big_map.add ({ address = sale_param.fa2_token.address; id = sale_param.fa2_token.id; }, sale_configuration.seller) fixed_price_sale_values strg.for_sale;
+                for_sale = Big_map.add ({ address = sale_param.fa2_token.address; id = sale_param.fa2_token.id; }, Tezos.sender) fixed_price_sale_values strg.for_sale;
                 admin.signed_message_used = Big_map.add sale_configuration.authorization_signature.message unit strg.admin.signed_message_used
             }
     in
@@ -89,7 +88,7 @@ let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
 
 let create_drops (drop_configuration, storage : drop_configuration * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
-    let () = assert_msg (not storage.admin.contract_will_update, "This contract is or will be deprecated, you can not create sale on it") in
+    let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
     let () = assert_msg (Tezos.sender = drop_configuration.seller, "Only seller can create a drop") in
     // let () = verify_signature (drop_configuration.authorization_signature, storage) in
     let () = assert_msg (Big_map.mem Tezos.sender storage.authorized_drops_seller, "Not authorized drop seller") in

@@ -637,7 +637,7 @@
                      EXEC ;
                      DROP ;
                      PUSH string
-                          "This contract is or will be deprecated, you can not create sale on it" ;
+                          "WILL_BE_DEPRECATED" ;
                      DUP 3 ;
                      CAR ;
                      CAR ;
@@ -853,7 +853,7 @@
                      EXEC ;
                      DROP ;
                      PUSH string
-                          "This contract is or will be deprecated, you can not create sale on it" ;
+                          "WILL_BE_DEPRECATED" ;
                      DUP 3 ;
                      CAR ;
                      CAR ;
