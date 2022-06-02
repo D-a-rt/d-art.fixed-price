@@ -13,7 +13,7 @@ type fixed_price_entrypoints =
 // Fixed price sales functions
 
 let create_sales (sale_configuration, storage : sale_configuration * storage) : return =
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+    let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     let () = assert_msg (not storage.admin.contract_will_update, "This contract is or will be deprecated, you can not create sale on it") in
     let () = assert_msg (Tezos.sender = sale_configuration.seller, "Seller must be sender") in
     let () = verify_signature (sale_configuration.authorization_signature, storage) in

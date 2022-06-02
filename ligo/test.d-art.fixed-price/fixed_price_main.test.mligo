@@ -80,7 +80,7 @@ let test_create_sales =
             } : FP_I.sale_info)]
         } : FP_I.sale_configuration)) 0tez
     in
-    
+
     let new_str = Test.get_storage contract_add in
     match result with
           Success _gas -> (
@@ -129,4 +129,43 @@ let test_create_sales =
         |   Fail _ -> failwith "Internal test failure"    
     
 
-    
+// Should fail if amount specified
+let test_create_sales_with_amount =
+    let contract_add = get_initial_storage () in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (CreateSales ({
+            seller = init_str.admin.address;
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 1tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateSale - No amount : This test should fail (err: Amount specified for create_sales entrypoint)"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "CreateSale - No amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
