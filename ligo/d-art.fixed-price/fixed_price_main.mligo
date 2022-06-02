@@ -3,7 +3,7 @@
 type fixed_price_entrypoints =
     | Admin of admin_entrypoints
     | CreateSales of sale_configuration
-    | UpdateSales of sale_configuration
+    | UpdateSales of sale_info list
     | RevokeSales of revoke_sales_param
     | CreateDrops of drop_configuration
     | RevokeDrops of revoke_drops_param
@@ -20,6 +20,11 @@ let create_sales (sale_configuration, storage : sale_configuration * storage) : 
     let create_sale : (storage * sale_info ) -> storage =
         fun (strg, sale_param : storage * sale_info ) ->
             let () = assert_msg (sale_param.price >= 100000mutez, "Price should be at least 0.1tez" ) in
+            
+            let () = match sale_param.buyer with
+                    Some buyer -> assert_msg (buyer <> Tezos.sender, "BUYER_CANNOT_BE_SELLER" )
+                |   None -> unit
+            in
 
             let fixed_price_sale_values : fixed_price_sale = {
                 price = sale_param.price;
@@ -38,32 +43,37 @@ let create_sales (sale_configuration, storage : sale_configuration * storage) : 
     let new_storage = List.fold create_sale sale_configuration.sale_infos storage in
     ([] : operation list), new_storage
 
-let update_sales (sale_configuration, storage : sale_configuration * storage ) : return =
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+let update_sales (sale_infos, storage : sale_info list * storage ) : return =
+    let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
 
     let update_sale : (storage * sale_info ) -> storage =
         fun (strg, sale_param : storage * sale_info ) ->
-            let () = assert_msg (sale_param.price > 0mutez, "Price should be greater than 0" ) in
-            let () = assert_msg (Big_map.mem (sale_param.fa2_token, Tezos.sender) storage.for_sale, "Token is not for sale") in
+            let () = assert_msg (sale_param.price >= 100000mutez, "Price should be at least 0.1tez" ) in
+            let () = assert_msg (Big_map.mem (sale_param.fa2_token, Tezos.sender) strg.for_sale, "NOT_SELLER_OR_NOT_FOR_SALE") in
+
+            let () = match sale_param.buyer with
+                    Some buyer -> assert_msg (buyer <> Tezos.sender, "BUYER_CANNOT_BE_SELLER" )
+                |   None -> unit
+            in
 
             let fixed_price_sale_values : fixed_price_sale = {
                 price = sale_param.price;
                 buyer = sale_param.buyer;
             } in
 
-           { storage with for_sale = Big_map.update (sale_param.fa2_token, Tezos.sender) (Some fixed_price_sale_values) storage.for_sale; }
+           { storage with for_sale = Big_map.update (sale_param.fa2_token, Tezos.sender) (Some fixed_price_sale_values) strg.for_sale; }
     in
-    let new_storage = List.fold update_sale sale_configuration.sale_infos storage in
+    let new_storage = List.fold update_sale sale_infos storage in
     ([] : operation list), new_storage
 
 let revoke_sales (revoke_sales_param, storage : revoke_sales_param * storage) : return =
-    let () = assert_msg (Tezos.amount = 0mutez, "Amount sent must be 0mutez") in
+    let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
 
     let revoke_sale : (storage * fa2_base) -> storage =
         fun (strg, fa2_b : storage * fa2_base ) ->
-            let () = assert_msg (Big_map.mem (fa2_b, Tezos.sender) storage.for_sale, "Token is not for sale") in
+            let () = assert_msg (Big_map.mem (fa2_b, Tezos.sender) strg.for_sale, "NOT_SELLER_OR_NOT_FOR_SALE") in
 
-            { storage with for_sale = Big_map.remove (fa2_b, Tezos.sender) storage.for_sale }
+            { storage with for_sale = Big_map.remove (fa2_b, Tezos.sender) strg.for_sale }
     in
     let new_strg =  List.fold revoke_sale revoke_sales_param.fa2_tokens storage in
     ([] : operation list), new_strg

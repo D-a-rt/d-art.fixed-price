@@ -375,3 +375,435 @@ let test_create_sale_already_on_sale_second_call =
         )
     |   Fail _ -> failwith "Internal test failure"    
     
+// Should fail if specified buyer is seller
+let test_create_sale_buyer_is_seller =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some (init_str.admin.address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateSale - Buyer is seller : This test should fail (err: Buyer cannot be seller)"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "BUYER_CANNOT_BE_SELLER") ) "CreateSale - Buyer is seller : Should not work if buyer is seller" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// -- UPDATE SALES --
+
+// Success
+let test_update_sales = 
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    // Changing sale infos (switching buyer option and prices) - Changing two times the same sale and verify last result is taken
+    let result = Test.transfer_to_contract contract
+        (UpdateSales ([({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 250000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 130000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info);
+            ({
+                buyer = None;
+                price = 170000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)])
+        ) 0tez
+    in
+
+    let new_str = Test.get_storage contract_add in
+    match result with
+          Success _gas -> (
+                // Check first sale if well saved
+                let first_update_sale_key : FP_I.fa2_base * address = (
+                    {
+                        address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                        id = 0n
+                    },
+                    init_str.admin.address
+                 ) in
+                let () = match Big_map.find_opt first_update_sale_key new_str.for_sale with
+                        Some fixed_price_saved -> (
+                            let () = assert_with_error (fixed_price_saved.price = 250000mutez) "UpdateSale - Success : This test should pass (err: First sale wrong updated price saved)" in
+                            match fixed_price_saved.buyer with 
+                                    Some buyer -> assert_with_error (buyer = ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address)) "UpdateSale - Success : This test should pass (err: Second sale wrong buyer saved while updating)"
+                                |   None -> (failwith "UpdateSale - Success : This test should pass (err: First sale new buyer should be saved)" : unit)
+                        )
+                    |   None -> (failwith "UpdateSale - Success : This test should pass (err: First sale should not be deleted)" : unit)
+                in
+                // Check second sale if well saved
+                let second_sale_update_key : FP_I.fa2_base * address = (
+                    {
+                        address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                        id = 1n
+                    },
+                    init_str.admin.address
+                 ) in
+                let () = match Big_map.find_opt second_sale_update_key new_str.for_sale with
+                        Some fixed_price_saved -> (
+                            let () = assert_with_error (fixed_price_saved.price = 170000mutez) "UpdateSale - Success : This test should pass (err: Second sale wrong updated price saved)" in
+                            match fixed_price_saved.buyer with 
+                                    Some _ ->  (failwith "UpdateSale - Success : This test should pass (err: Second sale new buyer should be none)" : unit)
+                                |   None -> unit
+                        )
+                    |   None -> (failwith "UpdateSale - Success : This test should pass (err: Second sale should not be deleted)" : unit)
+                in
+                "Passed"
+          )
+        |   Fail (Rejected (err, _)) -> "UpdateSale - Success : This test should pass"
+        |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if amount specified
+let test_update_sales_amount_specified =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+        (UpdateSales ([({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 250000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 130000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)])
+        ) 1tez
+    in
+
+    match result with
+        Success _gas -> failwith "UpdateSale - No amount : This test should fail (err: Amount specified for update_sales entrypoint)"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "UpdateSale - No amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if price does not meet minimum price
+let test_update_sales_to_small_first_el =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+         (UpdateSales ([({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 130000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)])
+        ) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "UpdateSale - Wrong price : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "UpdateSale - Wrong price : Should not work if wrong price" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+
+// Should fail if price does not meet minimum price
+let test_update_sales_to_small_second_el =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    let result = Test.transfer_to_contract contract
+         (UpdateSales ([({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 130000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 100mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)])
+        ) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "UpdateSale - Wrong price : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "UpdateSale - Wrong price : Should not work if wrong price" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if updated buyer is seller
+let test_update_sales_buyer_is_sender = 
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    let result = Test.transfer_to_contract contract
+         (UpdateSales ([({
+                buyer = Some (init_str.admin.address);
+                price = 130000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 100mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)])
+        ) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "UpdateSale - Buyer is sender : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "BUYER_CANNOT_BE_SELLER") ) "UpdateSale - Buyer is sender : Should not work if buyer is sender" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if sender is not owner of the sale
+let test_update_sale_not_owner =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (CreateSales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 150000mutez;
+                buyer = None;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+
+    // Attacker trying to change sale params to there own address an change the price
+    let result = Test.transfer_to_contract contract
+         (UpdateSales ([({
+                buyer = Some (no_admin_addr : address);
+                price = 100000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = Some (no_admin_addr : address);
+                price = 1000000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)])
+        ) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "UpdateSale - Not sale owner : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+        let () = Test.log("err: ", err) in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_SELLER_OR_NOT_FOR_SALE") ) "UpdateSale - Not sale owner : Should not work if sender is not seller" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"   
+
+
+// Should fail if sale is not created
+let test_update_sales_not_created =
+    let contract_add = get_initial_storage (false) in
+    let init_str = Test.get_storage contract_add in
+
+    let () = Test.set_source init_str.admin.address in
+    let contract = Test.to_contract contract_add in
+
+    let result = Test.transfer_to_contract contract
+         (UpdateSales ([({
+                buyer = None;
+                price = 130000mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info ); ({
+                buyer = None;
+                price = 100mutez;
+                fa2_token = {
+                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    id = 1n
+                };
+            } : FP_I.sale_info)])
+        ) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "UpdateSale - Sale is not created : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_SELLER_OR_NOT_FOR_SALE") ) "UpdateSale - Sale is not created : Should not work if sale is not created" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
