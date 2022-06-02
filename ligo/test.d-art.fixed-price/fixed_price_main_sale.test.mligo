@@ -196,7 +196,7 @@ let test_create_sales_deprecated =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if price not met minimum price
-let test_create_sale_price_to_small_first_el =
+let test_create_sales_price_to_small_first_el =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -236,7 +236,7 @@ let test_create_sale_price_to_small_first_el =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if price not met minimum price
-let test_create_sale_price_to_small_third_el =
+let test_create_sales_price_to_small_third_el =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -283,7 +283,7 @@ let test_create_sale_price_to_small_third_el =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if already on sale
-let test_create_sale_already_on_sale_one_call =
+let test_create_sales_already_on_sale_one_call =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -325,7 +325,7 @@ let test_create_sale_already_on_sale_one_call =
     
 
 // Should fail if already on sale
-let test_create_sale_already_on_sale_second_call =
+let test_create_sales_already_on_sale_second_call =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -376,7 +376,7 @@ let test_create_sale_already_on_sale_second_call =
     |   Fail _ -> failwith "Internal test failure"    
     
 // Should fail if specified buyer is seller
-let test_create_sale_buyer_is_seller =
+let test_create_sales_buyer_is_seller =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -416,7 +416,7 @@ let test_create_sale_buyer_is_seller =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if wrong signature
-let test_create_sale_wrong_signature = 
+let test_create_sales_wrong_signature = 
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -456,7 +456,7 @@ let test_create_sale_wrong_signature =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if signature already used
-let test_create_sale_already_used_signature = 
+let test_create_sales_already_used_signature = 
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
@@ -813,7 +813,7 @@ let test_update_sales_buyer_is_sender =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if sender is not owner of the sale
-let test_update_sale_not_owner =
+let test_update_sales_not_owner =
     let contract_add = get_initial_storage (false) in
     let init_str = Test.get_storage contract_add in
 
