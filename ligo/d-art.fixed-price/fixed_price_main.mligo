@@ -79,13 +79,13 @@ let revoke_sales (revoke_sales_param, storage : revoke_sales_param * storage) : 
     ([] : operation list), new_strg
 
 let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
-    let () = assert_msg (Tezos.sender <> buy_token.seller, "Seller can not buy the token") in
+    let () = assert_msg (Tezos.sender <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
     let () = verify_signature (buy_token.authorization_signature, storage) in
 
     let concerned_fixed_price_sale : fixed_price_sale = get_sale (buy_token.fa2_token, buy_token.seller, storage) in
 
     let () = fail_if_sender_not_authorized (concerned_fixed_price_sale.buyer) in
-    let () = assert_msg (concerned_fixed_price_sale.price = Tezos.amount, "Wrong price specified") in
+    let () = assert_msg (concerned_fixed_price_sale.price = Tezos.amount, "WRONG_PRICE_SPECIFIED") in
 
     let operation_list : operation list = perform_sale_operation (buy_token, concerned_fixed_price_sale.price, storage) in
     
@@ -144,13 +144,13 @@ let revoke_drops (revoke_drops_param, storage : revoke_drops_param * storage) : 
     ([]: operation list), new_storage
 
 let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
-    let () = assert_msg (Tezos.sender <> buy_token.seller, "Seller can not buy the token") in
+    let () = assert_msg (Tezos.sender <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
     let () = verify_signature (buy_token.authorization_signature, storage) in
 
     let concerned_fixed_price_drop : fixed_price_drop = get_drop (buy_token.fa2_token, buy_token.seller, storage) in
 
+    let () = assert_msg (concerned_fixed_price_drop.price = Tezos.amount, "WRONG_PRICE_SPECIFIED") in
     let () = fail_if_drop_date_not_met concerned_fixed_price_drop in
-    let () = assert_msg (concerned_fixed_price_drop.price = Tezos.amount, "Wrong price specified") in
 
     let operation_list : operation list = perform_sale_operation (buy_token, concerned_fixed_price_drop.price, storage) in
 

@@ -1,3 +1,4 @@
+#include "d-art.fixed-price/fixed_price_interface.mligo"
 // Helpers
 
 // -- Assert
@@ -7,24 +8,23 @@ let assert_msg (condition, msg : bool * string ) : unit =
 
 // -- Math
 
-let ceil_div_tez (tz_qty, nat_qty : tez * nat) : tez =
-  let ediv1 : (tez * tez) option = ediv tz_qty nat_qty in
+let ceil_div_tez (tz_qty, tz_qty_d : tez * tez) : tez =
+  let ediv1 : (nat * tez) option = ediv tz_qty tz_qty_d in
   match ediv1 with
     | None -> (failwith "DIVISION_BY_ZERO"  : tez)
-    | Some e ->
-       let (quotient, remainder) = e in
-       if remainder > 0mutez then (quotient + 1mutez) else quotient
+    | Some e -> (e.0 * 1mutez)
+      //  let (quotient, reminder) = e in
+      //  if reminder > 0mutez then (quotient + 1mutez) else quotient
 
 let calculate_fee (percent, sale_value : (nat option) * tez) : tez =
   match percent with
     None -> 0mutez
-    | Some percentage -> ceil_div_tez (sale_value *  percentage, 1000n)
-
+    | Some percentage -> ceil_div_tez (sale_value *  percentage, 1000mutez)
 
 let calculate_royalties_fee (percent, sale_value : (nat option) * tez) : tez =
   match percent with
     None -> 0mutez
-    | Some percentage -> ceil_div_tez (sale_value *  percentage, 100n)
+    | Some percentage -> ceil_div_tez (sale_value *  percentage, 100mutez)
 
 let sub_tez (tez_val, tez_minus : tez * tez ) : tez =
   match (tez_val - tez_minus) with

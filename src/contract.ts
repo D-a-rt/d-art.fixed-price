@@ -147,4 +147,40 @@ export async function testContract(): Promise<void> {
             }
         )
     })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing buy_fixed_price entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/fixed_price_main_buy_sale.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing buy_dropped entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/fixed_price_main_buy_drop.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
 }
