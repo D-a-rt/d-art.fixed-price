@@ -35,7 +35,7 @@ type nft_token_storage = {
 type edition_metadata =
 [@layout:comb]
 {
-    creator : address;
+    minter : address;
     edition_info: (string, bytes) map;
     total_edition_number: nat;
     remaining_edition_number: nat;
@@ -53,7 +53,6 @@ type editions_storage =
     assets : nft_token_storage;
     admin : admin_storage;
     metadata: (string, bytes) big_map;
-    hash_used : (bytes, token_id) big_map;
 }
 
 
@@ -61,7 +60,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
 
     let admin = Test.nth_bootstrap_account 0 in
     let token_seller = Test.nth_bootstrap_account 3 in
-    let token_creator = Test.nth_bootstrap_account 4 in
+    let token_minter = Test.nth_bootstrap_account 4 in
 
     let admin_strg : admin_storage = {
         admin = admin;
@@ -81,11 +80,11 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
     } in
 
     let edition_meta : edition_metadata = {
-            creator = token_creator;
+            minter = token_minter;
             edition_info = (Map.empty : (string, bytes) map);
             total_edition_number = 2n;
             remaining_edition_number = 0n;
-            royalties_address = token_creator;
+            royalties_address = token_minter;
             royalties_percentage = 15n;
         } in
 
@@ -100,7 +99,6 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
         assets = asset_strg;
         admin = admin_strg;
         metadata = (Big_map.empty : (string, bytes) big_map);
-        hash_used = (Big_map.empty : (bytes, token_id) big_map);
     } in
 
     // Path of the contract on yout local machine
@@ -378,8 +376,8 @@ let test_buy_fixed_price_token_success =
     let fee_account = Test.nth_bootstrap_account 2 in
     let fee_account_bal = Test.get_balance fee_account in
     
-    let token_creator = Test.nth_bootstrap_account 4 in
-    let token_creator_bal = Test.get_balance token_creator in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let token_minter_bal = Test.get_balance token_minter in
 
     let gas_creation_sale = Test.transfer_to_contract_exn contract
         (CreateSales ({
@@ -450,8 +448,8 @@ let test_buy_fixed_price_token_success =
                         else (failwith "BuyFixedPriceToken - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
             in
 
-            // Check that royalties have been sent correctly to creator
-            let new_creator_account_bal = Test.get_balance token_creator in
+            // Check that royalties have been sent correctly to minter
+            let new_minter_account_bal = Test.get_balance token_minter in
             let royalties_percent = match Big_map.find_opt 0n edition_str.editions_metadata with
                     Some ed_meta -> ed_meta.royalties_percentage
                 |   None -> (failwith "BuyFixedPriceToken - Success : This test should pass (err: Edition metadata not found in the big_map)")
@@ -459,7 +457,7 @@ let test_buy_fixed_price_token_success =
             
             // WARNING due to the fact that the contract is storing nat as percentage for the royalties we ll need to implement it like so
             // by dividing by 100 instead of 1000 to have one digit
-            let () =    if new_creator_account_bal - token_creator_bal = Some (31981555282163mutez)
+            let () =    if new_minter_account_bal - token_minter_bal = Some (31981555282163mutez)
                         then unit
                         else (failwith "BuyFixedPriceToken - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
             in
@@ -526,3 +524,4 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
+// Should Succeed if royalties over 97.5%

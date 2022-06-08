@@ -15,12 +15,20 @@ program
     .action(contract.compileContract)
 
 program
+    .command('compile-edition-contract')
+    .action(contract.compileEditionContract)
+
+program
     .command('contract-size')
     .action(contract.calculateSize)
 
 program
     .command('deploy-contract')
     .action(contract.deployContract)
+
+program
+    .command('deploy-edition-contract')
+    .action(contract.deployEditionContract)
 
 program
     .command('gen-keypair')

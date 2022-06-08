@@ -1,0 +1,113 @@
+#include "interface.mligo"
+#include "operator_lib.mligo"
+#include "standard.mligo"
+#include "common.mligo"
+
+#include "admin.mligo"
+
+type mint_edition_param =
+[@layout:comb]
+{
+  edition_info : bytes;
+  total_edition_number : nat;
+  royalty: nat;
+  splits: split list;
+  receivers : address list;
+}
+
+type editions_entrypoints =
+    |   Admin of admin_entrypoints
+    |   FA2 of fa2_entry_points
+    |   Mint_editions of mint_edition_param list
+    |   Burn_token of token_id
+
+let fail_if_not_owner (sender, token_id, storage : address * token_id * editions_storage) : unit =
+    match (Big_map.find_opt token_id storage.assets.ledger) with
+    | None -> (failwith "FA2_TOKEN_UNDEFINED"  : unit)
+    | Some cur_o ->
+      if cur_o = sender
+      then unit
+      else (failwith "FA2_INSUFFICIENT_BALANCE" : unit)
+
+let rec recurs_add (len, receivers : nat * (address list)) : (address list) =
+    if len > 0n
+    then let l = Tezos.sender :: receivers in recurs_add (abs (len - 1n), l)
+    else receivers
+
+let mint_edition_to_addresses ( edition_id, receivers, edition_metadata, storage : edition_id * (address list) * edition_metadata * editions_storage) : editions_storage =
+    
+    let mint_edition_to_address : (((assign_edition_param list) * token_id) * address) -> ((assign_edition_param list) * token_id) =
+        fun ( (assign_edition_param_l, token_id), address : ((assign_edition_param list) * token_id) * address) ->
+            let new_assigned_edition : assign_edition_param = ({
+                token_id = token_id;
+                owner = address;
+            } : assign_edition_param) in
+            ((new_assigned_edition :: assign_edition_param_l) , token_id + 1n)
+    in
+
+    let initial_token_id : nat = (edition_id * storage.max_editions_per_run) in
+    let to_add = recurs_add (abs (edition_metadata.total_edition_number - List.size receivers), receivers) in
+
+    let create_editions_param, _ : (assign_edition_param list) * token_id = (List.fold mint_edition_to_address to_add (([] : (assign_edition_param list)), initial_token_id)) in
+    let _ , nft_token_storage = mint_edition_set (create_editions_param, storage.assets) in
+    
+    let new_storage = {storage with assets = nft_token_storage } in
+    new_storage
+
+let mint_editions ( edition_run_list , storage : mint_edition_param list * editions_storage) : operation list * editions_storage =
+
+    let mint_single_edition_run : (editions_storage * mint_edition_param) -> editions_storage =
+        fun (storage, param : editions_storage * mint_edition_param) ->
+        let () : unit = assert_msg(param.royalty <= 1000n, "ROYALTIES_CANT_EXCEED_100_PERCENT") in
+        let () : unit = assert_msg(param.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
+        let () : unit = assert_msg(param.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
+
+        let verify_split : (nat * split) -> nat =
+            fun (c, spt : nat * split) ->
+                let c = c + spt.pct in
+                let () : unit = assert_msg (c <= 1000n, "SPLITS_CANNOT_EXCEED_100_PERCENT") in
+                let () : unit = assert_msg (spt.pct <= 1000n, "SPLIT_CANNOT_BE_MORE_THAN_100_PERCENT") in
+                c
+        in
+        let _c = List.fold verify_split param.splits 0n in
+
+        let edition_metadata : edition_metadata = {
+            minter = Tezos.sender;
+            edition_info = Map.literal [("", param.edition_info)];
+            royalty = param.royalty;
+            splits = param.splits;
+            total_edition_number = param.total_edition_number;
+        } in
+        
+        let edition_storage = { storage with
+            next_edition_id = storage.next_edition_id + 1n;
+            editions_metadata = Big_map.add storage.next_edition_id edition_metadata storage.editions_metadata;
+        } in
+
+        mint_edition_to_addresses (storage.next_edition_id, param.receivers, edition_metadata, edition_storage)
+        in
+
+    let new_storage = List.fold mint_single_edition_run edition_run_list storage in
+    ([] : operation list), new_storage
+
+
+let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
+    let () : unit = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
+    match param with
+        | Admin a ->
+            let ops, admin = admin_main (a, editions_storage.admin) in
+            let new_storage = { editions_storage with admin = admin; } in
+            ops, new_storage
+
+        | FA2 fa2_entry_points ->
+            let ops, new_storage = fa2_main (fa2_entry_points, editions_storage.assets) in
+            ops, { editions_storage with assets = new_storage } 
+
+        | Mint_editions mint_param ->
+            let () = fail_if_minting_paused editions_storage.admin in
+            let () = fail_if_not_minter editions_storage.admin in
+            mint_editions (mint_param, editions_storage)
+
+        | Burn_token token_id ->
+            let () : unit = fail_if_not_owner (Tezos.sender, token_id, editions_storage) in
+            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove token_id editions_storage.assets.ledger }

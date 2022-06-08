@@ -1,5 +1,5 @@
 #include "fixed_price_interface.mligo"
-#include "../common.mligo"
+#include "common.mligo"
 #include "fixed_price_check.mligo"
 
 type admin_entrypoints =

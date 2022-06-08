@@ -1,17 +1,3 @@
-(**
-Reference implementation of the FA2 operator storage, config API and
-helper functions
-*)
-
-#if !FA2_OPERATOR_LIB
-#define FA2_OPERATOR_LIB
-
-(**
-(owner, operator, token_id) -> unit
-To be part of FA2 storage to manage permitted operators
-*)
-
-type operator_storage = ((address * (address * token_id)), unit) big_map
 
 (**
   Updates operator storage using an `update_operator` command.
@@ -32,8 +18,8 @@ Validate if operator update is performed by the token owner.
 let validate_update_operators_by_owner (update, updater : update_operator * address)
     : unit =
   let op = match update with
-  | Add_operator op -> op
-  | Remove_operator op -> op
+    | Add_operator op -> op
+    | Remove_operator op -> op
   in
   if op.owner = updater then unit else failwith "FA2_NOT_OWNER"
 
@@ -41,14 +27,6 @@ let validate_update_operators_by_owner (update, updater : update_operator * addr
   Generic implementation of the FA2 `%update_operators` entrypoint.
   Assumes that only the token owner can change its operators.
  *)
-let fa2_update_operators (updates, storage
-    : (update_operator list) * operator_storage) : operator_storage =
-  let updater = Tezos.sender in
-  let process_update = (fun (ops, update : operator_storage * update_operator) ->
-    let () = validate_update_operators_by_owner (update, updater) in
-    update_operators (update, ops)
-  ) in
-  List.fold process_update updates storage
 
 (**
   owner * operator * token_id * ops_storage -> unit
@@ -71,5 +49,3 @@ let default_operator_validator : operator_validator =
     then unit (* the operator is permitted for the token_id *)
     else failwith "FA2_NOT_OPERATOR" (* the operator is not permitted for the token_id *)
   )
-
-#endif

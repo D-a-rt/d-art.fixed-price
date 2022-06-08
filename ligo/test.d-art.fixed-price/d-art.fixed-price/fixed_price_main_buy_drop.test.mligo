@@ -35,7 +35,7 @@ type nft_token_storage = {
 type edition_metadata =
 [@layout:comb]
 {
-    creator : address;
+    minter : address;
     edition_info: (string, bytes) map;
     total_edition_number: nat;
     remaining_edition_number: nat;
@@ -53,7 +53,6 @@ type editions_storage =
     assets : nft_token_storage;
     admin : admin_storage;
     metadata: (string, bytes) big_map;
-    hash_used : (bytes, token_id) big_map;
 }
 
 
@@ -61,7 +60,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
 
     let admin = Test.nth_bootstrap_account 0 in
     let token_seller = Test.nth_bootstrap_account 3 in
-    let token_creator = Test.nth_bootstrap_account 4 in
+    let token_minter = Test.nth_bootstrap_account 4 in
 
     let admin_strg : admin_storage = {
         admin = admin;
@@ -81,11 +80,11 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
     } in
 
     let edition_meta : edition_metadata = {
-            creator = token_creator;
+            minter = token_minter;
             edition_info = (Map.empty : (string, bytes) map);
             total_edition_number = 2n;
             remaining_edition_number = 0n;
-            royalties_address = token_creator;
+            royalties_address = token_minter;
             royalties_percentage = 15n;
         } in
 
@@ -100,7 +99,6 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
         assets = asset_strg;
         admin = admin_strg;
         metadata = (Big_map.empty : (string, bytes) big_map);
-        hash_used = (Big_map.empty : (bytes, token_id) big_map);
     } in
 
     // Path of the contract on yout local machine

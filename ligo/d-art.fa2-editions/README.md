@@ -7,7 +7,7 @@ but with unique serial numbers, e.g. in a _limited run_.
 With contracts not specialized to editions, this results in redundant copies of the metadata that's shared between editions in a run.
 We also want the token ids of tokens in an edition set to be consecutive to make reasoning about them easier.
 
-Editions-FA2 allows editions creators to easily mint an "unlimited" (limited only by big_map storage limits) number of editions and then distribute them concurrently.
+Editions-FA2 allows editions minters to easily mint an "unlimited" (limited only by big_map storage limits) number of editions and then distribute them concurrently.
 
 ## Storage
 
@@ -24,14 +24,14 @@ editions_metadata :=
   big_map
     (nat : edition_id)
     ( edition_info : ((string, bytes) map)
-    , creator : address
+    , minter : address
     , total_edition_number : nat
     , remaining_edition_number : nat)
 ```
 
 ## Entities
 
-**Edition Creator** - A tezos account that has created an `Edition run` of size N by calling `mint_edition`.
+**Edition minter** - A tezos account that has created an `Edition run` of size N by calling `mint_edition`.
 
 **Edition run/Edition set** - A set of N `token_id`s that when minted to, will share the same `token_metadata`. A given `Edition run` will be represented by a unique `edition_id` and is created upon a call to `create_editions.`
 
@@ -45,7 +45,7 @@ editions_metadata :=
   + For each entry in the list, an entry is created in `editions_metadata`for key `next_edition_id`
     with:
     * `total_edition_number = remaining_edition_number`
-    * `creator = SENDER` (admin)
+    * `minter = SENDER` (admin)
     * `edition_info = edition_info'`
 
   + Additionally, `next_edition_id ` is incremented by `1`.
@@ -53,9 +53,9 @@ editions_metadata :=
 - `mint_editions : list (edition_id, receivers : nat * (address list))`
   + **GUARDS USED:** `fail_if_paused`
   + For each `Edition run` corresponding to a given `edition_id`, `editions` are distributed to the addresses in `receivers`. Each distribution mints a new token to a `token_id` equal to `edition_id` * `max_editions_per_collection` + `(total_edition_number - remaining_edition_number`)
-  + Only a creator of some edition run can distribute for their `Edition run`.
-  + A creator cannot distribute more than the `total_edition_number` set in the creation of the `Edition run`.
-  + A creator can distribute editions for multiple edition runs that they created, in a single call to `mint_editions`.
+  + Only a minter of some edition run can distribute for their `Edition run`.
+  + A minter cannot distribute more than the `total_edition_number` set in the creation of the `Edition run`.
+  + A minter can distribute editions for multiple edition runs that they created, in a single call to `mint_editions`.
 
   For each "distribution":
     * `mint_edition` reserves `max_editions_per_run` `token_id`s beginning at `next_edition_id * max_editions_per_collection` , and `mint_edition` uses them sequentially.
@@ -67,7 +67,7 @@ editions_metadata :=
 - If a user attempts to mint an `Edition_run` larger than `max_editions_per_run` fail with `EDITION_RUN_TOO_LARGE`.
 - If a user attempts to distribute more editions than were created, the call fails with error `NO_EDITIONS_TO_DISTRIBUTE`.
 - If a user attempts to distribute from an `Edition run` that has not been created, the call fails with error `INVALID_EDITION_ID`.
-- If a user attempts to distribute from an `Edition run` for which they are not the `creator` the call fails with error `INVALID_DISTRIBUTOR`.
+- If a user attempts to distribute from an `Edition run` for which they are not the `minter` the call fails with error `INVALID_DISTRIBUTOR`.
 
 ## Offchain-View
 Given a valid `token-id` the offchain view will return the edition metadata of the `Edition run` that edition belongs to.
