@@ -34,6 +34,7 @@ let rec recurs_add (len, receivers : nat * (address list)) : (address list) =
     then let l = Tezos.sender :: receivers in recurs_add (abs (len - 1n), l)
     else receivers
 
+
 let mint_edition_to_addresses ( edition_id, receivers, edition_metadata, storage : edition_id * (address list) * edition_metadata * editions_storage) : editions_storage =
     
     let mint_edition_to_address : (((assign_edition_param list) * token_id) * address) -> ((assign_edition_param list) * token_id) =
@@ -46,7 +47,7 @@ let mint_edition_to_addresses ( edition_id, receivers, edition_metadata, storage
     in
 
     let initial_token_id : nat = (edition_id * storage.max_editions_per_run) in
-    let to_add = recurs_add (abs (edition_metadata.total_edition_number - List.size receivers), receivers) in
+    let to_add = recurs_add (abs (edition_metadata.total_edition_number - List.size receivers), receivers)  in
 
     let create_editions_param, _ : (assign_edition_param list) * token_id = (List.fold mint_edition_to_address to_add (([] : (assign_edition_param list)), initial_token_id)) in
     let _ , nft_token_storage = mint_edition_set (create_editions_param, storage.assets) in
@@ -54,23 +55,20 @@ let mint_edition_to_addresses ( edition_id, receivers, edition_metadata, storage
     let new_storage = {storage with assets = nft_token_storage } in
     new_storage
 
+let verify_split (c, spt : nat * split) : nat = c + spt.pct
+
 let mint_editions ( edition_run_list , storage : mint_edition_param list * editions_storage) : operation list * editions_storage =
 
     let mint_single_edition_run : (editions_storage * mint_edition_param) -> editions_storage =
         fun (storage, param : editions_storage * mint_edition_param) ->
-        let () : unit = assert_msg(param.royalty <= 1000n, "ROYALTIES_CANT_EXCEED_100_PERCENT") in
+        let () : unit = assert_msg(param.royalty <= 1000n, "ROYALTIES_CANNOT_EXCEED_100_PERCENT") in
         let () : unit = assert_msg(param.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
         let () : unit = assert_msg(param.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
+        let () : unit = assert_msg(List.size param.receivers <= param.total_edition_number, "MORE_RECEIVERS_THAN_EDITIONS") in
 
-        let verify_split : (nat * split) -> nat =
-            fun (c, spt : nat * split) ->
-                let c = c + spt.pct in
-                let () : unit = assert_msg (c <= 1000n, "SPLITS_CANNOT_EXCEED_100_PERCENT") in
-                let () : unit = assert_msg (spt.pct <= 1000n, "SPLIT_CANNOT_BE_MORE_THAN_100_PERCENT") in
-                c
-        in
-        let _c = List.fold verify_split param.splits 0n in
-
+        let split_count : nat = List.fold_left verify_split 0n param.splits  in
+        let () : unit = assert_msg (split_count <= 1000n, "SPLIT_CANNOT_EXCEED_100_PERCENT") in
+        
         let edition_metadata : edition_metadata = {
             minter = Tezos.sender;
             edition_info = Map.literal [("", param.edition_info)];

@@ -72,7 +72,6 @@ type transfer_destination =
 {
   to_ : address;
   token_id : token_id;
-  amount : nat;
 }
 
 type transfer =
@@ -107,7 +106,6 @@ type edition_metadata =
 
 type admin_storage = {
     admin : address;
-    pending_admin : address option;
     paused_minting : bool;
     paused_nb_edition_minting : bool;
     minters : (address, unit) big_map;

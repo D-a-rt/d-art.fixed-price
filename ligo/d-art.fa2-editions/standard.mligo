@@ -11,7 +11,7 @@ let transfers_to_descriptors (txs : transfer list) : transfer_descriptor list =
             {
                 to_ = Some dst.to_;
                 token_id = dst.token_id;
-                amount = dst.amount;
+                amount = 1n;
             }
             ) tx.txs in
             {
@@ -46,9 +46,7 @@ let transfer (txs, validate_op, ops_storage, ledger : (transfer_descriptor list)
             | None -> unit
             | Some owner -> validate_op (owner, Tezos.sender, dst.token_id, ops_storage)
             in
-            if dst.amount > 1n
-            then (failwith "FA2_INSUFFICIENT_BALANCE" : ledger)
-            else if dst.amount = 0n
+            if dst.amount = 0n
             then match Big_map.find_opt dst.token_id ll with
                 | None -> (failwith "FA2_TOKEN_UNDEFINED"  : ledger)
                 | Some _cur_o -> ll (* zero transfer, don't change the ledger *)
@@ -65,25 +63,25 @@ let fa2_transfer (tx_descriptors, validate_op, storage : (transfer_descriptor li
     let new_storage = { storage with ledger = new_ledger; } in
     ([]: operation list), new_storage
 
-    let get_balance (p, ledger : balance_of_param * ledger) : operation =
-        let to_balance = fun (r : balance_of_request) ->
-            let owner = Big_map.find_opt r.token_id ledger in
-            match owner with
-                    Some o -> (
-                        let bal = if o = r.owner then 1n else 0n in
-                        { request = r; balance = bal; }
-                    )
-                |    None -> (failwith "FA2_TOKEN_UNDEFINED"  : balance_of_response)
-        in
-    let responses = List.map to_balance p.requests in
-    Tezos.transaction responses 0mutez p.callback
+let get_balance (p, ledger : balance_of_param * ledger) : operation =
+    let to_balance = fun (r : balance_of_request) ->
+        let owner = Big_map.find_opt r.token_id ledger in
+        match owner with
+                Some o -> (
+                    let bal = if o = r.owner then 1n else 0n in
+                    { request = r; balance = bal; }
+                )
+            |    None -> (failwith "FA2_TOKEN_UNDEFINED"  : balance_of_response)
+    in
+let responses = List.map to_balance p.requests in
+Tezos.transaction responses 0mutez p.callback
 
-    (**
-    Update ledger balances according to the specified transfers. Fails if any of the
-    permissions or constraints are violated.
-    @param txs transfers to be applied to the ledger
-    @param validate_op function that validates of the tokens from the particular owner can be transferred.
-    *)
+(**
+Update ledger balances according to the specified transfers. Fails if any of the
+permissions or constraints are violated.
+@param txs transfers to be applied to the ledger
+@param validate_op function that validates of the tokens from the particular owner can be transferred.
+*)
 
 
 let fa2_update_operators (updates, storage
