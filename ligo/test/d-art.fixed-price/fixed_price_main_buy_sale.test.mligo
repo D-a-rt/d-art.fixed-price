@@ -548,5 +548,3 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
-
-// Should Succeed if royalties over 97.5%

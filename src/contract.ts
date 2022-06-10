@@ -293,7 +293,7 @@ export async function testEditionContract(): Promise<void> {
     })
 
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing fa2 standart entrypoints...`))
+        console.log(kleur.green(`Testing fa2 standard entrypoints...`))
 
         child.exec(
             path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/standard.test.mligo")}`),

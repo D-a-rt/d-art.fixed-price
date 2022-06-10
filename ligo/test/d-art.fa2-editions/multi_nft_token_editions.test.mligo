@@ -250,8 +250,8 @@ let test_mint_edition_0_editions =
         )
     |   Fail _ -> failwith "Internal test failure"
 
-// Fail if royalties exceed 100 percent
-let test_mint_edition_royalties_exceed_100_pct = 
+// Fail if royalties exceed 25 percent
+let test_mint_edition_royalties_exceed_25_pct = 
     let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(false, false) in
     let contract = Test.to_contract contract_add in
 
@@ -262,7 +262,7 @@ let test_mint_edition_royalties_exceed_100_pct =
     let mint_editions_param = ([({
         edition_info = ("" : bytes);
         total_edition_number = 0n;
-        royalty = 1001n;
+        royalty = 251n;
         splits = ([{
             address = minter;
             pct = 500n;
@@ -276,9 +276,9 @@ let test_mint_edition_royalties_exceed_100_pct =
     let result = Test.transfer_to_contract contract (Mint_editions mint_editions_param) 0tez in
 
     match result with
-        Success _gas -> failwith "Mint_editions - Royalties > 100% : This test should fail"
+        Success _gas -> failwith "Mint_editions - Royalties > 25% : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ROYALTIES_CANNOT_EXCEED_100_PERCENT") ) "Mint_editions - Royalties > 100% : Should not work if royalties exceed 100%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ROYALTIES_CANNOT_EXCEED_25_PERCENT") ) "Mint_editions - Royalties > 25% : Should not work if royalties exceed 100%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
