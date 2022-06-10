@@ -110,7 +110,7 @@ let test_create_drops =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -139,7 +139,7 @@ let test_create_drops =
               // Check message is well saved
                 let () = match Big_map.find_opt ("54657374206d657373616765207465746574657465" : bytes) new_str.admin.signed_message_used with
                             Some _ -> unit
-                        |   None -> (failwith "CreateDrops - Success : This test should pass (err: Signed message not saved)" : unit)
+                        |   None -> (failwith "Create_drops - Success : This test should pass (err: Signed message not saved)" : unit)
                 in
                 // Check first sale if well saved
                 let first_drop_key : FP_I.fa2_base * address = (
@@ -151,10 +151,10 @@ let test_create_drops =
                  ) in
                 let () = match Big_map.find_opt first_drop_key new_str.drops with
                         Some fixed_drop_saved -> (
-                            let () = assert_with_error (fixed_drop_saved.price = 150000mutez) "CreateDrops - Success : This test should pass (err: First sale wrong price saved)" in
-                            assert_with_error (fixed_drop_saved.drop_date = expected_time_result_three) "CreateDrops - Success : This test should pass (err: First sale wrong date saved)"
+                            let () = assert_with_error (fixed_drop_saved.price = 150000mutez) "Create_drops - Success : This test should pass (err: First sale wrong price saved)" in
+                            assert_with_error (fixed_drop_saved.drop_date = expected_time_result_three) "Create_drops - Success : This test should pass (err: First sale wrong date saved)"
                         )
-                    |   None -> (failwith "CreateDrops - Success : This test should pass (err: First drop not saved)" : unit)
+                    |   None -> (failwith "Create_drops - Success : This test should pass (err: First drop not saved)" : unit)
                 in
                 // Check second sale if well saved
                 let second_drop_key : FP_I.fa2_base * address = (
@@ -166,14 +166,14 @@ let test_create_drops =
                  ) in
                 let () = match Big_map.find_opt second_drop_key new_str.drops with
                         Some fixed_drop_saved -> (
-                            let () = assert_with_error (fixed_drop_saved.price = 100000mutez) "CreateDrops - Success : This test should pass (err: Second drop wrong price saved)" in
-                            assert_with_error (fixed_drop_saved.drop_date = expected_time_result_four) "CreateDrops - Success : This test should pass (err: Second drop wrong date saved)"
+                            let () = assert_with_error (fixed_drop_saved.price = 100000mutez) "Create_drops - Success : This test should pass (err: Second drop wrong price saved)" in
+                            assert_with_error (fixed_drop_saved.drop_date = expected_time_result_four) "Create_drops - Success : This test should pass (err: Second drop wrong date saved)"
                         )
-                    |   None -> (failwith "CreateDrops - Success : This test should pass (err: Second drop not saved)" : unit)
+                    |   None -> (failwith "Create_drops - Success : This test should pass (err: Second drop not saved)" : unit)
                 in
                 "Passed"
           )
-        |   Fail (Rejected (err, _)) ->  "CreateDrops - Success : This test should pass"
+        |   Fail (Rejected (err, _)) ->  "Create_drops - Success : This test should pass"
         |   Fail _ -> failwith "Internal test failure"    
     
 // Should fail if amount specified
@@ -194,7 +194,7 @@ let test_create_drops_with_amount =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -218,9 +218,9 @@ let test_create_drops_with_amount =
     in
     
     match result with
-        Success _gas -> failwith "CreateDrops - No amount : This test should fail (err: Amount specified for create_drops entrypoint)"
+        Success _gas -> failwith "Create_drops - No amount : This test should fail (err: Amount specified for create_drops entrypoint)"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "CreateDrops - No amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Create_drops - No amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -243,7 +243,7 @@ let test_create_drops_deprecated =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -267,9 +267,9 @@ let test_create_drops_deprecated =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Will deprecate : This test should fail"
+        Success _gas -> failwith "Create_drops - Will deprecate : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "WILL_BE_DEPRECATED") ) "CreateDrops - Will deprecate : Should not work if contract will deprecate" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "WILL_BE_DEPRECATED") ) "Create_drops - Will deprecate : Should not work if contract will deprecate" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -292,7 +292,7 @@ let test_create_drops_price_to_small_first_el =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -316,9 +316,9 @@ let test_create_drops_price_to_small_first_el =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Wrong price : This test should fail"
+        Success _gas -> failwith "Create_drops - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "CreateDrops - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "Create_drops - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -341,7 +341,7 @@ let test_create_drops_price_to_small_second_el =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -365,9 +365,9 @@ let test_create_drops_price_to_small_second_el =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Wrong price : This test should fail"
+        Success _gas -> failwith "Create_drops - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "CreateDrops - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "Create_drops - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -390,7 +390,7 @@ let test_create_drops_already_in_drop =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -414,9 +414,9 @@ let test_create_drops_already_in_drop =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Already in drop : This test should fail"
+        Success _gas -> failwith "Create_drops - Already in drop : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_DROPED") ) "CreateDrops - Already in drop : Should not work if token is already in drop" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_DROPED") ) "Create_drops - Already in drop : Should not work if token is already in drop" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -439,7 +439,7 @@ let test_create_drops_already_dropped =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -456,9 +456,9 @@ let test_create_drops_already_dropped =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Already dropped : This test should fail"
+        Success _gas -> failwith "Create_drops - Already dropped : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_DROPED") ) "CreateDrops - Already dropped : Should not work if token is already in drop" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_DROPED") ) "Create_drops - Already dropped : Should not work if token is already in drop" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
@@ -481,7 +481,7 @@ let test_create_drops_wrong_signature =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
@@ -498,9 +498,9 @@ let test_create_drops_wrong_signature =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Wrong signature : This test should fail"
+        Success _gas -> failwith "Create_drops - Wrong signature : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "CreateDrops - Wrong signature : Should not work if signature is not correct" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Create_drops - Wrong signature : Should not work if signature is not correct" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -523,7 +523,7 @@ let test_create_drops_already_used_signature =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let _gas2 = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -540,7 +540,7 @@ let test_create_drops_already_used_signature =
     in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -557,9 +557,9 @@ let test_create_drops_already_used_signature =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Already used signature : This test should fail"
+        Success _gas -> failwith "Create_drops - Already used signature : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "CreateDrops - Already used signature : Should not work if signature is already used" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Create_drops - Already used signature : Should not work if signature is already used" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -582,7 +582,7 @@ let test_create_drops_wrong_drop_date =
     let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -599,13 +599,13 @@ let test_create_drops_wrong_drop_date =
     in
 
     let () = match result with
-            Success _gas -> failwith "CreateDrops - To early drop date : This test should fail"
-        |   Fail (Rejected (err, _)) ->  assert_with_error ( Test.michelson_equal err (Test.eval "DROP_DATE_MUST_BE_AT_LEAST_IN_A_DAY") ) "CreateDrops - To early drop date : Should not work if drop_date is in less than a day"
+            Success _gas -> failwith "Create_drops - To early drop date : This test should fail"
+        |   Fail (Rejected (err, _)) ->  assert_with_error ( Test.michelson_equal err (Test.eval "DROP_DATE_MUST_BE_AT_LEAST_IN_A_DAY") ) "Create_drops - To early drop date : Should not work if drop_date is in less than a day"
         |   Fail _ -> failwith "Internal test failure"
     in
 
     let second_result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -622,9 +622,9 @@ let test_create_drops_wrong_drop_date =
     in
 
     match second_result with
-        Success _gas -> failwith "CreateDrops - Drop date to far : This test should fail"
+        Success _gas -> failwith "Create_drops - Drop date to far : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_DATE_MUST_BE_IN_MAXIMUM_ONE_MONTH") ) "CreateDrops - Drop date to far : Should not work if drop_date is greater than a month" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_DATE_MUST_BE_IN_MAXIMUM_ONE_MONTH") ) "Create_drops - Drop date to far : Should not work if drop_date is greater than a month" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -642,7 +642,7 @@ let test_create_drops_not_authorized_drop_seller =
     let expected_time_result_three = now + three_days in
 
     let result = Test.transfer_to_contract contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -659,9 +659,9 @@ let test_create_drops_not_authorized_drop_seller =
     in
 
     match result with
-        Success _gas -> failwith "CreateDrops - Not authorized to drop : This test should fail"
+        Success _gas -> failwith "Create_drops - Not authorized to drop : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AUTHORIZED_DROP_SELLER") ) "CreateDrops - Not authorized to drop : Should not work if seller is not whitelisted" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AUTHORIZED_DROP_SELLER") ) "Create_drops - Not authorized to drop : Should not work if seller is not whitelisted" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -679,7 +679,7 @@ let test_revoke_drops_before_drop_date =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (RevokeDrops ({
+        (Revoke_drops ({
             fa2_tokens = [({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -751,7 +751,7 @@ let test_revoke_drops_after_drope_date =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (RevokeDrops ({
+        (Revoke_drops ({
             fa2_tokens = [({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -826,7 +826,7 @@ let test_revoke_drops_with_amount =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (RevokeDrops ({
+        (Revoke_drops ({
             fa2_tokens = [({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -840,9 +840,9 @@ let test_revoke_drops_with_amount =
     in
 
     match result with
-        Success _gas -> failwith "RevokeDrops - No amount : This test should fail (err: Amount specified for revoke_sales entrypoint)"
+        Success _gas -> failwith "Revoke_drops - No amount : This test should fail (err: Amount specified for revoke_sales entrypoint)"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "RevokeDrops - No amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Revoke_drops - No amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -856,7 +856,7 @@ let test_revoke_drops_not_created =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (RevokeDrops ({
+        (Revoke_drops ({
             fa2_tokens = [({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -870,9 +870,9 @@ let test_revoke_drops_not_created =
     in
 
     match result with
-        Success _gas -> failwith "RevokeDrops - Drops are not created : This test should fail"
+        Success _gas -> failwith "Revoke_drops - Drops are not created : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "RevokeDrops - Drops are not created : Should not work if drop is not created" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "Revoke_drops - Drops are not created : Should not work if drop is not created" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -887,7 +887,7 @@ let test_revoke_drops_sender_not_owner =
     
     let contract = Test.to_contract contract_add in
     let result = Test.transfer_to_contract contract
-        (RevokeDrops ({
+        (Revoke_drops ({
             fa2_tokens = [({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -901,9 +901,9 @@ let test_revoke_drops_sender_not_owner =
     in
 
     match result with
-        Success _gas -> failwith "RevokeDrops - Drops sender not owner : This test should fail"
+        Success _gas -> failwith "Revoke_drops - Drops sender not owner : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "RevokeDrops - Drops sender not owner : Should not work if sender is not owner" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "Revoke_drops - Drops sender not owner : Should not work if sender is not owner" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -917,7 +917,7 @@ let test_revoke_drops_less_than_6_hours_before_drop_date =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (RevokeDrops ({
+        (Revoke_drops ({
             fa2_tokens = [({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -931,9 +931,9 @@ let test_revoke_drops_less_than_6_hours_before_drop_date =
     in
 
     match result with
-        Success _gas -> failwith "RevokeDrops - Drop date in less than 6 hours : This test should fail"
+        Success _gas -> failwith "Revoke_drops - Drop date in less than 6 hours : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_CANNOT_BE_REVOKED") ) "RevokeDrops - Drop date in less than 6 hours : Should not work if drop date less than 6 hours" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_CANNOT_BE_REVOKED") ) "Revoke_drops - Drop date in less than 6 hours : Should not work if drop date less than 6 hours" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -947,7 +947,7 @@ let test_revoke_drops_between_drop_date_and_one_day =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (RevokeDrops ({
+        (Revoke_drops ({
             fa2_tokens = [({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -961,9 +961,9 @@ let test_revoke_drops_between_drop_date_and_one_day =
     in
 
     match result with
-        Success _gas -> failwith "RevokeDrops - Drop date was in less than a day : This test should fail"
+        Success _gas -> failwith "Revoke_drops - Drop date was in less than a day : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_CANNOT_BE_REVOKED") ) "RevokeDrops - Drop date was in less than a day : Should not work if drop date was in less than a day" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_CANNOT_BE_REVOKED") ) "Revoke_drops - Drop date was in less than a day : Should not work if drop date was in less than a day" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    

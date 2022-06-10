@@ -3,35 +3,35 @@
                    (or (or (address %addDropSeller) (bool %contractWillUpdate))
                        (or (address %removeDropSeller) (pair %updateFee (address %address) (nat %percent))))
                    (key %updatePublicKey))
-                (pair %buyDroppedToken
+                (pair %Buy_dropped_token
                    (pair %fa2_token (nat %id) (address %address))
                    (address %seller)
                    (pair %authorization_signature (bytes %message) (signature %signed))))
-            (or (pair %buyFixedPriceToken
+            (or (pair %Buy_fixed_price_token
                    (pair %fa2_token (nat %id) (address %address))
                    (address %seller)
                    (pair %authorization_signature (bytes %message) (signature %signed)))
-                (pair %createDrops
+                (pair %Create_drops
                    (pair %authorization_signature (bytes %message) (signature %signed))
                    (list %drop_infos
                       (pair (pair %fa2_token (nat %id) (address %address))
                             (mutez %price)
                             (timestamp %drop_date)))
                    (address %seller))))
-        (or (or (pair %createSales
+        (or (or (pair %Create_sales
                    (list %sale_infos
                       (pair (option %buyer address)
                             (mutez %price)
                             (pair %fa2_token (nat %id) (address %address))))
                    (address %seller)
                    (pair %authorization_signature (bytes %message) (signature %signed)))
-                (pair %revokeDrops
+                (pair %Revoke_drops
                    (list %fa2_tokens (pair (nat %id) (address %address)))
                    (address %seller)))
-            (or (pair %revokeSales
+            (or (pair %Revoke_sales
                    (list %fa2_tokens (pair (nat %id) (address %address)))
                    (address %seller))
-                (pair %updateSales
+                (pair %Update_sales
                    (list %sale_infos
                       (pair (option %buyer address)
                             (mutez %price)

@@ -14,7 +14,7 @@ type admin_storage = {
     admin : address;
     paused_minting : bool;
     paused_nb_edition_minting : bool;
-    minters : (address, unit) big_map;git a
+    minters : (address, unit) big_map;
 }
 
 type operator_storage = ((address * (address * token_id)), unit) big_map
@@ -176,7 +176,7 @@ let test_buy_drop_token_wrong_signature =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (BuyDroppedToken ({
+        (Buy_dropped_token ({
             fa2_token = ({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -190,9 +190,9 @@ let test_buy_drop_token_wrong_signature =
     in
 
     match result with
-        Success _gas -> failwith "BuyDroppedToken - Wrong signature : This test should fail"
+        Success _gas -> failwith "Buy_dropped_token - Wrong signature : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "BuyDroppedToken - Wrong signature : Should not work if signature is not correct" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Buy_dropped_token - Wrong signature : Should not work if signature is not correct" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -209,7 +209,7 @@ let test_buy_drop_token_signature_already_used =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (BuyDroppedToken ({
+        (Buy_dropped_token ({
             fa2_token = ({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -223,9 +223,9 @@ let test_buy_drop_token_signature_already_used =
     in
 
     match result with
-        Success _gas -> failwith "BuyDroppedToken - Signature already used : This test should fail"
+        Success _gas -> failwith "Buy_dropped_token - Signature already used : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "BuyDroppedToken - Signature already used : Should not work if signature is already used" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Buy_dropped_token - Signature already used : Should not work if signature is already used" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -247,7 +247,7 @@ let test_buy_drop_token_wrong_price =
     let expected_time_result_three = now + three_days in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -267,7 +267,7 @@ let test_buy_drop_token_wrong_price =
     let () = Test.set_source no_admin_addr in
 
     let result = Test.transfer_to_contract contract
-        (BuyDroppedToken ({
+        (Buy_dropped_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract: address);
@@ -281,9 +281,9 @@ let test_buy_drop_token_wrong_price =
     in
 
     match result with
-        Success _gas -> failwith "BuyDroppedToken - Wrong price specified : This test should fail"
+        Success _gas -> failwith "Buy_dropped_token - Wrong price specified : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "WRONG_PRICE_SPECIFIED") ) "BuyDroppedToken - Wrong price specified : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "WRONG_PRICE_SPECIFIED") ) "Buy_dropped_token - Wrong price specified : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -305,7 +305,7 @@ let test_buy_drop_token_drop_date_not_met =
     let expected_time_result_three = now + three_days in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateDrops ({
+        (Create_drops ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -326,7 +326,7 @@ let test_buy_drop_token_drop_date_not_met =
     let () = Test.set_source no_admin_addr in
 
     let result = Test.transfer_to_contract contract
-        (BuyDroppedToken ({
+        (Buy_dropped_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract: address);
@@ -340,9 +340,9 @@ let test_buy_drop_token_drop_date_not_met =
     in
 
     match result with
-        Success _gas -> failwith "BuyDroppedToken - Drop date not met : This test should fail"
+        Success _gas -> failwith "Buy_dropped_token - Drop date not met : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_DATE_NOT_MET") ) "BuyDroppedToken - Drop date not met : Should fail if drop date not met" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "DROP_DATE_NOT_MET") ) "Buy_dropped_token - Drop date not met : Should fail if drop date not met" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -360,7 +360,7 @@ let test_buy_drop_token_not_dropped =
     let () = Test.set_source no_admin_addr in
 
     let result = Test.transfer_to_contract contract
-        (BuyDroppedToken ({
+        (Buy_dropped_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract: address);
@@ -374,9 +374,9 @@ let test_buy_drop_token_not_dropped =
     in
 
     match result with
-        Success _gas -> failwith "BuyDroppedToken - Token is not dropped : This test should fail"
+        Success _gas -> failwith "Buy_dropped_token - Token is not dropped : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "BuyDroppedToken - Token is not dropped : Should fail if drop date not met" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_DROPPED") ) "Buy_dropped_token - Token is not dropped : Should fail if drop date not met" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -392,7 +392,7 @@ let test_buy_drop_token_buyer_is_seller =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-         (BuyDroppedToken ({
+         (Buy_dropped_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract: address);
@@ -406,9 +406,9 @@ let test_buy_drop_token_buyer_is_seller =
     in
 
     match result with
-        Success _gas -> failwith "BuyFixedPriceToken - Seller is buyer : This test should fail"
+        Success _gas -> failwith "Buy_fixed_price_token - Seller is buyer : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_AUTHORIZED") ) "BuyFixedPriceToken - Seller is buyer : Should not work if seller is buyer" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_AUTHORIZED") ) "Buy_fixed_price_token - Seller is buyer : Should not work if seller is buyer" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    

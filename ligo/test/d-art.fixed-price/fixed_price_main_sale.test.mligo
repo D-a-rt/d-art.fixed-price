@@ -44,7 +44,7 @@ let test_create_sales =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -124,7 +124,7 @@ let test_create_sales_with_amount =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -164,7 +164,7 @@ let test_create_sales_deprecated =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -204,7 +204,7 @@ let test_create_sales_price_to_small_first_el =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -244,7 +244,7 @@ let test_create_sales_price_to_small_third_el =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -292,7 +292,7 @@ let test_create_sales_already_on_sale_one_call =
 
     // One call verifying that bulk operation fail
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -333,7 +333,7 @@ let test_create_sales_already_on_sale_second_call =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -351,7 +351,7 @@ let test_create_sales_already_on_sale_second_call =
 
     // Second call to verify that if fails
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigtruMgRd6FbVWg5pbfFabZC7DS7gr88xT1x4DPxkuGxvUG4S7ttXoAsqy3QfyK62Woj7CmjzCgFW2igdhAhgUuBHfjrLeUv" : signature);
                 message = ("54657374206d6573736167652074657374" : bytes);
@@ -384,7 +384,7 @@ let test_create_sales_buyer_is_seller =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -424,7 +424,7 @@ let test_create_sales_wrong_signature =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
@@ -464,7 +464,7 @@ let test_create_sales_already_used_signature =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -488,7 +488,7 @@ let test_create_sales_already_used_signature =
     in
 
     let result = Test.transfer_to_contract contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -530,7 +530,7 @@ let test_update_sales =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -555,7 +555,7 @@ let test_update_sales =
 
     // Changing sale infos (switching buyer option and prices) - Changing two times the same sale and verify last result is taken
     let result = Test.transfer_to_contract contract
-        (UpdateSales ([({
+        (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 250000mutez;
                 fa2_token = {
@@ -632,7 +632,7 @@ let test_update_sales_amount_specified =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (UpdateSales ([({
+        (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 250000mutez;
                 fa2_token = {
@@ -667,7 +667,7 @@ let test_update_sales_to_small_first_el =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-         (UpdateSales ([({
+         (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100mutez;
                 fa2_token = {
@@ -703,7 +703,7 @@ let test_update_sales_to_small_second_el =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -727,7 +727,7 @@ let test_update_sales_to_small_second_el =
     in
 
     let result = Test.transfer_to_contract contract
-         (UpdateSales ([({
+         (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 130000mutez;
                 fa2_token = {
@@ -762,7 +762,7 @@ let test_update_sales_buyer_is_sender =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -786,7 +786,7 @@ let test_update_sales_buyer_is_sender =
     in
 
     let result = Test.transfer_to_contract contract
-         (UpdateSales ([({
+         (Update_sales ([({
                 buyer = Some (init_str.admin.address);
                 price = 130000mutez;
                 fa2_token = {
@@ -821,7 +821,7 @@ let test_update_sales_not_owner =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -849,7 +849,7 @@ let test_update_sales_not_owner =
 
     // Attacker trying to change sale params to there own address an change the price
     let result = Test.transfer_to_contract contract
-         (UpdateSales ([({
+         (Update_sales ([({
                 buyer = Some (no_admin_addr : address);
                 price = 100000mutez;
                 fa2_token = {
@@ -885,7 +885,7 @@ let test_update_sales_not_created =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-         (UpdateSales ([({
+         (Update_sales ([({
                 buyer = None;
                 price = 130000mutez;
                 fa2_token = {
@@ -922,7 +922,7 @@ let test_revoke_sales =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -947,7 +947,7 @@ let test_revoke_sales =
 
     // Changing sale infos (switching buyer option and prices) - Changing two times the same sale and verify last result is taken
     let result = Test.transfer_to_contract contract
-        (RevokeSales ({
+        (Revoke_sales ({
             fa2_tokens = [
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -1001,7 +1001,7 @@ let test_revoke_sales_with_amount =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (RevokeSales ({
+        (Revoke_sales ({
             fa2_tokens = [
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -1031,7 +1031,7 @@ let test_revoke_sales_not_created =
     let contract = Test.to_contract contract_add in
 
    let result = Test.transfer_to_contract contract
-        (RevokeSales ({
+        (Revoke_sales ({
             fa2_tokens = [
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -1061,7 +1061,7 @@ let test_revoke_sales_not_owner =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -1088,7 +1088,7 @@ let test_revoke_sales_not_owner =
     let () = Test.set_source no_admin_addr in
 
    let result = Test.transfer_to_contract contract
-        (RevokeSales ({
+        (Revoke_sales ({
             fa2_tokens = [
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);

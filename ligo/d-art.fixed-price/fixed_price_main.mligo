@@ -2,13 +2,13 @@
 
 type fixed_price_entrypoints =
     | Admin of admin_entrypoints
-    | CreateSales of sale_configuration
-    | UpdateSales of sale_info list
-    | RevokeSales of revoke_sales_param
-    | CreateDrops of drop_configuration
-    | RevokeDrops of revoke_drops_param
-    | BuyFixedPriceToken of buy_token
-    | BuyDroppedToken of buy_token
+    | Create_sales of sale_configuration
+    | Update_sales of sale_info list
+    | Revoke_sales of revoke_sales_param
+    | Create_drops of drop_configuration
+    | Revoke_drops of revoke_drops_param
+    | Buy_fixed_price_token of buy_token
+    | Buy_dropped_token of buy_token
 
 // Fixed price sales functions
 
@@ -163,14 +163,14 @@ let fixed_price_tez_main (p , storage : fixed_price_entrypoints * storage) : ret
     | Admin admin_param -> admin_main (admin_param, storage)
 
     // Fixed price sales entrypoints
-    | CreateSales sale_configuration -> create_sales (sale_configuration, storage)
-    | UpdateSales sale_configuration -> update_sales (sale_configuration, storage)
-    | RevokeSales token_info -> revoke_sales (token_info, storage)
+    | Create_sales sale_configuration -> create_sales (sale_configuration, storage)
+    | Update_sales sale_configuration -> update_sales (sale_configuration, storage)
+    | Revoke_sales token_info -> revoke_sales (token_info, storage)
 
     // Drops entrypoints
-    | CreateDrops drop_configuration -> create_drops (drop_configuration, storage)
-    | RevokeDrops drop_info -> revoke_drops (drop_info, storage)
+    | Create_drops drop_configuration -> create_drops (drop_configuration, storage)
+    | Revoke_drops drop_info -> revoke_drops (drop_info, storage)
 
     // Buy token in any sales or drops
-    | BuyFixedPriceToken buy_token -> buy_fixed_price_token (buy_token, storage)
-    | BuyDroppedToken buy_token -> buy_dropped_token (buy_token, storage)
+    | Buy_fixed_price_token buy_token -> buy_fixed_price_token (buy_token, storage)
+    | Buy_dropped_token buy_token -> buy_dropped_token (buy_token, storage)

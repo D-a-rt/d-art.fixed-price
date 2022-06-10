@@ -174,7 +174,7 @@ let test_buy_fixed_price_token_seller_buyer =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (BuyFixedPriceToken ({
+        (Buy_fixed_price_token ({
             fa2_token = ({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -188,9 +188,9 @@ let test_buy_fixed_price_token_seller_buyer =
     in
 
     match result with
-        Success _gas -> failwith "BuyFixedPriceToken - Seller is buyer : This test should fail"
+        Success _gas -> failwith "Buy_fixed_price_token - Seller is buyer : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_AUTHORIZED") ) "BuyFixedPriceToken - Seller is buyer : Should not work if seller is buyer" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_AUTHORIZED") ) "Buy_fixed_price_token - Seller is buyer : Should not work if seller is buyer" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -207,7 +207,7 @@ let test_buy_fixed_price_token_wrong_signature =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (BuyFixedPriceToken ({
+        (Buy_fixed_price_token ({
             fa2_token = ({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -221,9 +221,9 @@ let test_buy_fixed_price_token_wrong_signature =
     in
 
     match result with
-        Success _gas -> failwith "BuyFixedPriceToken - Wrong signature : This test should fail"
+        Success _gas -> failwith "Buy_fixed_price_token - Wrong signature : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "BuyFixedPriceToken - Wrong signature : Should not work if signature is not correct" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Buy_fixed_price_token - Wrong signature : Should not work if signature is not correct" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -240,7 +240,7 @@ let test_buy_fixed_price_token_signature_already_used =
     let contract = Test.to_contract contract_add in
 
     let result = Test.transfer_to_contract contract
-        (BuyFixedPriceToken ({
+        (Buy_fixed_price_token ({
             fa2_token = ({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -254,9 +254,9 @@ let test_buy_fixed_price_token_signature_already_used =
     in
 
     match result with
-        Success _gas -> failwith "BuyFixedPriceToken - Signature already used : This test should fail"
+        Success _gas -> failwith "Buy_fixed_price_token - Signature already used : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "BuyFixedPriceToken - Signature already used : Should not work if signature is not correct" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Buy_fixed_price_token - Signature already used : Should not work if signature is not correct" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -274,7 +274,7 @@ let test_buy_fixed_price_token_wrong_price =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -294,7 +294,7 @@ let test_buy_fixed_price_token_wrong_price =
     let () = Test.set_source no_admin_addr in
 
     let result = Test.transfer_to_contract contract
-        (BuyFixedPriceToken ({
+        (Buy_fixed_price_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract: address);
@@ -308,9 +308,9 @@ let test_buy_fixed_price_token_wrong_price =
     in
 
     match result with
-        Success _gas -> failwith "BuyFixedPriceToken - Wrong price specified : This test should fail"
+        Success _gas -> failwith "Buy_fixed_price_token - Wrong price specified : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "WRONG_PRICE_SPECIFIED") ) "BuyFixedPriceToken - Wrong price specified : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "WRONG_PRICE_SPECIFIED") ) "Buy_fixed_price_token - Wrong price specified : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -328,7 +328,7 @@ let test_buy_fixed_price_token_not_buyer =
     let contract = Test.to_contract contract_add in
 
     let _gas = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -348,7 +348,7 @@ let test_buy_fixed_price_token_not_buyer =
     let () = Test.set_source no_admin_addr in
 
     let result = Test.transfer_to_contract contract
-        (BuyFixedPriceToken ({
+        (Buy_fixed_price_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract : address);
@@ -363,9 +363,9 @@ let test_buy_fixed_price_token_not_buyer =
     in
 
     match result with
-        Success _gas -> failwith "BuyFixedPriceToken - Not specified buyer : This test should fail"
+        Success _gas -> failwith "Buy_fixed_price_token - Not specified buyer : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SENDER_NOT_AUTHORIZE_TO_BUY") ) "BuyFixedPriceToken - Not specified buyer : Should not work if signature is not correct" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SENDER_NOT_AUTHORIZE_TO_BUY") ) "Buy_fixed_price_token - Not specified buyer : Should not work if signature is not correct" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -399,7 +399,7 @@ let test_buy_fixed_price_token_success =
     let token_split_bal = Test.get_balance token_split in
 
     let gas_creation_sale = Test.transfer_to_contract_exn contract
-        (CreateSales ({
+        (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -422,7 +422,7 @@ let test_buy_fixed_price_token_success =
     let token_seller_bal = Test.get_balance token_seller in
 
     let result = Test.transfer_to_contract contract
-        (BuyFixedPriceToken ({
+        (Buy_fixed_price_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract : address);
@@ -446,7 +446,7 @@ let test_buy_fixed_price_token_success =
             // Check that message has been correctly saved 
             let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
                     Some _ -> unit
-                |   None -> (failwith "BuyFixedPriceToken - Success : This test should pass (err: Signed message not saved)" : unit)
+                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
             in
             // Check that sale is deleted from big map
             let sale_key : FP_I.fa2_base * address = (
@@ -457,7 +457,7 @@ let test_buy_fixed_price_token_success =
                 init_str.admin.address
             ) in
             let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
-                    Some _ -> (failwith "BuyFixedPriceToken - Success : This test should pass (err: Token still for sale)" : unit)
+                    Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
                 |   None -> unit
             in    
             
@@ -466,28 +466,28 @@ let test_buy_fixed_price_token_success =
             let new_fee_account_bal = Test.get_balance fee_account in
             let () =    if new_fee_account_bal - fee_account_bal = Some (7462362899171mutez)
                         then unit
-                        else (failwith "BuyFixedPriceToken - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
             in
 
             // Check that royalties have been sent correctly to minter 50%
             let new_minter_account_bal = Test.get_balance token_minter in
             let () =    if new_minter_account_bal - token_minter_bal = Some (15990777641081mutez)
                         then unit
-                        else (failwith "BuyFixedPriceToken - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
             in
 
             // Admin 50% of the royalties here
             let new_token_split_bal = Test.get_balance token_split in
             let () =    if new_token_split_bal - token_split_bal = Some (15990777641081mutez)
                         then unit
-                        else (failwith "BuyFixedPriceToken - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
             in
 
             // Check that seller got the right amount
             let new_token_seller_bal = Test.get_balance token_seller in
             let () =    if new_token_seller_bal - token_seller_bal = Some (173766450366424mutez)
                         then unit
-                        else (failwith "BuyFixedPriceToken - Success : This test should pass (err: Wrong value sent to seller)" : unit)
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong value sent to seller)" : unit)
             in
 
             // Check that buyer owns the token
@@ -495,15 +495,15 @@ let test_buy_fixed_price_token_success =
                     Some add -> (
                         if add = buyer
                         then unit
-                        else (failwith "BuyFixedPriceToken - Success : This test should pass (err: Wrong address to the token)" : unit) 
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong address to the token)" : unit) 
                     )
-                |   None -> (failwith "BuyFixedPriceToken - Success : This test should pass (err: Token should have a value)" : unit)
+                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token should have a value)" : unit)
             in
             "Passed"
         )   
     |   Fail (Rejected (err, _)) -> (
             let () = Test.log("errL:", err) in
-           failwith "BuyFixedPriceToken - Success : This test should pass"    
+           failwith "Buy_fixed_price_token - Success : This test should pass"    
         )
     |   Fail err -> (
         let () = Test.log ("err: ", err) in
@@ -528,7 +528,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
     let () = Test.set_source buyer in
 
     let result = Test.transfer_to_contract contract
-        (BuyFixedPriceToken ({
+        (Buy_fixed_price_token ({
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract : address);
@@ -542,9 +542,9 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
     in
 
     match result with
-        Success _gas -> failwith "BuyFixedPriceToken - Seller is not for_sale owner : This test should fail"
+        Success _gas -> failwith "Buy_fixed_price_token - Seller is not for_sale owner : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_IN_SALE") ) "BuyFixedPriceToken - Seller is not for_sale owner : Should not work if seller is not owner" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOKEN_IS_NOT_IN_SALE") ) "Buy_fixed_price_token - Seller is not for_sale owner : Should not work if seller is not owner" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    

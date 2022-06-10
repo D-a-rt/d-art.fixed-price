@@ -295,8 +295,8 @@ type fix_price_entrypoints =
     | ClaimUtilityToken of drop_info
 
     (* Buy token in any sales or drops *)
-    | BuyFixedPriceToken of buy_token
-    | BuyDroppedToken of buy_token
+    | Buy_fixed_price_token of buy_token
+    | Buy_dropped_token of buy_token
 ```
 
 ### Admin
@@ -474,11 +474,11 @@ type drop_info =
 
 All the needed field to register to a `drop`. The entrypoints only contains record already defined previously.
 
-### BuyFixedPriceToken && BuyDroppedToken
+### Buy_fixed_price_token && Buy_dropped_token
 
-The `BuyFixedPriceToken` entrypoint is responsible to buy a token from a `for_sale`.
+The `Buy_fixed_price_token` entrypoint is responsible to buy a token from a `for_sale`.
 
-The `BuyDroppedToken`  entrypoint is responsible to buy a token from a `drops`.
+The `Buy_dropped_token`  entrypoint is responsible to buy a token from a `drops`.
 
 ``` ocaml
 type buy_token =
