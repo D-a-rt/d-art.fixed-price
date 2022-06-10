@@ -290,3 +290,25 @@ let test_transfer_sender_is_receiver =
             "Passed"
         )
     |   None -> failwith "FA2 -> Transfer - Owner is receiver : Token should not be burnt"  
+
+// Success if amount = 0n
+let test_transfer_null_token_amount =
+    let contract_add, admin, owner1, _ = FA2_STR.get_initial_storage(false, false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source owner1 in
+
+    let transfer_requests = ([
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n; amount = 0n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+    ] : FA2_I.transfer list ) in
+
+    let _gas = Test.transfer_to_contract_exn contract (FA2 (Transfer transfer_requests )) 0tez in
+
+    let new_strg = Test.get_storage contract_add in
+
+    match Big_map.find_opt 1n new_strg.assets.ledger with
+        Some add -> (
+            let () = assert_with_error ( add = owner1 ) "FA2 -> Transfer - Token amount 0 : Ownership should NOT have change" in 
+            "Passed"
+        )
+    |   None -> failwith "FA2 -> Transfer - Token amount 0 : Token should not be burnt"  
