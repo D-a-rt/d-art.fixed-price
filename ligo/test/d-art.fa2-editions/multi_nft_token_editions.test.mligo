@@ -347,17 +347,17 @@ let test_mint_edition_success_less_receivers_than_edition =
             // 0 -> 249 : edition 1  (we already have 1 edition in the contract)
             let () = match Big_map.find_opt 250n new_str.assets.ledger with 
                     Some address -> (
-                        assert_with_error (address = minter) "Mint_editions - Less receivers than edition : Receiver should be minter"
+                        assert_with_error (address = owner1) "Mint_editions - Less receivers than edition : Receiver should be minter"
                     )
                 |   None -> failwith "Mint_editions - Less receivers than edition : Token should exist"
             in
             let () = match Big_map.find_opt 251n new_str.assets.ledger with 
-                    Some address -> assert_with_error (address = owner1) "Mint_editions - Less receivers than edition : Receiver should be address"
+                    Some address -> assert_with_error (address = admin) "Mint_editions - Less receivers than edition : Receiver should be address"
                 |   None -> failwith "Mint_editions - Less receivers than edition : Token should exist"
             in
             // The non specified token should be assigned to the minter
             let () = match Big_map.find_opt 252n new_str.assets.ledger with 
-                    Some address -> assert_with_error (address = admin) "Mint_editions - Less receivers than edition : Receiver should be admin"
+                    Some address -> assert_with_error (address = minter) "Mint_editions - Less receivers than edition : Receiver should be admin"
                 |   None -> failwith "Mint_editions - Less receivers than edition : Token should exist"
             in
             "Passed"

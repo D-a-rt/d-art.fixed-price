@@ -11,7 +11,7 @@ let transfers_to_descriptors (txs : transfer list) : transfer_descriptor list =
             {
                 to_ = Some dst.to_;
                 token_id = dst.token_id;
-                amount = 1n;
+                amount = dst.amount;
             }
             ) tx.txs in
             {
@@ -46,7 +46,9 @@ let transfer (txs, validate_op, ops_storage, ledger : (transfer_descriptor list)
             | None -> unit
             | Some owner -> validate_op (owner, Tezos.sender, dst.token_id, ops_storage)
             in
-            if dst.amount = 0n
+            if dst.amount > 1n
+            then (failwith "FA2_INSUFFICIENT_BALANCE" : ledger)
+            else if dst.amount = 0n
             then match Big_map.find_opt dst.token_id ll with
                 | None -> (failwith "FA2_TOKEN_UNDEFINED"  : ledger)
                 | Some _cur_o -> ll (* zero transfer, don't change the ledger *)

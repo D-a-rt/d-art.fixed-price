@@ -167,7 +167,7 @@ export async function testContract(): Promise<void> {
         console.log(kleur.green(`Testing admin entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/admin_main.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/admin_main.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -185,7 +185,7 @@ export async function testContract(): Promise<void> {
         console.log(kleur.green(`Testing fixed_price_sale entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/fixed_price_main_sale.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_sale.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -203,7 +203,7 @@ export async function testContract(): Promise<void> {
         console.log(kleur.green(`Testing fixed_price_drop entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/fixed_price_main_drop.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_drop.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -221,7 +221,7 @@ export async function testContract(): Promise<void> {
         console.log(kleur.green(`Testing buy_fixed_price entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/fixed_price_main_buy_sale.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_buy_sale.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -239,7 +239,100 @@ export async function testContract(): Promise<void> {
         console.log(kleur.green(`Testing buy_dropped entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test.d-art.fixed-price/fixed_price_main_buy_drop.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+}
+
+
+export async function testEditionContract(): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 admin entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/admin.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 operator entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/operator_lib.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 standart entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/standard.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/multi_nft_token_editions.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 views entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/views.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));

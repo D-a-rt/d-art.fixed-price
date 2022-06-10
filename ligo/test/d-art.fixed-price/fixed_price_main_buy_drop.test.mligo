@@ -1,7 +1,7 @@
-#import "../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
-#import "../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
-#import "../common.mligo" "CM"
-#import "../d-art.fa2-editions/fa2_multi_nft_token_editions.mligo" "E_M"
+#import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
+#import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
+#import "../../d-art.fixed-price/common.mligo" "CM"
+#import "../../d-art.fa2-editions/multi_nft_token_editions.mligo" "E_M"
 
 // This storage is based on the contract fa2_editions
 // you can find it at this link https://github.com/D-a-rt/d-art.fa2-editions
@@ -11,10 +11,10 @@ type token_id = nat
 type ledger = (token_id, address) big_map
 
 type admin_storage = {
-  admin : address;
-  pending_admin : address option;
-  paused : bool;
-  minters : (address, unit) big_map;
+    admin : address;
+    paused_minting : bool;
+    paused_nb_edition_minting : bool;
+    minters : (address, unit) big_map;git a
 }
 
 type operator_storage = ((address * (address * token_id)), unit) big_map
@@ -32,15 +32,22 @@ type nft_token_storage = {
   token_metadata: (token_id, token_metadata) big_map;
 }
 
+type split =
+[@layout:comb]
+{
+  address: address;
+  pct: nat;
+}
+
+
 type edition_metadata =
 [@layout:comb]
 {
     minter : address;
     edition_info: (string, bytes) map;
     total_edition_number: nat;
-    remaining_edition_number: nat;
-    royalties_address: address;
-    royalties_percentage: nat;
+    royalty: nat;
+    splits: split list;
 }
 
 type editions_metadata = (nat, edition_metadata) big_map
@@ -61,11 +68,12 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
     let admin = Test.nth_bootstrap_account 0 in
     let token_seller = Test.nth_bootstrap_account 3 in
     let token_minter = Test.nth_bootstrap_account 4 in
+    let token_split = Test.nth_bootstrap_account 5 in
 
     let admin_strg : admin_storage = {
         admin = admin;
-        pending_admin = ( None : address option);
-        paused = false;
+        paused_minting = false;
+        paused_nb_edition_minting = false;
         minters = (Big_map.empty : (address, unit) big_map);
     } in
 
@@ -79,21 +87,27 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
         token_metadata = (Big_map.empty : (token_id, token_metadata) big_map);
     } in
 
-    let edition_meta : edition_metadata = {
+    let edition_meta : edition_metadata = ({
             minter = token_minter;
             edition_info = (Map.empty : (string, bytes) map);
             total_edition_number = 2n;
-            remaining_edition_number = 0n;
-            royalties_address = token_minter;
-            royalties_percentage = 15n;
-        } in
+            royalty = 150n;
+            splits = [({
+                address = token_minter;
+                pct = 500n;
+            } : split );
+            ({
+                address = token_split;
+                pct = 500n;
+            } : split )];
+        } : edition_metadata ) in
 
     let edition_meta_strg : editions_metadata = Big_map.literal([
         (0n), (edition_meta);
     ]) in
 
     let edition_strg = {
-        next_edition_id = 0n;
+        next_edition_id = 1n;
         max_editions_per_run = 250n;
         editions_metadata = edition_meta_strg;
         assets = asset_strg;
@@ -103,7 +117,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
 
     // Path of the contract on yout local machine
     let michelson_str = Test.compile_value edition_strg in
-    let edition_addr, _, _ = Test.originate_from_file "YOUR_PATH/d-art.fixed-price/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
+    let edition_addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.fixed-price/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
     edition_addr
     
 let get_initial_storage (signature_saved : bool ) =
@@ -147,7 +161,7 @@ let get_initial_storage (signature_saved : bool ) =
         }
     } in
 
-    let taddr, _, _ = Test.originate_from_file "YOUR_PATH/d-art.fixed-price/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.fixed-price/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
     taddr
 
 // Fail if wrong signature

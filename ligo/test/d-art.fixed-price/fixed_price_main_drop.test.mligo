@@ -1,5 +1,5 @@
-#import "../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
-#import "../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
+#import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
+#import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 
 // Create initial storage
 let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * bool * bool * timestamp) = 

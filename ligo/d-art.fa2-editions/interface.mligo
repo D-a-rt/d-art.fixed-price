@@ -72,6 +72,7 @@ type transfer_destination =
 {
   to_ : address;
   token_id : token_id;
+  amount : nat;
 }
 
 type transfer =

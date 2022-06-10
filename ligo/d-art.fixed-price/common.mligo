@@ -1,4 +1,4 @@
-#include "d-art.fixed-price/fixed_price_interface.mligo"
+#include "fixed_price_interface.mligo"
 // Helpers
 
 // -- Assert
@@ -12,7 +12,7 @@ let ceil_div_tez (tz_qty, tz_qty_d : tez * tez) : tez =
   let ediv1 : (nat * tez) option = ediv tz_qty tz_qty_d in
   match ediv1 with
     | None -> (failwith "DIVISION_BY_ZERO"  : tez)
-    | Some e -> (e.0 * 1mutez)
+    | Some e -> e.0 * 1mutez
       //  let (quotient, reminder) = e in
       //  if reminder > 0mutez then (quotient + 1mutez) else quotient
 
@@ -20,11 +20,6 @@ let calculate_fee (percent, sale_value : (nat option) * tez) : tez =
   match percent with
     None -> 0mutez
     | Some percentage -> ceil_div_tez (sale_value *  percentage, 1000mutez)
-
-let calculate_royalties_fee (percent, sale_value : (nat option) * tez) : tez =
-  match percent with
-    None -> 0mutez
-    | Some percentage -> ceil_div_tez (sale_value *  percentage, 100mutez)
 
 let sub_tez (tez_val, tez_minus : tez * tez ) : tez =
   match (tez_val - tez_minus) with
@@ -44,45 +39,41 @@ let resolve_contract (add : address) : unit contract =
       None -> (failwith "Return address does not resolve to contract" : unit contract)
     | Some c -> c
 
-type royalties =
+
+type split =
 [@layout:comb]
 {
   address: address;
-  percentage: nat;
+  pct: nat;
+}
+
+type royalties =
+[@layout:comb]
+{
+  royalty: nat;
+  splits: split list;
 }
 
 let handle_royalties (token, price : fa2_base * tez) : tez * (operation list) =
-  match ((Tezos.call_view "minter_royalties" token.id token.address ): royalties option) with
+  match ((Tezos.call_view "royalty_splits" token.id token.address ): royalties option) with
     None -> 0mutez, ([]: operation list)
     | Some royalties_param ->
-      let royalties_fee : tez = calculate_royalties_fee ( Some (royalties_param.percentage), price) in
-      let royalties_contract : unit contract = resolve_contract royalties_param.address in
-      royalties_fee, [(Tezos.transaction unit royalties_fee royalties_contract)]
+      let royalties_fee : tez = calculate_fee ( Some (royalties_param.royalty), price) in
+      
+      let handle_splits : (((operation list) * tez) * split) -> (operation list) * tez = 
+        fun ((operations, sp), split : ((operation list) * tez) * split) ->
 
-type get_balance_param =
-[@layout:comb]
-{
-  owner: address;
-  token_id: nat;
-}
+          let royalties_contract : unit contract = resolve_contract split.address in    
+          let split_fee : tez = calculate_fee (Some (split.pct), royalties_fee) in
+          ((Tezos.transaction unit split_fee royalties_contract) :: operations), sp + split_fee
+      in
+      let ops, fees = (List.fold handle_splits royalties_param.splits (([] : operation list), 0mutez)) in
+      fees, ops
+
 
 let transfer_token (transfer, fa2_address: transfer * address) : operation =
    let contract = address_to_contract_transfer_entrypoint fa2_address in
    (Tezos.transaction [transfer] 0mutez contract)
-
-
-type get_balance_param =
-[@layout:comb]
-{
-  owner: address;
-  token_id: nat;
-}
-
-let get_token_balance (req, fa2_address : get_balance_param * address) : nat =
-  match ((Tezos.call_view "get_balance" req fa2_address ): nat option) with
-    None -> 0n
-    | Some b -> b
-
 
 // -- Verify signature
 

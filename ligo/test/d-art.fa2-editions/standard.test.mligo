@@ -112,7 +112,7 @@ let test_transfer_token_undefined =
     let contract = Test.to_contract contract_add in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 999n};] : FA2_I.transfer_destination list)} : FA2_I.transfer)
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 999n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer)
     ] : FA2_I.transfer list ) in
 
     let result = Test.transfer_to_contract contract (FA2 (Transfer transfer_requests )) 0tez in
@@ -132,9 +132,9 @@ let test_transfer_batch_transaction_fail_if_one_does =
     let () = Test.set_source owner1 in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 4n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 999n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 4n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 999n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
     ] : FA2_I.transfer list ) in
 
     let result = Test.transfer_to_contract contract (FA2 (Transfer transfer_requests )) 0tez in
@@ -163,7 +163,7 @@ let test_transfer_not_operator_not_owner =
     let () = Test.set_source admin in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
     ] : FA2_I.transfer list ) in
 
     let result = Test.transfer_to_contract contract (FA2 (Transfer transfer_requests )) 0tez in
@@ -189,7 +189,7 @@ let test_transfer_insufficient_balance =
     let () = Test.set_source owner1 in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 2n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 2n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
     ] : FA2_I.transfer list ) in
 
     let result = Test.transfer_to_contract contract (FA2 (Transfer transfer_requests )) 0tez in
@@ -209,7 +209,7 @@ let test_transfer_no_amount =
     let () = Test.set_source owner1 in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
     ] : FA2_I.transfer list ) in
 
     let result = Test.transfer_to_contract contract (FA2 (Transfer transfer_requests )) 1tez in
@@ -232,7 +232,7 @@ let test_transfer_is_operator =
     let () = Test.set_source operator1 in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
     ] : FA2_I.transfer list ) in
 
     let _gas = Test.transfer_to_contract_exn contract (FA2 (Transfer transfer_requests )) 0tez in
@@ -255,7 +255,7 @@ let test_transfer_is_owner =
     let () = Test.set_source owner1 in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = admin; token_id = 1n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
     ] : FA2_I.transfer list ) in
 
     let _gas = Test.transfer_to_contract_exn contract (FA2 (Transfer transfer_requests )) 0tez in
@@ -277,7 +277,7 @@ let test_transfer_sender_is_receiver =
     let () = Test.set_source owner1 in
 
     let transfer_requests = ([
-        ({from_ = owner1; txs = ([{to_ = owner1; token_id = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
+        ({from_ = owner1; txs = ([{to_ = owner1; token_id = 1n; amount = 1n};] : FA2_I.transfer_destination list)} : FA2_I.transfer);
     ] : FA2_I.transfer list ) in
 
     let _gas = Test.transfer_to_contract_exn contract (FA2 (Transfer transfer_requests )) 0tez in

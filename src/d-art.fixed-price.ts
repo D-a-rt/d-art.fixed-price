@@ -11,6 +11,10 @@ program
     .action(contract.testContract)
 
 program
+    .command('test-edition-contract')
+    .action(contract.testEditionContract)
+
+program
     .command('compile-contract')
     .action(contract.compileContract)
 

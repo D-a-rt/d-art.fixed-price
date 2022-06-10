@@ -34,6 +34,12 @@ let rec recurs_add (len, receivers : nat * (address list)) : (address list) =
     then let l = Tezos.sender :: receivers in recurs_add (abs (len - 1n), l)
     else receivers
 
+let rec rev_l (acc, l : (address list) * (address list)) : (address list) =
+    match l with
+        | [] -> acc
+        | h::t -> rev_l (h::acc, t)
+
+let add_a (l, add : (address list) * address) : (address list) = add::l
 
 let mint_edition_to_addresses ( edition_id, receivers, edition_metadata, storage : edition_id * (address list) * edition_metadata * editions_storage) : editions_storage =
     
@@ -47,9 +53,12 @@ let mint_edition_to_addresses ( edition_id, receivers, edition_metadata, storage
     in
 
     let initial_token_id : nat = (edition_id * storage.max_editions_per_run) in
-    let to_add = recurs_add (abs (edition_metadata.total_edition_number - List.size receivers), receivers)  in
+    
+    let to_add = recurs_add (abs (edition_metadata.total_edition_number - List.size receivers), ([] : address list))  in
+    let rev_rece = rev_l (([] : address list), receivers) in
+    let token_recv = List.fold add_a rev_rece to_add in
 
-    let create_editions_param, _ : (assign_edition_param list) * token_id = (List.fold mint_edition_to_address to_add (([] : (assign_edition_param list)), initial_token_id)) in
+    let create_editions_param, _ : (assign_edition_param list) * token_id = (List.fold mint_edition_to_address token_recv (([] : (assign_edition_param list)), initial_token_id)) in
     let _ , nft_token_storage = mint_edition_set (create_editions_param, storage.assets) in
     
     let new_storage = {storage with assets = nft_token_storage } in
