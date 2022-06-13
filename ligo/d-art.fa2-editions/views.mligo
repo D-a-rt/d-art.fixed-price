@@ -8,6 +8,12 @@ type royalties =
 }
 
 [@view]
+let is_minter (add, storage : address * editions_storage) : bool =
+    match (Big_map.find_opt add storage.admin.minters ) with
+            Some minter -> true
+        |   None -> false
+
+[@view]
 let minter (token_id, storage : nat * editions_storage) : address =
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with

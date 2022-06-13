@@ -1,15 +1,15 @@
 {
-  "name": "d-art.fixed-price",
-  "version": "1.0.0",
-  "description": "CLI tool that interact with smart contract in order to create an OTC trading plateform for artist and investors",
+  "name": "d-art.contracts",
+  "version": "1.0.0 (beta)",
+  "description": "CLI tool that interact with smart contracts",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w -p",
-    "d-art.fixed-price": "./lib/d-art.fixed-price.js",
+    "d-art.contracts": "./lib/d-art.contracts.js",
     "test": "mocha -r ts-node/register test/*.ts --timeout 90000000"
   },
   "bin": {
-    "d-art.fixed-price": "./lib/d-art.fixed-price.js"
+    "d-art.contracts": "./lib/d-art.contracts.js"
   },
   "author": "Tristan Nicolaides",
   "license": "MIT",
@@ -22,6 +22,7 @@
   "dependencies": {
     "@taquito/signer": "^11.2.0",
     "@taquito/taquito": "^11.2.0",
+    "@taquito/tzip16": "^12.1.1",
     "@types/libsodium-wrappers": "^0.7.7",
     "@types/mocha": "^8.0.4",
     "@types/node": "^14.14.10",

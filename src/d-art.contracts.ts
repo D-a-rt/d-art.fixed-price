@@ -8,31 +8,31 @@ import * as helper from './helper';
 
 program
     .command('test-contract')
-    .action(contract.testContract)
-
-program
-    .command('test-edition-contract')
-    .action(contract.testEditionContract)
+    .option('-t, --title <title>', 'Title of the contract to test: fixed-price, fa2-editions')
+    .action((title: string) => {
+        contract.testContracts(title)
+    })
 
 program
     .command('compile-contract')
-    .action(contract.compileContract)
-
-program
-    .command('compile-edition-contract')
-    .action(contract.compileEditionContract)
-
-program
-    .command('contract-size')
-    .action(contract.calculateSize)
+    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions')
+    .action((title: string) => {
+        contract.compileContracts(title)
+    })
 
 program
     .command('deploy-contract')
-    .action(contract.deployContract)
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions')
+    .action((title: string) => {
+        contract.deployContracts(title)
+    })
 
 program
-    .command('deploy-edition-contract')
-    .action(contract.deployEditionContract)
+    .command('contract-size')
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions')
+    .action((title: string) => {
+        contract.calculateSize(title)
+    })
 
 program
     .command('gen-keypair')

@@ -1,37 +1,36 @@
-# d-art.fixed-price
-
-## Compile and deployed contract
-
-Small introduction on how to compile and deploy the d-art.fixed-price contract. Responsible to perform `private/public` fixed price `sale/drops`
+# d-art.contracts
 
 #### Introduction:
 
-This contract has been developped in order to perform fixed price sale and drop on-chain.
-It can perform drop (if users own utility token). Take care of royalties if the fa2 contract implement `minter_royalties` (definition below)
+This set of contracts has been developped in order to perform fixed price sale and drop on-chain.
+
 
 #### Install the CLI (TypeScript):
 
 To install all the dependencies of the project please run:
 
 ```
-$ cd /d-art.fixed-price
+$ cd /d-art.contracts
 $ npm install
-$ npm run-script build
+$ npm run-script build  ( || npm run-script build:watch . )
 $ npm install -g
-```
-In order to run the tests:
-```
-$ npm run-script test
 ```
 
 The different available commands are:
 
+Available contract title: ***fixed-price, fa2-editions***
 ```
-$ d-art.fixed-price compile-contract
-    (Compile the contract contained in the project)
+$ d-art.contracts test-contract -t <contract-title>
+    (Run the ligo test on the contract corresponding to the title - if no title specified run the test for the the two contracts)
 
-$ d-art.fixed-price contract-size
-    (Give back the contract code size )
+$ d-art.contracts compile-contract -t <contract-name>
+    (Compile the contract corresponding to the title - if no title specified compile the two contracts)
+
+$ d-art.contracts deploy-contract -t <contract-name>
+    (Deploy the contract corresponding to the title - if no title specified deploy the two contracts)
+
+$ d-art.contracts contract-size -t <contract-name>
+    (Give the size of the contracts to deploy - if not title specified give the size of each contract)
 
 $ d-art.fixed-price gen-keypair
     (Generate public/private key pair in order to create signed message)
@@ -45,14 +44,28 @@ $ d-art.fixed-price deploy-contract
 $ d-art.fixed-price -v
     (Get the current version of the project)
 ```
+---
 
-## Fixed Price Sale/Drop
+## Contract : Fixed Price Sale/Drop
 
-The contracts titled fixed_price_sale_market.mligo and fixed_price_sale_market_tez.mligo allow NFT and Fungible Edition Set sales for a fixed price in tez.
+The contract is in the directory ligo/d-art.fixed-price and the corresponding test in ligo/test/d-art.fixed-price.
+
+The purpose of this contract is to handle the sale of FA2 NFTs, the diffrent features are:
+
+- Create classic fix price sales
+- Create private fix price sales (sell to a specfic address)
+- Updates fixed price sales (either price or buyer - address to sell the nft to)
+- Revoke fixed price sales
+- Create drops similat to a fixed price sale (Except that drop date will be specified - and the token won't be able to purchased before this drop date. A drop can be revoked only 6 hours before the drop date or 24h after it has been dropped)
+- Revoke drop (Restricition specified above)
+- Buy a fixed price token (Royalties automatically handled on chain)
+- Buy a fixed price drop (Royalties automatically handled on chain)
+
+Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform)
 
 ## Storage definition
 
-This section is responsible to list and explain the storage of the contract.
+This section is responsible to list and explain the storage of the fixed price sale contract.
 
 
 ``` ocaml
@@ -96,7 +109,6 @@ type authorization_signature = {
 }
 ```
 
-The admin storage is used to protect the entrypoints. By giving a message and its signature and performing a check we ensure that the message is coming from the right client. It works in a sense like an allowlist. We created this feature in order to avoid calling the contract each time a user sign in in our platform.
 
 ``address`` : Define the address of the administrator of the contract.
 

@@ -104,6 +104,7 @@ type buy_token =
 {
   fa2_token: fa2_base;
   seller: address;
+  receiver: address;
   authorization_signature: authorization_signature;
 }
 

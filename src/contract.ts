@@ -5,25 +5,36 @@ import * as kleur from 'kleur';
 import * as child from 'child_process';
 
 import { loadFile } from './helper';
+import { char2Bytes } from '@taquito/tzip16';
+import { Parser} from '@taquito/michel-codec';
 import { InMemorySigner } from '@taquito/signer';
 import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 
-export async function compileContract(): Promise<void> {
+enum ContractAction {
+    COMPILE = "compile contract",
+    SIZE = "info measure-contract"
+}
 
+async function contractAction (contractName: string, action: ContractAction, pathString: string, mainFunction: string, compilePath?: string) : Promise<void> {
     await new Promise<void>((resolve, reject) =>
-        // Compile the contract
         child.exec(
-            path.join(__dirname, "../ligo/exec_ligo compile contract " + path.join(__dirname, "../ligo/d-art.fixed-price/fixed_price_main.mligo") + " -e fixed_price_tez_main"),
+            path.join(__dirname, `../ligo/exec_ligo ${action} ` + path.join(__dirname, `../ligo/${pathString}`) + ` -e ${mainFunction}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to compile the contract.'));
                     console.log(kleur.yellow().dim(err.toString()))
                     reject();
                 } else {
-                    console.log(kleur.green('Contract compiled succesfully at:'))
                     // Write json contract into json file
-                    console.log('  ' + path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'))
-                    fs.writeFileSync(path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'), stdout)
+                    if (action === ContractAction.COMPILE) {
+                        console.log(kleur.green(`Compiled ${contractName} contract succesfully at: `))
+                        console.log('  ' + path.join(__dirname, `../ligo/${compilePath}`))
+                        fs.writeFileSync(path.join(__dirname, `../ligo/${compilePath}`), stdout)
+                    }
+
+                    if (action === ContractAction.SIZE) {
+                        console.log(kleur.green(`Contract ${contractName} size: ${stdout}`))
+                    }
                     resolve();
                 }
             }
@@ -31,49 +42,41 @@ export async function compileContract(): Promise<void> {
     );
 }
 
-export async function compileEditionContract(): Promise<void> {
+// -- Compile contracts --
 
-    await new Promise<void>((resolve, reject) =>
-        // Compile the contract
-        child.exec(
-            path.join(__dirname, "../ligo/exec_ligo compile contract " + path.join(__dirname, "../ligo/d-art.fa2-editions/views.mligo") + " -e editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'"),
-            (err, stdout) => {
-                if (err) {
-                    console.log(kleur.red('Failed to compile the contract.'));
-                    console.log(kleur.yellow().dim(err.toString()))
-                    reject();
-                } else {
-                    console.log(kleur.green('Contract compiled succesfully at:'))
-                    // Write json contract into json file
-                    console.log('  ' + path.join(__dirname, '../ligo/d-art.fa2-editions/compile/fa2_multi_nft_token_editions.tz'))
-                    fs.writeFileSync(path.join(__dirname, '../ligo/d-art.fa2-editions/compile/fa2_multi_nft_token_editions.tz'), stdout)
-                    resolve();
-                }
-            }
-        )
-    );
+export async function compileContracts(param: any): Promise<void> {
+    switch (param.title) {
+        case "fixed-price":
+            contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            break;
+        case "fa2-editions":
+            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            break;
+        default:
+            contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            break;
+    }
 }
 
-export async function calculateSize(): Promise<void> {
-    await new Promise<void>((resolve, reject) =>
-        // Compile the contract
-        child.exec(
-            path.join(__dirname, "../ligo/exec_ligo info measure-contract " + path.join(__dirname, "../ligo/d-art.fixed-price/fixed_price_main.mligo") + "  -e fixed_price_tez_main"),
-            (err, stdout) => {
-                if (err) {
-                    console.log(kleur.red('Failed to calculate the contract size.'));
-                    console.log(kleur.yellow().dim(err.toString()))
-                    reject();
-                } else {
-                    console.log(kleur.green(`Contract size: ${stdout}`))
-                    resolve();
-                }
-            }
-        )
-    );
+export async function calculateSize(param: any): Promise<void> {
+    switch (param.title) {
+        case "fixed-price":
+            contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
+            break;
+        case "fa2-editions":
+            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'")
+            break;
+        default:
+            contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
+            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'")
+            break;
+    }
 }
 
-export async function deployContract(): Promise<void> {
+// -- Deploy contracts --
+
+export async function deployFixedPriceContract(): Promise<void> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'))
 
     const originateParam = {
@@ -101,7 +104,6 @@ export async function deployContract(): Promise<void> {
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
-
         const originationOp = await toolkit.contract.originate(originateParam);
 
         await originationOp.confirmation();
@@ -115,9 +117,64 @@ export async function deployContract(): Promise<void> {
     }
 }
 
-
 export async function deployEditionContract(): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.fa2-editions/compile/fa2_multi_nft_token_editions.tz'))
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.fa2-editions/compile/multi_nft_token_editions.tz'))
+
+    // const p = new Parser();
+    // const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(EditionsMetadata.code);
+    // const parsedMinterRoyaltiesMichelsonCode = p.parseMichelineExpression(EditionsMinterRoyaltiesViewCodeType.code)
+
+
+    // const editions_contract_metadata = {
+    //     name: 'A:RT - ',
+    //     description: 'Implementation of the edition version of the FA2 standart on Tezos. Big part of the code has been taken on the TQTezos github repo (thanks a lot...). Added some views extension and logic in order to restrict access to a set of addresses (curation) and added a royalties view that can be user on and off-chain.',
+    //     interfaces: ['TZIP-012', 'TZIP-016'],
+    //     views: [{
+    //         name: 'token_metadata',
+    //         description: 'Get the metadata for the tokens minted using this contract',
+    //         pure: false,
+    //         implementations: [
+    //             {
+    //                 michelsonStorageView:
+    //                 {
+    //                     parameter: {
+    //                         prim: 'nat',
+    //                     },
+    //                     returnType: {
+    //                         prim: "pair",
+    //                         args: [
+    //                             { prim: "nat", annots: ["%token_id"] },
+    //                             { prim: "map", args: [{ prim: "string" }, { prim: "bytes" }], annots: ["%token_info"] },
+    //                         ],
+    //                     },
+    //                     code: parsedEditionMetadataMichelsonCode,
+    //                 },
+    //             },
+    //         ],
+    //     }, {
+    //         name: 'minter_royalties',
+    //         description: 'Get the address and the percentage to be sent to the minter of the NFTs (royalties) providing the token_id to the view',
+    //         pure: false,
+    //         implementations: [
+    //             {
+    //                 michelsonStorageView:
+    //                 {
+    //                     parameter: {
+    //                         prim: 'nat'
+    //                     },
+    //                     returnType: {
+    //                         prim: "pair",
+    //                         args: [
+    //                             { prim: "address", annots: ["%address"] },
+    //                             { prim: "nat", annots: ["%percentage"] }
+    //                         ],
+    //                     },
+    //                     code: parsedMinterRoyaltiesMichelsonCode
+    //                 },
+    //             },
+    //         ],
+    //     }],
+    // };
 
     const originateParam = {
         code: code,
@@ -132,8 +189,8 @@ export async function deployEditionContract(): Promise<void> {
             },
             admin: {
                 admin: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
-                pending_admin: null,
-                pause: false,
+                pause_minting: false,
+                pause_nb_edition_minting: false,
                 minters: MichelsonMap.fromLiteral({})
             },
             metadata: MichelsonMap.fromLiteral({
@@ -162,7 +219,24 @@ export async function deployEditionContract(): Promise<void> {
     }
 }
 
-export async function testContract(): Promise<void> {
+export const deployContracts = async (param: any) => {
+    switch (param.title) {
+        case "fixed-price":
+            await deployFixedPriceContract()
+            break;
+        case "fa2-editions":        
+            await deployEditionContract()
+            break;
+        default:
+            await deployEditionContract()
+            await deployFixedPriceContract()
+            break;
+    }
+}
+
+// -- Tests --
+
+async function testFixedPriceContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing admin entrypoints...`))
 
@@ -254,8 +328,7 @@ export async function testContract(): Promise<void> {
     })
 }
 
-
-export async function testEditionContract(): Promise<void> {
+async function testEditionContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fa2 admin entrypoints...`))
 
@@ -345,4 +418,19 @@ export async function testEditionContract(): Promise<void> {
             }
         )
     })
+}
+
+export const testContracts = async (param: any) => {
+    switch (param.title) {
+        case "fixed-price":
+            await testFixedPriceContract()
+            break;
+        case "fa2-editions":        
+            await testEditionContract()
+            break;
+        default:
+            await testEditionContract()
+            await testFixedPriceContract()
+            break;
+    }
 }
