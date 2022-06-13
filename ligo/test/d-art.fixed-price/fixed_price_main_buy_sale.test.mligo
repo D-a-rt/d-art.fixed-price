@@ -118,7 +118,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
 
     // Path of the contract on yout local machine
     let michelson_str = Test.compile_value edition_strg in
-    let edition_addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.fixed-price/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
+    let edition_addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
     edition_addr
     
 let get_initial_storage (signature_saved : bool) =
@@ -152,7 +152,6 @@ let get_initial_storage (signature_saved : bool) =
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
-        authorized_drops_seller = empty_sellers;
         drops = empty_drops;
         fa2_dropped = empty_dropped;
         fee = {
@@ -161,7 +160,7 @@ let get_initial_storage (signature_saved : bool) =
         }
     } in
 
-    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.fixed-price/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
     taddr
 
 // Fail if buyer is seller
@@ -180,11 +179,12 @@ let test_buy_fixed_price_token_seller_buyer =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: FP_I.authorization_signature);
-        })) 0tez
+        } : CM.buy_token)) 0tez
     in
 
     match result with
@@ -213,6 +213,7 @@ let test_buy_fixed_price_token_wrong_signature =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
@@ -246,6 +247,7 @@ let test_buy_fixed_price_token_signature_already_used =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
@@ -300,6 +302,7 @@ let test_buy_fixed_price_token_wrong_price =
                 address = (edition_contract: address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -354,6 +357,7 @@ let test_buy_fixed_price_token_not_buyer =
                 address = (edition_contract : address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -428,6 +432,7 @@ let test_buy_fixed_price_token_success =
                 address = (edition_contract : address);
             } : FP_I.fa2_base);
             seller = token_seller;
+            buyer = buyer;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -534,6 +539,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
                 address = (edition_contract : address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = buyer;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);

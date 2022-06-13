@@ -84,7 +84,7 @@ let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
 
     let concerned_fixed_price_sale : fixed_price_sale = get_sale (buy_token.fa2_token, buy_token.seller, storage) in
 
-    let () = fail_if_sender_not_authorized (concerned_fixed_price_sale.buyer) in
+    let () = fail_if_buyer_not_authorized (buy_token.buyer, concerned_fixed_price_sale.buyer) in
     let () = assert_msg (concerned_fixed_price_sale.price = Tezos.amount, "WRONG_PRICE_SPECIFIED") in
 
     let operation_list : operation list = perform_sale_operation (buy_token, concerned_fixed_price_sale.price, storage) in
@@ -98,17 +98,18 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
     let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
     let () = verify_signature (drop_configuration.authorization_signature, storage) in
-    let () = assert_msg (Big_map.mem Tezos.sender storage.authorized_drops_seller, "NOT_AUTHORIZED_DROP_SELLER") in
     
     let create_drop : ( storage * drop_info ) -> storage =
         fun (strg, drop_param : storage * drop_info ) ->
-            
             let () = assert_msg (drop_param.price >= 100000mutez, "Price should be at least 0.1tez" ) in
             let () = fail_if_wrong_drop_date (drop_param.drop_date) in
 
             let () = assert_msg (not Big_map.mem (drop_param.fa2_token, Tezos.sender) strg.drops, "ALREADY_DROPED") in
             let () = assert_msg (not Big_map.mem drop_param.fa2_token storage.fa2_dropped, "ALREADY_DROPED") in
 
+            let auhorized = is_authorized_drop_seller (Tezos.sender, drop_param.fa2_token) in
+            let () = assert_msg (auhorized = true , "NOT_AUTHORIZED_DROP_SELLER") in
+            
             let fixed_price_drop : fixed_price_drop = {
                 price = drop_param.price;
                 drop_date = drop_param.drop_date;

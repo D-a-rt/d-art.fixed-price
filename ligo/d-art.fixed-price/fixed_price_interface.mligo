@@ -104,7 +104,7 @@ type buy_token =
 {
   fa2_token: fa2_base;
   seller: address;
-  receiver: address;
+  buyer: address;
   authorization_signature: authorization_signature;
 }
 
@@ -148,7 +148,6 @@ type storage =
 {
   admin: admin_storage;
   for_sale: (fa2_base * address, fixed_price_sale) big_map;
-  authorized_drops_seller: (address, unit) big_map;
   drops: drops_storage;
   fa2_dropped: (fa2_base, unit) big_map;
   fee: fee_data;

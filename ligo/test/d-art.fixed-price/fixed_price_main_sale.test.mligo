@@ -21,7 +21,6 @@ let get_initial_storage (will_update : bool) =
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
-        authorized_drops_seller = empty_sellers;
         drops = empty_drops;
         fa2_dropped = empty_dropped;
         fee = {

@@ -10,6 +10,16 @@ import { Parser} from '@taquito/michel-codec';
 import { InMemorySigner } from '@taquito/signer';
 import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 
+// -- View import
+import { default as Splits } from './views/fa2_editions_splits.tz';
+import { default as Minter } from './views/fa2_editions_minter.tz';
+import { default as Royalty } from './views/fa2_editions_royalty.tz';
+import { default as IsMinter } from './views/fa2_editions_is_minter.tz';
+import { default as RoyaltySplits } from './views/fa2_editions_royalty_splits.tz';
+import { default as EditionsMetadata } from './views/fa2_editions_token_metadata.tz';
+import { default as RoyaltyDistribution } from './views/fa2_editions_royalty_distribution.tz';
+
+
 enum ContractAction {
     COMPILE = "compile contract",
     SIZE = "info measure-contract"
@@ -50,11 +60,11 @@ export async function compileContracts(param: any): Promise<void> {
             contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             break;
         default:
             contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             break;
     }
 }
@@ -65,11 +75,11 @@ export async function calculateSize(param: any): Promise<void> {
             contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'")
+            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'")
             break;
         default:
             contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
-            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, splits, royalty_splits, royalty, minter'")
+            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'")
             break;
     }
 }
@@ -89,7 +99,6 @@ export async function deployFixedPriceContract(): Promise<void> {
                 contract_will_update: false
             },
             for_sale: MichelsonMap.fromLiteral({}),
-            authorized_drops_seller: MichelsonMap.fromLiteral({}),
             drops: MichelsonMap.fromLiteral({}),
             fa2_dropped: MichelsonMap.fromLiteral({}),
             fee: {
@@ -120,61 +129,67 @@ export async function deployFixedPriceContract(): Promise<void> {
 export async function deployEditionContract(): Promise<void> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fa2-editions/compile/multi_nft_token_editions.tz'))
 
-    // const p = new Parser();
-    // const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(EditionsMetadata.code);
-    // const parsedMinterRoyaltiesMichelsonCode = p.parseMichelineExpression(EditionsMinterRoyaltiesViewCodeType.code)
+    const p = new Parser();
 
+    const parsedSplitsMichelsonCode = p.parseMichelineExpression(Splits.code);
+    const parsedMinterMichelsonCode = p.parseMichelineExpression(Minter.code);
+    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(Royalty.code);
+    const parsedIsMinterMichelsonCode = p.parseMichelineExpression(IsMinter.code);
+    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplits.code);
+    const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(EditionsMetadata.code);
+    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistribution.code);
 
-    // const editions_contract_metadata = {
-    //     name: 'A:RT - ',
-    //     description: 'Implementation of the edition version of the FA2 standart on Tezos. Big part of the code has been taken on the TQTezos github repo (thanks a lot...). Added some views extension and logic in order to restrict access to a set of addresses (curation) and added a royalties view that can be user on and off-chain.',
-    //     interfaces: ['TZIP-012', 'TZIP-016'],
-    //     views: [{
-    //         name: 'token_metadata',
-    //         description: 'Get the metadata for the tokens minted using this contract',
-    //         pure: false,
-    //         implementations: [
-    //             {
-    //                 michelsonStorageView:
-    //                 {
-    //                     parameter: {
-    //                         prim: 'nat',
-    //                     },
-    //                     returnType: {
-    //                         prim: "pair",
-    //                         args: [
-    //                             { prim: "nat", annots: ["%token_id"] },
-    //                             { prim: "map", args: [{ prim: "string" }, { prim: "bytes" }], annots: ["%token_info"] },
-    //                         ],
-    //                     },
-    //                     code: parsedEditionMetadataMichelsonCode,
-    //                 },
-    //             },
-    //         ],
-    //     }, {
-    //         name: 'minter_royalties',
-    //         description: 'Get the address and the percentage to be sent to the minter of the NFTs (royalties) providing the token_id to the view',
-    //         pure: false,
-    //         implementations: [
-    //             {
-    //                 michelsonStorageView:
-    //                 {
-    //                     parameter: {
-    //                         prim: 'nat'
-    //                     },
-    //                     returnType: {
-    //                         prim: "pair",
-    //                         args: [
-    //                             { prim: "address", annots: ["%address"] },
-    //                             { prim: "nat", annots: ["%percentage"] }
-    //                         ],
-    //                     },
-    //                     code: parsedMinterRoyaltiesMichelsonCode
-    //                 },
-    //             },
-    //         ],
-    //     }],
-    // };
+    // TODO : Add missing views
+    const editions_contract_metadata = {
+        name: 'A:RT - ',
+        description: 'Implementation of the edition version of the FA2 standart on Tezos. Big part of the code has been taken on the TQTezos github repo (thanks a lot...). Added some views extension and logic in order to restrict access to a set of addresses (curation) and added a royalties view that can be user on and off-chain.',
+        interfaces: ['TZIP-012', 'TZIP-016'],
+        views: [{
+            name: 'token_metadata',
+            description: 'Get the metadata for the tokens minted using this contract',
+            pure: false,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'nat',
+                        },
+                        returnType: {
+                            prim: "pair",
+                            args: [
+                                { prim: "nat", annots: ["%token_id"] },
+                                { prim: "map", args: [{ prim: "string" }, { prim: "bytes" }], annots: ["%token_info"] },
+                            ],
+                        },
+                        code: parsedEditionMetadataMichelsonCode,
+                    },
+                },
+            ],
+        }, {
+            name: 'minter_royalties',
+            description: 'Get the address and the percentage to be sent to the minter of the NFTs (royalties) providing the token_id to the view',
+            pure: false,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'nat'
+                        },
+                        returnType: {
+                            prim: "pair",
+                            args: [
+                                { prim: "address", annots: ["%address"] },
+                                { prim: "nat", annots: ["%percentage"] }
+                            ],
+                        },
+                        code: parsedMinterRoyaltiesMichelsonCode
+                    },
+                },
+            ],
+        }],
+    };
 
     const originateParam = {
         code: code,
@@ -194,8 +209,7 @@ export async function deployEditionContract(): Promise<void> {
                 minters: MichelsonMap.fromLiteral({})
             },
             metadata: MichelsonMap.fromLiteral({
-                // "": char2Bytes('tezos-storage:content'),
-                // "content": editions_meta_encoded
+                "": char2Bytes(`ipfs://${editions_contract_metadata.data.IpfsHash}`),
             })
         }
     }

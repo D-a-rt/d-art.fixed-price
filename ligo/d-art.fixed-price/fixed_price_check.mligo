@@ -26,10 +26,10 @@ let fail_if_drop_date_not_met (fixed_price_drop : fixed_price_drop) : unit =
 
 // -- Buy tokens checks
 
-let fail_if_sender_not_authorized (buyer : address option ) : unit =
+let fail_if_buyer_not_authorized (add, buyer : address * address option ) : unit =
     // Check if sale is private if yes check if sender is buyer
     // else unit
     match buyer with
-        Some address -> if address = Tezos.sender then unit else failwith "SENDER_NOT_AUTHORIZE_TO_BUY"
+        Some address -> if address = add then unit else failwith "SENDER_NOT_AUTHORIZE_TO_BUY"
         | None -> unit
 

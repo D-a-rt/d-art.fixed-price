@@ -117,7 +117,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
 
     // Path of the contract on yout local machine
     let michelson_str = Test.compile_value edition_strg in
-    let edition_addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.fixed-price/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
+    let edition_addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
     edition_addr
     
 let get_initial_storage (signature_saved : bool ) =
@@ -152,7 +152,6 @@ let get_initial_storage (signature_saved : bool ) =
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
-        authorized_drops_seller = empty_sellers;
         drops = drops_str;
         fa2_dropped = empty_dropped;
         fee = {
@@ -161,7 +160,7 @@ let get_initial_storage (signature_saved : bool ) =
         }
     } in
 
-    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.fixed-price/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
     taddr
 
 // Fail if wrong signature

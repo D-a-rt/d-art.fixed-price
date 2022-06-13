@@ -24,7 +24,6 @@ let get_initial_storage () =
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
-        authorized_drops_seller = empty_sellers;
         drops = empty_drops;
         fa2_dropped = empty_dropped;
         fee = {
@@ -218,130 +217,7 @@ let test_update_public_key_with_amount =
         )
     |   Fail _ -> failwith "Internal test failure"
 
-// -- ADD/REMOVE DROP Seller --
 
-// Success Add & Remove drop seller
-let test_add_remove_drop_seller =
-    let contract_add = get_initial_storage () in
-    let init_str = Test.get_storage contract_add in
-    
-    let new_drop_seller = Test.nth_bootstrap_account 1 in
-    
-    let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
-    let new_str = Test.get_storage contract_add in
-    
-    let () = match (Big_map.find_opt new_drop_seller new_str.authorized_drops_seller) with
-        Some _ -> unit
-        | None -> failwith "Admin -> AddDropSeller - Success : Seller is not in authorized list"
-    in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (RemoveDropSeller (new_drop_seller))) 0tez in
-    let new_str = Test.get_storage contract_add in
-    
-    let () = match (Big_map.find_opt new_drop_seller new_str.authorized_drops_seller) with
-        Some _ -> failwith "Admin -> RemoveDropSeller - Success : Seller is still in authorized list"
-        | None -> unit
-    in
-
-    "Passed"
-
-// Add drop seller twice
-let test_add_drop_seller_twice = 
-    let contract_add = get_initial_storage () in
-    let init_str = Test.get_storage contract_add in
-    
-    let new_drop_seller = Test.nth_bootstrap_account 1 in
-    
-    let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
-
-    let _gas = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
-    let result = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> AddDropSeller - Add seller twice : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_SELLER") ) "Admin -> AddDropSeller - Add seller twice : Should not work if seller already present" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
-// Remove non existing drop seller
-let test_remove_non_existing_drop_seller = 
-    let contract_add = get_initial_storage () in
-    let init_str = Test.get_storage contract_add in
-    
-    let new_drop_seller = Test.nth_bootstrap_account 1 in
-    
-    let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
-
-    let result = Test.transfer_to_contract contract (Admin  (RemoveDropSeller (new_drop_seller))) 0tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> RemoveDropSeller - Not existing : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_FOUND") ) "Admin -> RemoveDropSeller - Not existing : Should not work if seller not authorized" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
-// Should fail if not admin
-let test_add_remove_drop_seller_not_admin =
-    let contract_add = get_initial_storage () in
-    let init_str = Test.get_storage contract_add in
-    
-    let new_drop_seller = Test.nth_bootstrap_account 1 in
-    
-    let no_admin_addr = Test.nth_bootstrap_account 1 in
-    let () = Test.set_source no_admin_addr in
-
-    let contract = Test.to_contract contract_add in
-
-    let result = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 0tez in
-    
-    let () = match result with
-            Success _gas -> failwith "Admin -> AddDropSeller - Not admin : This test should fail"
-        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> AddDropSeller - Not admin : Should not work if sender not admin"
-        |   Fail _ -> failwith "Internal test failure" 
-    in
-    let result = Test.transfer_to_contract contract (Admin  (RemoveDropSeller (new_drop_seller))) 0tez in
-    
-    let () = match result with
-            Success _gas -> failwith "Admin -> RemoveDropSeller - Not admin : This test should fail"
-        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> RemoveDropSeller - Not admin : Should not work if sender not admin"
-        |   Fail _ -> failwith "Internal test failure" 
-    in
-    "Passed"
-
-// Should fail if amount passed as parameter
-let test_add_remove_drop_seller_with_amount =
-    let contract_add = get_initial_storage () in
-    let init_str = Test.get_storage contract_add in
-    
-    let new_drop_seller = Test.nth_bootstrap_account 1 in
-    
-    let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
-
-    let result = Test.transfer_to_contract contract (Admin  (AddDropSeller (new_drop_seller))) 1tez in
-    
-    let () = match result with
-            Success _gas -> failwith "Admin -> AddDropSeller - No amount : This test should fail"
-        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> AddDropSeller - No amount : Should not work if amount specified"
-        |   Fail _ -> failwith "Internal test failure" 
-    in
-    let result = Test.transfer_to_contract contract (Admin  (RemoveDropSeller (new_drop_seller))) 1tez in
-    
-    let () = match result with
-            Success _gas -> failwith "Admin -> RemoveDropSeller - Not admin : This test should fail"
-        |   Fail (Rejected (err, _)) -> assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> RemoveDropSeller - Not admin : Should not work if amount specified"
-        |   Fail _ -> failwith "Internal test failure" 
-    in
-    "Passed"
 // -- CONTRACT WILL UPDATE --
 
 // Success

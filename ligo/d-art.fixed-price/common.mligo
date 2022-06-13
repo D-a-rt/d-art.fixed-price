@@ -75,6 +75,13 @@ let transfer_token (transfer, fa2_address: transfer * address) : operation =
    let contract = address_to_contract_transfer_entrypoint fa2_address in
    (Tezos.transaction [transfer] 0mutez contract)
 
+// -- Authorize drop seller
+
+let is_authorized_drop_seller (add, token : address * fa2_base) : bool = 
+  match ((Tezos.call_view "is_minter" add token.address ): bool option) with
+      None -> false
+    | Some _b -> _b
+
 // -- Verify signature
 
 let signed_message_used (authorization_signature, storage : authorization_signature * storage) : bool =
@@ -121,7 +128,7 @@ let perform_sale_operation (buy_token, price, storage : buy_token * tez * storag
 
   let admin_fee_transfer : operation = Tezos.transaction unit admin_fee admin_contract in
   let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
-  let buyer_transfer : operation = transfer_token ({ from_ = buy_token.seller; txs = [{ to_ = buy_token.receiver; token_id = buy_token.fa2_token.id; amount = 1n}] }, buy_token.fa2_token.address) in
+  let buyer_transfer : operation = transfer_token ({ from_ = buy_token.seller; txs = [{ to_ = buy_token.buyer; token_id = buy_token.fa2_token.id; amount = 1n}] }, buy_token.fa2_token.address) in
 
   // List of all the performed operation
   (admin_fee_transfer :: buyer_transfer :: seller_transfer :: royalties_transfer )

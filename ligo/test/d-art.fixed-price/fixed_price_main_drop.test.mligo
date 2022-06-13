@@ -1,8 +1,123 @@
 #import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
 #import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 
+type token_id = nat
+
+type ledger = (token_id, address) big_map
+
+type admin_storage = {
+    admin : address;
+    paused_minting : bool;
+    paused_nb_edition_minting : bool;
+    minters : (address, unit) big_map;
+}
+
+type operator_storage = ((address * (address * token_id)), unit) big_map
+
+type token_metadata =
+[@layout:comb]
+  {
+    token_id: token_id;
+    token_info: ((string, bytes) map);
+  }
+
+type nft_token_storage = {
+  ledger : ledger;
+  operators : operator_storage;
+  token_metadata: (token_id, token_metadata) big_map;
+}
+
+type split =
+[@layout:comb]
+{
+  address: address;
+  pct: nat;
+}
+
+
+type edition_metadata =
+[@layout:comb]
+{
+    minter : address;
+    edition_info: (string, bytes) map;
+    total_edition_number: nat;
+    royalty: nat;
+    splits: split list;
+}
+
+type editions_metadata = (nat, edition_metadata) big_map
+
+type editions_storage =
+{
+    next_edition_id : nat;
+    max_editions_per_run : nat;
+    editions_metadata : editions_metadata;
+    assets : nft_token_storage;
+    admin : admin_storage;
+    metadata: (string, bytes) big_map;
+}
+
+let get_edition_fa2_contract (fixed_price_contract_address : address) = 
+
+    let admin = Test.nth_bootstrap_account 0 in
+    let token_seller = Test.nth_bootstrap_account 3 in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let token_split = Test.nth_bootstrap_account 5 in
+
+    let admin_strg : admin_storage = {
+        admin = admin;
+        paused_minting = false;
+        paused_nb_edition_minting = false;
+        minters = Big_map.literal ([(token_minter), ()]);
+    } in
+
+    let asset_strg : nft_token_storage = {
+        ledger = Big_map.literal([
+                (0n), (token_seller)        
+            ]);
+        operators = Big_map.literal([
+                ((token_seller, (fixed_price_contract_address, 0n)), ())  ;      
+            ]);
+        token_metadata = (Big_map.empty : (token_id, token_metadata) big_map);
+    } in
+
+    let edition_meta : edition_metadata = ({
+            minter = token_minter;
+            edition_info = (Map.empty : (string, bytes) map);
+            total_edition_number = 2n;
+            royalty = 150n;
+            splits = [({
+                address = token_minter;
+                pct = 500n;
+            } : split );
+            ({
+                address = token_split;
+                pct = 500n;
+            } : split )];
+        } : edition_metadata ) in
+
+    let edition_meta_strg : editions_metadata = Big_map.literal([
+        (0n), (edition_meta);
+    ]) in
+
+    let edition_strg = {
+        next_edition_id = 1n;
+        max_editions_per_run = 250n;
+        editions_metadata = edition_meta_strg;
+        assets = asset_strg;
+        admin = admin_strg;
+        metadata = (Big_map.empty : (string, bytes) big_map);
+    } in
+
+    // Path of the contract on yout local machine
+    let michelson_str = Test.compile_value edition_strg in
+    let edition_addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
+    edition_addr
+    
 // Create initial storage
 let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * bool * bool * timestamp) = 
+    let () = Test.reset_state 6n ([233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez] : tez list) in
+    
     let admin = Test.nth_bootstrap_account 0 in
     let signed_ms = (Big_map.empty : FP_I.signed_message_used) in
     
@@ -52,7 +167,6 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
-        authorized_drops_seller = empty_sellers;
         drops = empty_drops;
         fa2_dropped = empty_dropped;
         fee = {
@@ -65,13 +179,13 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
     then (
         if isInDrops
         then (
-             let str = { str with drops = drops_str; fa2_dropped = dropped } in
-            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            let str = { str with drops = drops_str; fa2_dropped = dropped } in
+            let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
             taddr
         )
         else (
             let str = { str with fa2_dropped = dropped } in
-            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
             taddr
         )
     )
@@ -79,25 +193,28 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
         if isInDrops
         then (
              let str = { str with drops = drops_str } in
-            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
             taddr
         )
         else (
-            let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
+            let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
             taddr
 
         )
     )
 
-
 // -- CREATE DROPS --
 
 // Success
 let test_create_drops =
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let edition_contract = get_edition_fa2_contract(contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
     let now : timestamp = Tezos.now in
@@ -106,8 +223,6 @@ let test_create_drops =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -119,14 +234,14 @@ let test_create_drops =
                 price = 150000mutez;
                 drop_date = expected_time_result_three;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
                 price = 100000mutez;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 1n
                 };
             } : FP_I.drop_info)]
@@ -144,10 +259,10 @@ let test_create_drops =
                 // Check first sale if well saved
                 let first_drop_key : FP_I.fa2_base * address = (
                     {
-                        address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                        address = ( edition_contract : address);
                         id = 0n
                     },
-                    init_str.admin.address
+                    token_minter
                  ) in
                 let () = match Big_map.find_opt first_drop_key new_str.drops with
                         Some fixed_drop_saved -> (
@@ -159,10 +274,10 @@ let test_create_drops =
                 // Check second sale if well saved
                 let second_drop_key : FP_I.fa2_base * address = (
                     {
-                        address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                        address = ( edition_contract : address);
                         id = 1n
                     },
-                    init_str.admin.address
+                    token_minter
                  ) in
                 let () = match Big_map.find_opt second_drop_key new_str.drops with
                         Some fixed_drop_saved -> (
@@ -178,7 +293,8 @@ let test_create_drops =
     
 // Should fail if amount specified
 let test_create_drops_with_amount = 
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -190,8 +306,6 @@ let test_create_drops_with_amount =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -227,7 +341,8 @@ let test_create_drops_with_amount =
 
 // Should fail if contract will be deprecated
 let test_create_drops_deprecated = 
-    let contract_add = get_initial_storage (true, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (true, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -239,8 +354,6 @@ let test_create_drops_deprecated =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -276,7 +389,8 @@ let test_create_drops_deprecated =
     
 // Should fail if price do not meet minimum price
 let test_create_drops_price_to_small_first_el =
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -288,8 +402,6 @@ let test_create_drops_price_to_small_first_el =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -325,10 +437,14 @@ let test_create_drops_price_to_small_first_el =
 
 // Should fail if price do not meet minimum price
 let test_create_drops_price_to_small_second_el = 
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let edition_contract = get_edition_fa2_contract(contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    
+    let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
     let now : timestamp = Tezos.now in
@@ -337,8 +453,6 @@ let test_create_drops_price_to_small_second_el =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -350,14 +464,14 @@ let test_create_drops_price_to_small_second_el =
                 price = 100000mutez;
                 drop_date = expected_time_result_three;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
                 price = 1000mutez;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 1n
                 };
             } : FP_I.drop_info)]
@@ -374,10 +488,13 @@ let test_create_drops_price_to_small_second_el =
 
 // Should fail if already in drop
 let test_create_drops_already_in_drop = 
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let edition_contract = get_edition_fa2_contract(contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
     let now : timestamp = Tezos.now in
@@ -386,8 +503,6 @@ let test_create_drops_already_in_drop =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -399,14 +514,14 @@ let test_create_drops_already_in_drop =
                 price = 100000mutez;
                 drop_date = expected_time_result_three;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
                 price = 100000mutez;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n
                 };
             } : FP_I.drop_info)]
@@ -423,10 +538,13 @@ let test_create_drops_already_in_drop =
 
 // Should fail if already dropped
 let test_create_drops_already_dropped =
-    let contract_add = get_initial_storage (false, true, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, true, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
     let now : timestamp = Tezos.now in
@@ -435,8 +553,6 @@ let test_create_drops_already_dropped =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -465,10 +581,13 @@ let test_create_drops_already_dropped =
 
 // Should fail if wrong signature
 let test_create_drops_wrong_signature = 
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let edition_contract = get_edition_fa2_contract(contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
     let now : timestamp = Tezos.now in
@@ -477,8 +596,6 @@ let test_create_drops_wrong_signature =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -490,7 +607,7 @@ let test_create_drops_wrong_signature =
                 price = 100000mutez;
                 drop_date = expected_time_result_three;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info )]
@@ -507,10 +624,13 @@ let test_create_drops_wrong_signature =
 
 // Should fail if signature already used
 let test_create_drops_already_used_signature = 
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let edition_contract = get_edition_fa2_contract(contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
     let now : timestamp = Tezos.now in
@@ -519,8 +639,6 @@ let test_create_drops_already_used_signature =
     
     let expected_time_result_three = now + three_days in
     let expected_time_result_four = now + three_days in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let _gas2 = Test.transfer_to_contract contract
         (Create_drops ({
@@ -532,7 +650,7 @@ let test_create_drops_already_used_signature =
                 price = 100000mutez;
                 drop_date = expected_time_result_three;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info )]
@@ -549,7 +667,7 @@ let test_create_drops_already_used_signature =
                 price = 100000mutez;
                 drop_date = expected_time_result_three;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info )]
@@ -566,10 +684,13 @@ let test_create_drops_already_used_signature =
 
 // Should fail if wrong drop date
 let test_create_drops_wrong_drop_date = 
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let edition_contract = get_edition_fa2_contract(contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
     let now : timestamp = Tezos.now in
@@ -578,8 +699,6 @@ let test_create_drops_wrong_drop_date =
     
     let expected_time_result_less = now + less_than_a_day in
     let expected_time_result_more = now + more_than_a_month in
-
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (AddDropSeller (init_str.admin.address))) 0tez in
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
@@ -591,7 +710,7 @@ let test_create_drops_wrong_drop_date =
                 price = 100000mutez;
                 drop_date = expected_time_result_less;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info )]
@@ -614,7 +733,7 @@ let test_create_drops_wrong_drop_date =
                 price = 100000mutez;
                 drop_date = expected_time_result_more;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info )]
@@ -631,7 +750,9 @@ let test_create_drops_wrong_drop_date =
 
 // Should fail if not an authorized drop seller
 let test_create_drops_not_authorized_drop_seller = 
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let edition_contract = get_edition_fa2_contract(contract_address) in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -651,7 +772,7 @@ let test_create_drops_not_authorized_drop_seller =
                 price = 100000mutez;
                 drop_date = expected_time_result_three;
                 fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                    address = (edition_contract : address);
                     id = 0n 
                 };
             } : FP_I.drop_info )]
@@ -672,7 +793,8 @@ let test_create_drops_not_authorized_drop_seller =
 
 // Success before drop date and token removed from dropped big_map
 let test_revoke_drops_before_drop_date =
-    let contract_add = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let contract_address = get_initial_storage (false, true, true, Tezos.now + 28800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -744,7 +866,8 @@ let test_revoke_drops_before_drop_date =
 
 // Success after drop date + 1 day and token stay in dropped big_map
 let test_revoke_drops_after_drope_date =
-    let contract_add = get_initial_storage (false, true, true, Tezos.now - 87800) in
+    let contract_address = get_initial_storage (false, true, true, Tezos.now - 87800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -819,7 +942,8 @@ let test_revoke_drops_after_drope_date =
 
 // Should fail if amount specified
 let test_revoke_drops_with_amount =
-    let contract_add = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let contract_address = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -849,7 +973,8 @@ let test_revoke_drops_with_amount =
 
 // Should fail if drops not created
 let test_revoke_drops_not_created =
-    let contract_add = get_initial_storage (false, false, false, Tezos.now + 22800) in
+    let contract_address = get_initial_storage (false, false, false, Tezos.now + 22800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -879,7 +1004,9 @@ let test_revoke_drops_not_created =
 
 // Should fail if sender not owner
 let test_revoke_drops_sender_not_owner =
-    let contract_add = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let contract_address = get_initial_storage (false, true, true, Tezos.now + 22800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+
     let init_str = Test.get_storage contract_add in
 
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -910,7 +1037,8 @@ let test_revoke_drops_sender_not_owner =
 
 // Should fail if drop_date in less than 6 hours
 let test_revoke_drops_less_than_6_hours_before_drop_date =
-    let contract_add = get_initial_storage (false, true, true, Tezos.now + 20800) in
+    let contract_address = get_initial_storage (false, true, true, Tezos.now + 20800) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
@@ -940,7 +1068,8 @@ let test_revoke_drops_less_than_6_hours_before_drop_date =
 
 // Should fail if drop_date < now < 1 day 
 let test_revoke_drops_between_drop_date_and_one_day =
-    let contract_add = get_initial_storage (false, true, true, Tezos.now - 84400) in
+    let contract_address = get_initial_storage (false, true, true, Tezos.now - 84400) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
 
     let () = Test.set_source init_str.admin.address in
