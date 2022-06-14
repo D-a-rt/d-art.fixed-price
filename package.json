@@ -26,6 +26,7 @@
     "@types/libsodium-wrappers": "^0.7.7",
     "@types/mocha": "^8.0.4",
     "@types/node": "^14.14.10",
+    "axios": "^0.27.2",
     "bs58check": "^2.1.2",
     "chai": "^4.2.0",
     "child_process": "^1.0.2",
@@ -37,6 +38,7 @@
     "libsodium": "^0.7.9",
     "libsodium-wrappers": "^0.7.9",
     "mocha": "^8.2.1",
+    "nft.storage": "^6.3.0",
     "path": "^0.12.7",
     "ts-node": "^9.1.0"
   }

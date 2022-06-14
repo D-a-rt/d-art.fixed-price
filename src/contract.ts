@@ -5,6 +5,7 @@ import * as kleur from 'kleur';
 import * as child from 'child_process';
 
 import { loadFile } from './helper';
+import { NFTStorage } from 'nft.storage';
 import { char2Bytes } from '@taquito/tzip16';
 import { Parser} from '@taquito/michel-codec';
 import { InMemorySigner } from '@taquito/signer';
@@ -18,7 +19,11 @@ import { default as IsMinter } from './views/fa2_editions_is_minter.tz';
 import { default as RoyaltySplits } from './views/fa2_editions_royalty_splits.tz';
 import { default as EditionsMetadata } from './views/fa2_editions_token_metadata.tz';
 import { default as RoyaltyDistribution } from './views/fa2_editions_royalty_distribution.tz';
+import axios from 'axios';
 
+const client = new NFTStorage({
+	token: process.env.NFT_STORAGE_KEY!,
+})
 
 enum ContractAction {
     COMPILE = "compile contract",
@@ -141,9 +146,13 @@ export async function deployEditionContract(): Promise<void> {
 
     // TODO : Add missing views
     const editions_contract_metadata = {
-        name: 'A:RT - ',
-        description: 'Implementation of the edition version of the FA2 standart on Tezos. Big part of the code has been taken on the TQTezos github repo (thanks a lot...). Added some views extension and logic in order to restrict access to a set of addresses (curation) and added a royalties view that can be user on and off-chain.',
+        name: 'A:RT - Original',
+        description: 'Original collection for D a:rt NFTs. Edition version of the FA2 contract',
+        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        license: "MIT",
         interfaces: ['TZIP-012', 'TZIP-016'],
+        imageUri: "ipfs://bafkreidnvjk6h7w7a6lp27t2tkmrzoqyjizedqnr5ojf525sm5jkfel2yy",
         views: [{
             name: 'token_metadata',
             description: 'Get the metadata for the tokens minted using this contract',
@@ -155,6 +164,7 @@ export async function deployEditionContract(): Promise<void> {
                         parameter: {
                             prim: 'nat',
                         },
+                        // (pair (nat %token_id) (map %token_info string bytes))
                         returnType: {
                             prim: "pair",
                             args: [
@@ -167,29 +177,178 @@ export async function deployEditionContract(): Promise<void> {
                 },
             ],
         }, {
-            name: 'minter_royalties',
-            description: 'Get the address and the percentage to be sent to the minter of the NFTs (royalties) providing the token_id to the view',
+            name: 'royalty_distribution',
+            description: 'Get the minter of a specify token as well as the amount of royalty and the splits corresponding to it.',
+            pure: true,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'nat',
+                        },
+                        // (pair address (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))))
+                        returnType: {
+                            prim: "pair",
+                            args: [
+                                { prim: "address" },
+                                { 
+                                    prim: "pair", 
+                                    args: [
+                                        { prim: "nat", annots: ["%royalty"] },
+                                        { 
+                                            prim: "list", 
+                                            args : [
+                                                { 
+                                                    prim: "pair",
+                                                    args: [
+                                                        { prim: "address", annots: "address" },
+                                                        { prim: "nat", annots: "pct" },
+                                                    ]
+                                                }
+                                            ], 
+                                            annots: ["%splits"] 
+                                        },
+                                    ]
+                                },
+                            ],
+                        },
+                        code: parsedRoyaltyDistributionMichelsonCode,
+                    },
+                },
+            ],
+        }, {
+            name: 'splits',
+            description: 'Get the splits for a token id.',
+            pure: true,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'nat',
+                        },
+                        // (list (pair (address %address) (nat %pct)))
+                        returnType: { 
+                            prim: "list", 
+                            args : [
+                                { 
+                                    prim: "pair",
+                                    args: [
+                                        { prim: "address", annots: "address" },
+                                        { prim: "nat", annots: "pct" },
+                                    ]
+                                }
+                            ], 
+                            annots: ["%splits"] 
+                        },
+                        code: parsedSplitsMichelsonCode,
+                    },
+                },
+            ],
+        }, {
+            name: 'royalty_splits',
+            description: 'Get the royalty and splits for a token id.',
+            pure: true,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'nat',
+                        },
+                        // (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
+                        returnType: { 
+                            prim: "pair", 
+                            args: [
+                                { prim: "nat", annots: ["%royalty"] },
+                                { 
+                                    prim: "list", 
+                                    args : [
+                                        { 
+                                            prim: "pair",
+                                            args: [
+                                                { prim: "address", annots: "address" },
+                                                { prim: "nat", annots: "pct" },
+                                            ]
+                                        }
+                                    ], 
+                                    annots: ["%splits"] 
+                                },
+                            ]
+                        },
+                        code: parsedRoyaltySplitsMichelsonCode,
+                    },
+                },
+            ],
+        }, {
+            name: 'royalty',
+            description: 'Get the royalty for a token id.',
+            pure: true,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'nat',
+                        },
+                        // nat
+                        returnType: {
+                            prim: 'nat',
+                        },
+                        code: parsedRoyaltyMichelsonCode,
+                    },
+                },
+            ],
+        }, {
+            name: 'minter',
+            description: 'Get the minter for a token id.',
+            pure: true,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'nat',
+                        },
+                        // nat
+                        returnType: {
+                            prim: 'address',
+                        },
+                        code: parsedMinterMichelsonCode,
+                    },
+                },
+            ],
+        }, {
+            name: 'is_minter',
+            description: 'Verify if address is minter on the contract.',
             pure: false,
             implementations: [
                 {
                     michelsonStorageView:
                     {
                         parameter: {
-                            prim: 'nat'
+                            prim: 'address',
                         },
+                        // nat
                         returnType: {
-                            prim: "pair",
-                            args: [
-                                { prim: "address", annots: ["%address"] },
-                                { prim: "nat", annots: ["%percentage"] }
-                            ],
+                            prim: 'bool',
                         },
-                        code: parsedMinterRoyaltiesMichelsonCode
+                        code: parsedIsMinterMichelsonCode,
                     },
                 },
             ],
         }],
     };
+
+    const contractMetadata = await client.storeBlob(
+		new Blob([JSON.stringify(editions_contract_metadata)]),
+	)
+
+    if (!contractMetadata) {
+        console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
+        return;
+    }
 
     const originateParam = {
         code: code,
@@ -203,13 +362,13 @@ export async function deployEditionContract(): Promise<void> {
                 token_metadata: MichelsonMap.fromLiteral({})
             },
             admin: {
-                admin: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+                admin: process.env.ADMIN_PUBLIC_KEY_HASH,
                 pause_minting: false,
                 pause_nb_edition_minting: false,
                 minters: MichelsonMap.fromLiteral({})
             },
             metadata: MichelsonMap.fromLiteral({
-                "": char2Bytes(`ipfs://${editions_contract_metadata.data.IpfsHash}`),
+                "": char2Bytes(`ipfs://${contractMetadata}`),
             })
         }
     }
