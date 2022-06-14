@@ -4,9 +4,9 @@ type fixed_price_entrypoints =
     | Admin of admin_entrypoints
     | Create_sales of sale_configuration
     | Update_sales of sale_info list
-    | Revoke_sales of revoke_sales_param
+    | Revoke_sales of revoke_param
     | Create_drops of drop_configuration
-    | Revoke_drops of revoke_drops_param
+    | Revoke_drops of revoke_param
     | Buy_fixed_price_token of buy_token
     | Buy_dropped_token of buy_token
 
@@ -66,7 +66,7 @@ let update_sales (sale_infos, storage : sale_info list * storage ) : return =
     let new_storage = List.fold update_sale sale_infos storage in
     ([] : operation list), new_storage
 
-let revoke_sales (revoke_sales_param, storage : revoke_sales_param * storage) : return =
+let revoke_sales (revoke_sales_param, storage : revoke_param * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
 
     let revoke_sale : (storage * fa2_base) -> storage =
@@ -125,7 +125,7 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
     let new_storage = List.fold create_drop drop_configuration.drop_infos storage in
     ([] : operation list), new_storage
 
-let revoke_drops (revoke_drops_param, storage : revoke_drops_param * storage) : return =
+let revoke_drops (revoke_drops_param, storage : revoke_param * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
 
     let revoke_drop : (storage * fa2_base) -> storage =
@@ -166,11 +166,11 @@ let fixed_price_tez_main (p , storage : fixed_price_entrypoints * storage) : ret
     // Fixed price sales entrypoints
     | Create_sales sale_configuration -> create_sales (sale_configuration, storage)
     | Update_sales sale_configuration -> update_sales (sale_configuration, storage)
-    | Revoke_sales token_info -> revoke_sales (token_info, storage)
+    | Revoke_sales revoke_param -> revoke_sales (revoke_param, storage)
 
     // Drops entrypoints
     | Create_drops drop_configuration -> create_drops (drop_configuration, storage)
-    | Revoke_drops drop_info -> revoke_drops (drop_info, storage)
+    | Revoke_drops revoke_param -> revoke_drops (revoke_param, storage)
 
     // Buy token in any sales or drops
     | Buy_fixed_price_token buy_token -> buy_fixed_price_token (buy_token, storage)

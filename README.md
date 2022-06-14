@@ -4,6 +4,11 @@
 
 This set of contracts has been developped in order to perform fixed price sale and drop on-chain.
 
+#### Prerequisites
+
+- docker installed
+- node installed
+- npm installed
 
 #### Install the CLI (TypeScript):
 
@@ -19,6 +24,7 @@ $ npm install -g
 The different available commands are:
 
 Available contract title: ***fixed-price, fa2-editions***
+Note: these commands has been tested with the version 0.43 of ligo.
 ```
 $ d-art.contracts test-contract -t <contract-title>
     (Run the ligo test on the contract corresponding to the title - if no title specified run the test for the the two contracts)
@@ -44,13 +50,20 @@ $ d-art.fixed-price deploy-contract
 $ d-art.fixed-price -v
     (Get the current version of the project)
 ```
+
+In case you would like to run each test separately:
+
+```
+$ 
+```
+
 ---
 
 ## Contract : Fixed Price Sale/Drop
 
 The contract is in the directory ligo/d-art.fixed-price and the corresponding test in ligo/test/d-art.fixed-price.
 
-The purpose of this contract is to handle the sale of FA2 NFTs, the diffrent features are:
+The purpose of this contract is to handle the sale of FA2 NFTs (not multi-asset ~ the contract can be easily tweeked to allow multi asset versions), the different features are:
 
 - Create classic fix price sales
 - Create private fix price sales (sell to a specfic address)
@@ -74,7 +87,6 @@ type storage =
 {
     admin: admin_storage;
     for_sale: (fa2_base * seller, fixed_price_sale) big_map;
-    authorized_drops_seller: (address, unit) big_map;
     drops: drops_storage;
     fa2_dropped: (fa2_base, unit) big_map;
     fee: fee_data;
@@ -114,9 +126,9 @@ type authorization_signature = {
 
 ``pb_key`` : Public key responsible to check the authorization_signature sent in order to protect the entrypoint.
 
-``signed_message_used`` : Big_map of all the signed message already used by users to prevent the smart kids from using used one.
+``signed_message_used`` : Big_map of all the signed messages already used by users to prevent the smart kids from using used one. ^^
 
-``contract_will_update`` : Boolean that will block access to create any drop or sale, (won't block the other entrypoint). The idea behind it is to empty contract storage and slowly move sales to a new version of the contract (if any).
+``contract_will_update`` : Boolean that will block access to the creates entrypoints. The idea behind it is to leave the ability to empty contract storage and slowly move sales to a new version of the contract.
 
 ``authorization_signature`` : Record holding the signed message and the message in bytes.
 
@@ -130,7 +142,7 @@ type storage =
 [@layout:comb]
 {
     ...
-    for_sale: (fa2_base * seller, fixed_price_sale) big_map;
+    for_sale: (fa2_base * address, fixed_price_sale) big_map;
     ...
 }
 
@@ -145,48 +157,19 @@ type fixed_price_sale =
 [@layout:comb]
 {
   price : tez;
-  token_amount : nat;
-  allowlist : (address, unit) map;
+  buyer : address option;
 }
 ```
 
 The `for_sale` record is used to hold all the active sales in the contract.
 
-``fa2_base * seller`` : The `key` is composed of the general information of a token and a seller (the seller in the key allow mulptile user to sell the same token and differentiate them)
+``fa2_base * address`` : The `key` is composed of the general information of a token and a seller address.
 
-``fixed_price_sale`` : The `value` is composed of all the necessary information related to the sale: price of a unit, the amount available, and an optional allowlist in order to sell to specified address.
+``fixed_price_sale`` : The `value` is composed of all the necessary information related to the sale: price and an optional address in order to list to a specific address.
 
-Why `allowlist` in `fixed_price_sale` ?
+Why `buyer` in `fixed_price_sale` ?
 
-A sale can be public or private, which will allow the owner of the token to either open the sell to everyone or restrict the access to specific buyers.
-
-
-## authorized_drops_seller
-
-``` ocaml
-type storage =
-[@layout:comb]
-{
-    ...
-    authorized_drops_seller: (address, unit) big_map;
-    ...
-}
-```
-
-A `drop` is slightly different than a fied price sale.
-
-The main differences are :
-
-    - drop_date
-    - registration
-        - with a registration period (will reserve one token for each participant that registered before the drop date)
-        - using utility token (only buyers owning the utility token will be able to access the drop)
-    - immutable (you can not edit or delete a drop)
-    - can only be configured once per set of token
-    - can only be configured by the minter of the token
-
-
-``authorized_drops_sellers`` : The list of minters present in our FA2 contract. Here we make sure that it can only be congifured by the minter of the token.
+A sale can be public or private, which will allow the owner of the token to either open the sell to everyone or restrict the access to a specific buyer.
 
 ## fa2_dropped
 
@@ -203,7 +186,6 @@ type storage =
 type fa2_dropped_storage = (fa2_base, unit) big_map
 ```
 
-
 ``fa2_dropped`` : The list of token already dropped. Here we make sure that it can only be dropped once.
 
 
@@ -219,25 +201,13 @@ type storage =
     ...
 }
 
-type drops_storage = (fa2_base * seller, fixed_price_drop) big_map
+type drops_storage = (fa2_base * address, fixed_price_drop) big_map
 
 type fixed_price_drop =
 [@layout:comb]
 {
   price: tez;
-  token_amount: nat;
-  registration: registration;
-  registered_buyers: (address, unit) map;
-  drop_owners: (address, unit) map;
   drop_date: timestamp;
-}
-
-type registration =
-[@layout:comb]
-{
-  utility_token: fa2_base option;
-  priority_duration: nat;
-  active: bool;
 }
 
 ```
@@ -248,22 +218,7 @@ type registration =
 
 ``price`` : The price of the tokens dropped.
 
-``token_amount`` : The amount of token dropped.
-
-``registration`` :
-- `active` : boolean specifying if registration is active,
-- `priority_duration` : time during which the registered buyer will have the priority to buy
-- `utility_token` : fa2 token that the buyer needs to own in order to have priority on the sale
-
-``registered_buyers`` : The registration is a `map` of `address` (users) that registered for the sale of the drop. The maximum amount of user is define by the amount of token.
-
-``allowlist`` : If the map is empty the drop is public if not it will be a private drop.
-
-Note: it is not possible to have a registration period and a private drop at the same time.
-
-``drop_date`` : The time when the sale start.
-
-``priority_duration`` : The amount of time registered buyers will have the priority on the drop sale, once this duration is passed, the drop becomes public.
+``drop_date`` : The time when the sale start. Note
 
 
 ### Fee
@@ -279,12 +234,12 @@ type storage =
 type fee_data =
 [@layout:comb]
 {
-    fee_address : address;
-    fee_percent : nat;
+    address : address;
+    percent : nat;
 }
 ```
 
-`fee`: percentage that the `fee_address` will get on every sale.
+`fee`: percentage that the `address` will get on every sale.
 
 
 ## Entrypoints
@@ -295,16 +250,14 @@ The different entrypoints of the contract are define by:
 type fix_price_entrypoints =
     | Admin of admin_entrypoints
 
-    (*Fixed price sales entrypoints *)
-    | CreateSale of sale_configuration
-    | UpdateSale of sale_edition
-    | RevokeSale of sale_deletion
+    (* Fixed price sales entrypoints *)
+    | Create_sales of sale_configuration
+    | Update_sales of sale_edition
+    | Revoke_sales of sale_deletion
 
     (* Drops entrypoint *)
-    | CreateDrop of drop_configuration
-    | RevokeDrop of drop_info
-    | RegisterToDrop of drop_info
-    | ClaimUtilityToken of drop_info
+    | Create_drops of drop_configuration
+    | Revoke_drops of drop_info
 
     (* Buy token in any sales or drops *)
     | Buy_fixed_price_token of buy_token
@@ -313,123 +266,120 @@ type fix_price_entrypoints =
 
 ### Admin
 
-The `Admin` entrypoints are responsible for add/remove seller to the `authorized_drop_seller` big_map, change the `pb_key` responsible to check the message and it's signature, and prevent new seller to create new sale in case the contract will update.
+The `Admin` entrypoints are responsible for updating fees and the `pb_key` responsible to check the message and it's signature, and prevent new seller to create new sale in case the contract will update.
 
 #### admin_entrypoints
 
 ``` ocaml
 type admin_entrypoints =
-    | UpdateFee of fee_data
-    | UpdatePublicKey of key
-    | ContractWillUpdate of bool
+    | Update_fee of fee_data
+    | Update_public_key of key
+    | Contract_will_update of bool
 ```
 
 
-##### UpdateFee
+##### Update_fee
 
 Entrypoints in order to update the address and the percentage of the fee for transactions.
 
-##### UpdatePublicKey
+##### Update_public_key
 
 Entrypoints to update public key for the signature verification.
 
-##### ContractWillUpdate
+##### Contract_will_update
 
-Entrypoint responsible to block access to any seller for the entrypoints `CreateSale` and `CreateDrop` in order to empty this contract and update the a newer version (in case a new one or new logic is implemented)
+Entrypoint responsible to block access to any seller for the entrypoints `Create_sales` and `Create_drops` in order to empty this contract and update the a newer version (in case a new one or new logic is implemented)
 
 
-### CreateSale
+### Create_sales
 
-The `CreateSale` entrypoint is responsible to create a sale.
-
+The `Create_sales` entrypoint is responsible to create sales (note it's possible to list multiple tokens at the time).
 
 ``` ocaml
+
+type sale_configuration =
+[@layout:comb]
+{
+  sale_infos : sale_info list;
+  authorization_signature: authorization_signature;
+}
+
 type sale_info =
 [@layout:comb]
 {
-    allowlist: (address, unit) map;
-    price: tez;
-    seller: address;
-    authorization_signature: authorization_signature;
-    fa2_token: fa2_token;
+  buyer : address option;
+  price: tez;
+  fa2_token: fa2_base;
 }
+
 ```
-All the needed field to configure a sale. The entrypoints only contains record already defined previously.
+
+All the needed field to create sales. The entrypoints only contains record already defined previously.
+
+### Update_sales
+
+The `Update_sales` entrypoint is responsible to edit sales (It's as well possible to update the sale of multiple tokens at the time).
+
+`Update_sales` take the same parameters as `Create_sales` entrypoint
 
 
-### UpdateSale
+### Revoke_sales
 
-The `UpdateSale` entrypoint is responsible to edit a sale.
+The `Revoke_sales` entrypoint is responsible to remove a sale.
 
 
 ``` ocaml
-type sale_info =
+type revoke_sales_param =
 [@layout:comb]
 {
-    allowlist: (address, unit) map;
-    price: tez;
-    seller: address;
-    authorization_signature: authorization_signature;
-    fa2_token: fa2_token;
-}
-```
-All the needed field to edit a sale. The entrypoints only contains record already defined previously.
-
-
-### RevokeSale
-
-The `RevokeSale` entrypoint is responsible to remove a sale.
-
-
-``` ocaml
-type sale_deletion =
-[@layout:comb]
-{
-    fa2_base: fa2_base;
-    seller: address;
+  fa2_tokens: fa2_base list;
 }
 
 ```
-All the needed field to delete a sale. The entrypoints only contains record already defined previously.
+All the needed field to revoke sales. (It's as well possible to update the sale of multiple tokens at the time).
 
-### CreateDrop
+### Create_drops
 
-The `CreateDrop` entrypoint is responsible to configure a drop.
+The `Create_drops` entrypoint is responsible to configure drops.
 
-There are three different types of drop:
+Similar to a fixed price sale except that `drop_date` is specified and no one will be able to buy the token before this `drop_date`
 
-    - Classic drop: similar to a fixed price sale except that drop_date is specified and no one will be able to buy the token before this drop date
-
-Note: A drop can not be edited.
+Note: A drop can only be edited 6 hours before the drop date or 24hours after the token has been dropped.
 
 ``` ocaml
+
 type drop_configuration =
 [@layout:comb]
 {
-    registration: registration;
-    authorization_signature: authorization_signature;
-    fa2_token: fa2_token;
-    price: tez;
-    drop_date: timestamp;
-    seller: address;
+  authorization_signature: authorization_signature;
+  drop_infos: drop_info list; 
 }
+
+type drop_info =
+[@layout:comb]
+{
+  fa2_token: fa2_base;
+  price: tez;
+  drop_date: timestamp;
+}
+
 ```
 
-All the needed field to configure a `drop`. The entrypoints only contains record already defined previously.
+All the needed field to configure a `drop`.
 
-### RevokeDrop
+### Revoke_drops
 
 The `RevokeDrop` entrypoint is responsible to remove a drop, this action can be performed latest 6 hours before the drop or 24h after the drop date. 
 
 
 ``` ocaml
-type drop_info =
+
+type revoke_drops_param =
 [@layout:comb]
 {
-    fa2_base: fa2_base;
-    seller: address;
-    authorization_signature: authorization_signature;
+  fa2_tokens: fa2_base list;
 }
+
 ```
 
 All the needed field to configure a `drop`. The entrypoints only contains record already defined previously.
@@ -452,3 +402,16 @@ type buy_token =
 ```
 
 This two endpoints are using the same record.
+
+### Contract deployed:
+
+#### FA2 Edition:
+    
+    Ithaca : - 
+    Jakarta : -
+
+
+#### Fixed price :
+    
+    Ithaca : - 
+    Jakarta : -

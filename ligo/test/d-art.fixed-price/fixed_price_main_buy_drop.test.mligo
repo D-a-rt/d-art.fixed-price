@@ -74,7 +74,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
         admin = admin;
         paused_minting = false;
         paused_nb_edition_minting = false;
-        minters = (Big_map.empty : (address, unit) big_map);
+        minters = Big_map.literal ([(admin), ()]);
     } in
 
     let asset_strg : nft_token_storage = {
@@ -181,11 +181,12 @@ let test_buy_drop_token_wrong_signature =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
             }: FP_I.authorization_signature);
-        })) 0tez
+        } : FP_I.buy_token)) 0tez
     in
 
     match result with
@@ -214,6 +215,7 @@ let test_buy_drop_token_signature_already_used =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
@@ -272,6 +274,7 @@ let test_buy_drop_token_wrong_price =
                 address = (edition_contract: address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -331,6 +334,7 @@ let test_buy_drop_token_drop_date_not_met =
                 address = (edition_contract: address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -365,6 +369,7 @@ let test_buy_drop_token_not_dropped =
                 address = (edition_contract: address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -397,6 +402,7 @@ let test_buy_drop_token_buyer_is_seller =
                 address = (edition_contract: address);
             } : FP_I.fa2_base);
             seller = init_str.admin.address;
+            buyer = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);

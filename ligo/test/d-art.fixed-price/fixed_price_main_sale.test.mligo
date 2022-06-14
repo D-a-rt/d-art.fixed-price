@@ -956,7 +956,7 @@ let test_revoke_sales =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             }: FP_I.fa2_base)
-        ]} : FP_I.revoke_sales_param)) 0tez
+        ]} : FP_I.revoke_param)) 0tez
     in
 
     let new_str = Test.get_storage contract_add in
@@ -1010,7 +1010,7 @@ let test_revoke_sales_with_amount =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             }: FP_I.fa2_base)
-        ]} : FP_I.revoke_sales_param)) 1tez
+        ]} : FP_I.revoke_param)) 1tez
     in
 
     match result with
@@ -1040,7 +1040,7 @@ let test_revoke_sales_not_created =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             }: FP_I.fa2_base)
-        ]} : FP_I.revoke_sales_param)) 0tez
+        ]} : FP_I.revoke_param)) 0tez
     in
 
     match result with
@@ -1097,7 +1097,7 @@ let test_revoke_sales_not_owner =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             }: FP_I.fa2_base)
-        ]} : FP_I.revoke_sales_param)) 0tez
+        ]} : FP_I.revoke_param)) 0tez
     in
 
     match result with

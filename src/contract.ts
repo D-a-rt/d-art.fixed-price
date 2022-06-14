@@ -19,7 +19,6 @@ import { default as IsMinter } from './views/fa2_editions_is_minter.tz';
 import { default as RoyaltySplits } from './views/fa2_editions_royalty_splits.tz';
 import { default as EditionsMetadata } from './views/fa2_editions_token_metadata.tz';
 import { default as RoyaltyDistribution } from './views/fa2_editions_royalty_distribution.tz';
-import axios from 'axios';
 
 const client = new NFTStorage({
 	token: process.env.NFT_STORAGE_KEY!,

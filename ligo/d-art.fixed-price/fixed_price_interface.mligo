@@ -59,14 +59,6 @@ type fee_data =
 
 // -- Fixed price sale types
 
-type allowed_buyer =
-[@layout:comb]
-{
-  buyer: address;
-  amount: nat
-}
-
-
 type fixed_price_sale =
 [@layout:comb]
 {
@@ -91,12 +83,6 @@ type sale_configuration =
 {
   sale_infos : sale_info list;
   authorization_signature: authorization_signature;
-}
-
-type revoke_sales_param =
-[@layout:comb]
-{
-  fa2_tokens: fa2_base list;
 }
 
 type buy_token =
@@ -126,12 +112,6 @@ type drop_configuration =
   drop_infos: drop_info list; 
 }
 
-type revoke_drops_param =
-[@layout:comb]
-{
-  fa2_tokens: fa2_base list;
-}
-
 type fixed_price_drop =
 [@layout:comb]
 {
@@ -140,6 +120,15 @@ type fixed_price_drop =
 }
 
 type drops_storage = (fa2_base * address, fixed_price_drop) big_map
+
+// Revoke
+
+type revoke_param =
+[@layout:comb]
+{
+  fa2_tokens: fa2_base list;
+}
+
 
 // Contract storage
 
