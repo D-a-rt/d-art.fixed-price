@@ -54,7 +54,11 @@ $ d-art.fixed-price -v
 In case you would like to run each test separately:
 
 ```
-$ 
+$ alias ligo="docker run --rm -v "$PWD":"$PWD" -w "$PWD" ligolang/ligo:0.43.0" 
+$ cd d-art.contracts
+
+$ ligo run test ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo 
+  (or any othe test file)
 ```
 
 ---
