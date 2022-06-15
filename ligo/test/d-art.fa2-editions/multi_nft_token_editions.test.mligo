@@ -82,7 +82,7 @@ let test_burn_token_token_undefined =
 
     let () = Test.set_source owner1 in
 
-    let _gas = Test.transfer_to_contract contract (Burn_token (1n)) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract (Burn_token (1n)) 0tez in
 
     let new_strg = Test.get_storage contract_add in
     match Big_map.find_opt 1n new_strg.assets.ledger with
@@ -283,7 +283,7 @@ let test_mint_edition_royalties_exceed_25_pct =
         )
     |   Fail _ -> failwith "Internal test failure"
 
-// Fail if split more than 100%
+// Fail if split not equal to 100%
 let test_mint_edition_splits_exceed_100_pct = 
     let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(false, false) in
     let contract = Test.to_contract contract_add in
@@ -308,13 +308,130 @@ let test_mint_edition_splits_exceed_100_pct =
 
     let result = Test.transfer_to_contract contract (Mint_editions mint_editions_param) 0tez in
 
+    let () = match result with
+            Success _gas -> failwith "Mint_editions - Splits != 100% : This test should fail"
+        |   Fail (Rejected (err, _)) -> (
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_SPLIT_MUST_BE_100_PERCENT") ) "Mint_editions - Splits > 100% : Should not work if Splits exceed 100%" in
+                ()
+            )
+        |   Fail _ -> failwith "Internal test failure"
+    in
+
+    let mint_editions_param = ([({
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 100n;
+        splits = ([{
+            address = minter;
+            pct = 499n;
+        }; {
+            address = admin;
+            pct = 500n;
+        }] : FA2_I.split list );
+        receivers = ([] : address list);
+    } : FA2_E.mint_edition_param )] : FA2_E.mint_edition_param list) in
+
+    let result = Test.transfer_to_contract contract (Mint_editions mint_editions_param) 0tez in
+
     match result with
-        Success _gas -> failwith "Mint_editions - Splits > 100% : This test should fail"
+        Success _gas -> failwith "Mint_editions - Splits != 100% : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SPLIT_CANNOT_EXCEED_100_PERCENT") ) "Mint_editions - Splits > 100% : Should not work if Splits exceed 100%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_SPLIT_MUST_BE_100_PERCENT") ) "Mint_editions - Splits < 100% : Should not work if Splits lower then 100%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
+
+// Fail if pause minting true
+let test_mint_edition_pause_minting = 
+    let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(true, false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+
+    let str = Test.get_storage contract_add in
+
+    let mint_editions_param = ([({
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 100n;
+        splits = ([{
+            address = minter;
+            pct = 500n;
+        }; {
+            address = admin;
+            pct = 500n;
+        }] : FA2_I.split list );
+        receivers = ([] : address list);
+    } : FA2_E.mint_edition_param )] : FA2_E.mint_edition_param list) in
+
+    let result = Test.transfer_to_contract contract (Mint_editions mint_editions_param) 0tez in
+
+    match result with
+            Success _gas -> failwith "Mint_editions - Minting closed : This test should fail"
+        |   Fail (Rejected (err, _)) -> (
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "MINTING_PAUSED") ) "Mint_editions - Minting closed : Should not work if minting is paused" in
+                "Passed"
+            )
+        |   Fail _ -> failwith "Internal test failure"
+    
+// Fail if pause number minting true and edition > 1
+let test_mint_edition_pause_nb_edition_minting_fail = 
+    let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(false, true) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+
+    let str = Test.get_storage contract_add in
+
+    let mint_editions_param = ([({
+        edition_info = ("" : bytes);
+        total_edition_number = 2n;
+        royalty = 100n;
+        splits = ([{
+            address = minter;
+            pct = 500n;
+        }; {
+            address = admin;
+            pct = 500n;
+        }] : FA2_I.split list );
+        receivers = ([] : address list);
+    } : FA2_E.mint_edition_param )] : FA2_E.mint_edition_param list) in
+
+    let result = Test.transfer_to_contract contract (Mint_editions mint_editions_param) 0tez in
+
+    match result with
+            Success _gas -> failwith "Mint_editions - Multiple edition minting closed : This test should fail"
+        |   Fail (Rejected (err, _)) -> (
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "MULTIPLE_EDITION_MINTING_CLOSED") ) "Mint_editions - Multiple edition minting closed : Should not work if minting numbered edition is paused" in
+                "Passed"
+            )
+        |   Fail _ -> failwith "Internal test failure"
+
+// Success pause minting number edition closed 
+let test_mint_edition_pause_nb_edition_minting_success = 
+    let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(false, true) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+
+    let str = Test.get_storage contract_add in
+
+    let mint_editions_param = ([({
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 100n;
+        splits = ([{
+            address = minter;
+            pct = 500n;
+        }; {
+            address = admin;
+            pct = 500n;
+        }] : FA2_I.split list );
+        receivers = ([] : address list);
+    } : FA2_E.mint_edition_param )] : FA2_E.mint_edition_param list) in
+
+    let _gas = Test.transfer_to_contract_exn contract (Mint_editions mint_editions_param) 0tez in
+    "Passed"
 
 // Success with nb receivers < edition number
 let test_mint_edition_success_less_receivers_than_edition = 
@@ -363,7 +480,6 @@ let test_mint_edition_success_less_receivers_than_edition =
             "Passed"
         )
     |   Fail (Rejected (err, _)) -> (
-            let () = Test.log ("err:", err) in
             failwith "Mint_editions - Less receivers than edition : This test should pass"
         )
     |   Fail _ -> failwith "Internal test failure"
@@ -409,7 +525,6 @@ let test_mint_edition_success_receivers_equal_edition_nb =
             "Passed"
         )
     |   Fail (Rejected (err, _)) -> (
-            let () = Test.log ("err:", err) in
             failwith "Mint_editions - Receivers equal edition nb : This test should pass"
         )
     |   Fail _ -> failwith "Internal test failure"
@@ -459,7 +574,40 @@ let test_mint_edition_success_no_receivers =
             "Passed"
         )
     |   Fail (Rejected (err, _)) -> (
-            let () = Test.log ("err:", err) in
             failwith "Mint_editions - No receivers : This test should pass"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+let test_mint_edition_hash_used = 
+    let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(false, false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+
+    let str = Test.get_storage contract_add in
+
+    let mint_editions_param = ([({
+        edition_info = ("" : bytes);
+        total_edition_number = 3n;
+        royalty = 100n;
+        splits = ([{
+            address = minter;
+            pct = 500n;
+        }; {
+            address = admin;
+            pct = 500n;
+        }] : FA2_I.split list );
+        receivers = ([] : address list);
+    } : FA2_E.mint_edition_param )] : FA2_E.mint_edition_param list) in
+
+    let _gas = Test.transfer_to_contract_exn contract (Mint_editions mint_editions_param) 0tez in
+
+    let result = Test.transfer_to_contract contract (Mint_editions mint_editions_param) 0tez in
+
+    match result with
+        Success _gas -> failwith "Mint_editions - Hash used : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "HASH_ALREADY_USED") ) "Mint_editions - Hash used : Should not work if hash has already been used" in
+            "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"

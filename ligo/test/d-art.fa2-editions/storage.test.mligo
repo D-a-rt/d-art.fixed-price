@@ -75,6 +75,7 @@ let get_initial_storage (pm, pnbm : bool * bool) : ( ((FA2_E.editions_entrypoint
         assets = asset_str;
         admin = admin_str;
         metadata = (Big_map.empty : (string, bytes) big_map);
+        hash_used = (Big_map.empty : (bytes, unit) big_map);
     } in
 
     let taddr, _, _ = Test.originate FA2_E.editions_main str 0tez in

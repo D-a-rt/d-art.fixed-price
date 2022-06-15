@@ -130,4 +130,5 @@ type editions_storage =
     assets : nft_token_storage;
     admin : admin_storage;
     metadata: (string, bytes) big_map;
+    hash_used: (bytes, unit) big_map;
 }

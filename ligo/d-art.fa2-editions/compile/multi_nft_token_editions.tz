@@ -475,6 +475,15 @@
                  SENDER ;
                  MEM ;
                  IF {} { PUSH string "NOT_A_MINTER" ; FAILWITH } ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 CDR ;
+                 CAR ;
+                 IF { PUSH string "MINTING_CLOSED" ; FAILWITH } {} ;
                  ITER { SWAP ;
                         PUSH nat 250 ;
                         DUP 3 ;
@@ -510,6 +519,21 @@
                         LE ;
                         NOT ;
                         IF { FAILWITH } { DROP } ;
+                        DUP ;
+                        CAR ;
+                        CAR ;
+                        CAR ;
+                        CDR ;
+                        CDR ;
+                        IF { PUSH nat 1 ;
+                             DUP 3 ;
+                             GET 3 ;
+                             COMPARE ;
+                             EQ ;
+                             NOT ;
+                             IF { PUSH string "MULTIPLE_EDITION_MINTING_CLOSED" ; FAILWITH } { UNIT } }
+                           { UNIT } ;
+                        DROP ;
                         PUSH nat 0 ;
                         DUP 3 ;
                         GET 7 ;

@@ -51,7 +51,7 @@ let test_pause_numbered_edition_minting =
     let () = assert_with_error (new_str.admin.paused_nb_edition_minting = true) "Admin -> Pause_nb_edition_minting - Success : This test should pass :  Wrong paused_nb_edition_minting" in
     "Passed"
 
-// -- Pause minting --
+// -- Pause minting -
 
 // Fail not admin
 let test_pause_minting_not_admin =

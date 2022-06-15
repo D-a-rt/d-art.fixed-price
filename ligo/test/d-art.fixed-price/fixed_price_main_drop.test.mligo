@@ -55,6 +55,7 @@ type editions_storage =
     assets : nft_token_storage;
     admin : admin_storage;
     metadata: (string, bytes) big_map;
+    hash_used: (bytes, unit) big_map;
 }
 
 let get_edition_fa2_contract (fixed_price_contract_address : address) = 
@@ -107,6 +108,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
         assets = asset_strg;
         admin = admin_strg;
         metadata = (Big_map.empty : (string, bytes) big_map);
+        hash_used = (Big_map.empty : (bytes, unit) big_map);
     } in
 
     // Path of the contract on yout local machine
