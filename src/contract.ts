@@ -113,7 +113,7 @@ export async function deployFixedPriceContract(): Promise<void> {
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ithacanet.ecadinfra.com');
+        const toolkit = await new TezosToolkit('https://jakartanet.ecadinfra.com');
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
@@ -373,7 +373,7 @@ export async function deployEditionContract(): Promise<void> {
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ithacanet.ecadinfra.com');
+        const toolkit = await new TezosToolkit('https://jakartanet.ecadinfra.com');
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 

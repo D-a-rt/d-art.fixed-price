@@ -76,11 +76,11 @@ $ ligo run test ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo
 
 #### FA2 Edition:
     
-    Ithaca : - 
-    Jakarta : -
+    Jakarta TestNet: -
+    Mainnet : - 
 
 
 #### Fixed price :
     
-    Ithaca : - 
-    Jakarta : -
+    Jakarta TestNet: -
+    Mainnet : - 
