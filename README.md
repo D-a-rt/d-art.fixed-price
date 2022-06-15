@@ -63,13 +63,13 @@ $ ligo run test ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo
 
 ## Contracts
 
--[Fixed Price](./ligo/d-art.fixed-price)
--[FA2 Editions](./ligo/d-art.fa2-editions)
+- [Fixed Price](./ligo/d-art.fixed-price)
+- [FA2 Editions](./ligo/d-art.fa2-editions)
 
 ### Tests 
 
--[Fixed Price](./ligo/test/d-art.fixed-price)
--[FA2 Editions](./ligo/test/d-art.fa2-editions)
+- [Fixed Price](./ligo/test/d-art.fixed-price)
+- [FA2 Editions](./ligo/test/d-art.fa2-editions)
 
 
 ### Contract deployed:
