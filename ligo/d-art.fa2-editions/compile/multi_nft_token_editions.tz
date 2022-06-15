@@ -34,8 +34,9 @@
                                (nat %total_edition_number)
                                (nat %royalty)
                                (list %splits (pair (address %address) (nat %pct)))))
-                      (nat %max_editions_per_run)))
-          (pair (big_map %metadata string bytes) (nat %next_edition_id))) ;
+                      (big_map %hash_used bytes unit)))
+          (pair (pair (nat %max_editions_per_run) (big_map %metadata string bytes))
+                (nat %next_edition_id))) ;
   code { LAMBDA
            (pair (pair (list (pair (option address) (list (pair (option address) nat nat))))
                        (lambda
@@ -475,15 +476,6 @@
                  SENDER ;
                  MEM ;
                  IF {} { PUSH string "NOT_A_MINTER" ; FAILWITH } ;
-                 SWAP ;
-                 DUP ;
-                 DUG 2 ;
-                 CAR ;
-                 CAR ;
-                 CAR ;
-                 CDR ;
-                 CAR ;
-                 IF { PUSH string "MINTING_CLOSED" ; FAILWITH } {} ;
                  ITER { SWAP ;
                         PUSH nat 250 ;
                         DUP 3 ;
@@ -500,9 +492,9 @@
                         NOT ;
                         IF { PUSH string "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE" ; FAILWITH } {} ;
                         DUP ;
+                        CDR ;
                         CAR ;
-                        CDR ;
-                        CDR ;
+                        CAR ;
                         DUP 3 ;
                         GET 3 ;
                         COMPARE ;
@@ -534,6 +526,19 @@
                              IF { PUSH string "MULTIPLE_EDITION_MINTING_CLOSED" ; FAILWITH } { UNIT } }
                            { UNIT } ;
                         DROP ;
+                        PUSH string "HASH_ALREADY_USED" ;
+                        SWAP ;
+                        DUP ;
+                        DUG 2 ;
+                        CAR ;
+                        CDR ;
+                        CDR ;
+                        DUP 4 ;
+                        CAR ;
+                        MEM ;
+                        NOT ;
+                        NOT ;
+                        IF { FAILWITH } { DROP } ;
                         PUSH nat 0 ;
                         DUP 3 ;
                         GET 7 ;
@@ -541,9 +546,9 @@
                         PUSH nat 1000 ;
                         SWAP ;
                         COMPARE ;
-                        LE ;
+                        EQ ;
                         NOT ;
-                        IF { PUSH string "SPLIT_CANNOT_EXCEED_100_PERCENT" ; FAILWITH } {} ;
+                        IF { PUSH string "TOTAL_SPLIT_MUST_BE_100_PERCENT" ; FAILWITH } {} ;
                         SWAP ;
                         DUP ;
                         DUG 2 ;
@@ -572,22 +577,20 @@
                         DUP 3 ;
                         CAR ;
                         PAIR ;
-                        DIG 3 ;
-                        GET 8 ;
+                        DUP ;
+                        CDR ;
                         SWAP ;
                         DUP ;
                         DUG 2 ;
-                        CDR ;
-                        DUP 3 ;
                         CAR ;
                         CDR ;
                         CDR ;
-                        DUP 6 ;
+                        DUP 5 ;
                         CAR ;
                         CDR ;
                         CAR ;
-                        DUP 6 ;
-                        DUP 8 ;
+                        DUP 5 ;
+                        DUP 7 ;
                         CDR ;
                         CDR ;
                         SWAP ;
@@ -595,15 +598,42 @@
                         SWAP ;
                         UPDATE ;
                         PAIR ;
+                        DIG 2 ;
+                        CAR ;
+                        CAR ;
+                        PAIR ;
+                        PAIR ;
+                        DUP 4 ;
+                        GET 8 ;
+                        SWAP ;
+                        DUP ;
+                        DUG 2 ;
+                        CDR ;
+                        DUP 5 ;
+                        CAR ;
+                        CDR ;
+                        CDR ;
+                        UNIT ;
+                        DIG 7 ;
+                        CAR ;
+                        SWAP ;
+                        SOME ;
+                        SWAP ;
+                        UPDATE ;
+                        DUP 4 ;
+                        CAR ;
+                        CDR ;
+                        CAR ;
+                        PAIR ;
                         DIG 3 ;
                         CAR ;
                         CAR ;
                         PAIR ;
                         PAIR ;
                         DUP ;
+                        CDR ;
                         CAR ;
-                        CDR ;
-                        CDR ;
+                        CAR ;
                         DIG 4 ;
                         CDR ;
                         CDR ;
@@ -758,9 +788,9 @@
              SWAP ;
              DUP ;
              DUG 2 ;
+             CDR ;
              CAR ;
-             CDR ;
-             CDR ;
+             CAR ;
              SWAP ;
              DUP ;
              DUG 2 ;
@@ -780,9 +810,9 @@
                { GET 3 ;
                  PUSH nat 1 ;
                  DIG 4 ;
+                 CDR ;
                  CAR ;
-                 CDR ;
-                 CDR ;
+                 CAR ;
                  DIG 3 ;
                  MUL ;
                  DUP 4 ;
@@ -805,9 +835,9 @@
          SWAP ;
          DUP ;
          DUG 2 ;
+         CDR ;
          CAR ;
-         CDR ;
-         CDR ;
+         CAR ;
          SWAP ;
          EDIV ;
          IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
@@ -828,9 +858,9 @@
          SWAP ;
          DUP ;
          DUG 2 ;
+         CDR ;
          CAR ;
-         CDR ;
-         CDR ;
+         CAR ;
          SWAP ;
          EDIV ;
          IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
@@ -849,9 +879,9 @@
          SWAP ;
          DUP ;
          DUG 2 ;
+         CDR ;
          CAR ;
-         CDR ;
-         CDR ;
+         CAR ;
          SWAP ;
          EDIV ;
          IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
@@ -872,9 +902,9 @@
          SWAP ;
          DUP ;
          DUG 2 ;
+         CDR ;
          CAR ;
-         CDR ;
-         CDR ;
+         CAR ;
          SWAP ;
          EDIV ;
          IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
@@ -893,9 +923,9 @@
          SWAP ;
          DUP ;
          DUG 2 ;
+         CDR ;
          CAR ;
-         CDR ;
-         CDR ;
+         CAR ;
          SWAP ;
          EDIV ;
          IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
