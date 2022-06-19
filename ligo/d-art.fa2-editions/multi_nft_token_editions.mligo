@@ -19,7 +19,7 @@ type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
     |   Mint_editions of mint_edition_param list
-    |   Burn_token of token_id
+    |   Burn_token of burn_param
 
 let fail_if_not_owner (sender, token_id, storage : address * token_id * editions_storage) : unit =
     match (Big_map.find_opt token_id storage.assets.ledger) with
@@ -118,6 +118,7 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let () = fail_if_not_minter editions_storage.admin in
             mint_editions (mint_param, editions_storage)
 
-        | Burn_token token_id ->
-            let () : unit = fail_if_not_owner (Tezos.sender, token_id, editions_storage) in
-            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove token_id editions_storage.assets.ledger }
+        | Burn_token burn_param ->
+            let () = assert_msg (burn_param.owner = Tezos.sender, "NOT_OWNER") in
+            let () : unit = fail_if_not_owner (Tezos.sender, burn_param.token_id, editions_storage) in
+            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }

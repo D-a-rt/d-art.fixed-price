@@ -2,7 +2,7 @@
     (or (or (or %admin
                (or (address %add_minter) (bool %pause_minting))
                (or (bool %pause_nb_edition_minting) (address %remove_minter)))
-            (nat %burn_token))
+            (pair %burn_token (address %owner) (nat %token_id)))
         (or (or %fA2
                (or (pair %balance_of
                       (list %requests (pair (address %owner) (nat %token_id)))
@@ -256,12 +256,21 @@
                  PAIR ;
                  SWAP ;
                  PAIR }
-               { SWAP ;
+               { PUSH string "NOT_OWNER" ;
+                 SENDER ;
+                 DUP 3 ;
+                 CAR ;
+                 COMPARE ;
+                 EQ ;
+                 NOT ;
+                 IF { FAILWITH } { DROP } ;
+                 SWAP ;
                  DUP ;
                  DUG 2 ;
                  SWAP ;
                  DUP ;
                  DUG 2 ;
+                 CDR ;
                  SENDER ;
                  DIG 2 ;
                  CAR ;
@@ -296,6 +305,7 @@
                  CAR ;
                  CAR ;
                  DIG 5 ;
+                 CDR ;
                  NONE address ;
                  SWAP ;
                  UPDATE ;

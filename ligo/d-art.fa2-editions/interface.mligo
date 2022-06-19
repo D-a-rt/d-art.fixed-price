@@ -89,6 +89,13 @@ type split =
   pct: nat;
 }
 
+type burn_param = 
+[@layout:comb]
+{ 
+  owner: address;
+  token_id: token_id;
+}
+
 // -- Edition entrypoints
 
 type edition_metadata =
