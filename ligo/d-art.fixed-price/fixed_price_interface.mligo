@@ -121,6 +121,15 @@ type fixed_price_drop =
 
 type drops_storage = (fa2_base * address, fixed_price_drop) big_map
 
+type token_id = nat
+
+type token_metadata =
+[@layout:comb]
+  {
+    token_id: token_id;
+    token_info: ((string, bytes) map);
+  }
+  
 // Revoke
 
 type revoke_param =

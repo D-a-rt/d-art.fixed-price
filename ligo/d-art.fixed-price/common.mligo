@@ -114,6 +114,13 @@ let get_drop (fa2_base, seller, storage : fa2_base * address * storage) : fixed_
           Some fixed_price_drop -> fixed_price_drop
         | None ->  (failwith "TOKEN_IS_NOT_DROPPED" : fixed_price_drop)
 
+// Check if the token is a 1/1 Edition on fa2_edition contract in 
+// else failwith 
+let verify_unique_edition (token : fa2_base) : unit =
+  match ((Tezos.call_view "is_unique_edition" token.id token.address ): bool option) with
+    None -> unit
+    | Some is_unique_ed -> if is_unique_ed then unit else failwith "ONLY_UNIQUE_EDITION_ALLOWED"
+    
 // -- Any kind of sale
 
 let perform_sale_operation (buy_token, price, storage : buy_token * tez * storage) : operation list =
