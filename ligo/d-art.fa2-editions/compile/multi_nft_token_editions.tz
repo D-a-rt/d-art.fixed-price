@@ -959,5 +959,33 @@
          CDR ;
          SWAP ;
          GET ;
-         IF_NONE { PUSH bool False } { DROP ; PUSH bool True } } }
+         IF_NONE { PUSH bool False } { DROP ; PUSH bool True } } ;
+  view "is_unique_edition"
+       nat
+       bool
+       { UNPAIR ;
+         SWAP ;
+         DUP ;
+         DUG 2 ;
+         CDR ;
+         CAR ;
+         CAR ;
+         SWAP ;
+         EDIV ;
+         IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
+         CAR ;
+         SWAP ;
+         CAR ;
+         CDR ;
+         CAR ;
+         SWAP ;
+         GET ;
+         IF_NONE
+           { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+           { PUSH nat 1 ;
+             SWAP ;
+             GET 5 ;
+             COMPARE ;
+             GT ;
+             IF { PUSH bool False } { PUSH bool True } } } }
 

@@ -110,7 +110,6 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
 
             let auhorized = is_authorized_drop_seller (Tezos.sender, drop_param.fa2_token) in
             let () = assert_msg (auhorized = true , "NOT_AUTHORIZED_DROP_SELLER") in
-            let () = verify_unique_edition(drop_param.fa2_token) in 
             
             let fixed_price_drop : fixed_price_drop = {
                 price = drop_param.price;

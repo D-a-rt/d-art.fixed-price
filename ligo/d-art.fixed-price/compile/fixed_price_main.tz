@@ -620,15 +620,7 @@
                      DUP ;
                      DUG 2 ;
                      CDR ;
-                     ITER { DUP ;
-                            DUG 2 ;
-                            CAR ;
-                            UNPAIR ;
-                            VIEW "is_token_unique_edition" bool ;
-                            IF_NONE
-                              { UNIT }
-                              { IF { UNIT } { PUSH string "ONLY_UNIQUE_EDITION_ALLOWED" ; FAILWITH } } ;
-                            DROP ;
+                     ITER { SWAP ;
                             PUSH string "Price should be at least 0.1tez" ;
                             PUSH mutez 100000 ;
                             DUP 4 ;

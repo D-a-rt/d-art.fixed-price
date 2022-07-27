@@ -825,46 +825,6 @@ let test_create_drops_not_authorized_drop_seller =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
-// Should fail if token to drop is not unique
-let test_create_drops_unique_edition =
-    let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
-    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
-    let init_str = Test.get_storage contract_add in
-
-    let token_minter = Test.nth_bootstrap_account 4 in
-    let () = Test.set_source token_minter in
-    let contract = Test.to_contract contract_add in
-
-    let now : timestamp = Tezos.now in
-    let three_days : int = 253800 in
-    let expected_time_result_three = now + three_days in
-
-    let result = Test.transfer_to_contract contract
-        (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
-            drop_infos = [({
-                price = 100000mutez;
-                drop_date = expected_time_result_three;
-                fa2_token = {
-                    address = (edition_contract : address);
-                    id = 0n 
-                };
-            } : FP_I.drop_info )]
-        } : FP_I.drop_configuration)) 0tez
-    in
-
-    match result with
-        Success _gas -> failwith "Create_drops - Only unique edition : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ONLY_UNIQUE_EDITION_ALLOWED") ) "Create_drops - Only unique edition : Should not work if token is not unique" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
 // -- REVOKE DROPS --
 
 // Should sucess if token been already revoked before drop date
