@@ -460,7 +460,8 @@
                      DUP ;
                      DUG 2 ;
                      GET 3 ;
-                     SENDER ;
+                     DUP 3 ;
+                     GET 5 ;
                      COMPARE ;
                      NEQ ;
                      PAIR ;

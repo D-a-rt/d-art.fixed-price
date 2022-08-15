@@ -107,13 +107,13 @@ export async function deployFixedPriceContract(): Promise<void> {
             fa2_dropped: MichelsonMap.fromLiteral({}),
             fee: {
                 address: process.env.ADMIN_PUBLIC_KEY_HASH,
-                percent: 10,
+                percent: 100,
             }
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ithacanet.ecadinfra.com');
+        const toolkit = await new TezosToolkit('https://ithaca-archive.tzconnect.berlin');
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
@@ -122,7 +122,7 @@ export async function deployFixedPriceContract(): Promise<void> {
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
 
-        console.log('Contract deployed at: ', address)
+        console.log('Fixed price contract deployed at: ', address)
 
     } catch (error) {
         const jsonError = JSON.stringify(error);
@@ -374,7 +374,7 @@ export async function deployEditionContract(): Promise<void> {
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ithacanet.ecadinfra.com');
+        const toolkit = await new TezosToolkit('https://ithaca-archive.tzconnect.berlin');
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
@@ -384,11 +384,11 @@ export async function deployEditionContract(): Promise<void> {
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
 
-        console.log('Contract deployed at: ', address)
+        console.log('Edition FA2 contract deployed at: ', address)
 
     } catch (error) {
         const jsonError = JSON.stringify(error);
-        console.log(kleur.red(`Fixed price sale (tez) origination error ${jsonError}`));
+        console.log(kleur.red(`Edition FA2 origination error ${jsonError}`));
     }
 }
 

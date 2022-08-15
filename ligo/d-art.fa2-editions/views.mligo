@@ -69,3 +69,10 @@ let token_metadata (token_id, storage: nat * editions_storage) : token_metadata 
                } : token_metadata)
             | None -> (failwith "FA2_TOKEN_UNDEFINED" : token_metadata))
     | None -> (failwith "FA2_TOKEN_UNDEFINED" : token_metadata)
+
+[@view]
+let is_unique_edition (token_id, storage: nat * editions_storage) : bool =
+    let edition_id = token_id_to_edition_id(token_id, storage) in
+    match (Big_map.find_opt edition_id storage.editions_metadata) with
+            Some edition_metadata -> if edition_metadata.total_edition_number > 1n then false else true
+        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : bool)

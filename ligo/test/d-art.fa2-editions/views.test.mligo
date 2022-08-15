@@ -122,5 +122,16 @@ let test_token_metadata_view =
         token_info = Map.literal [("edition_number"), Bytes.pack(2n) ]
     } : FA2_V.token_metadata) in
 
-    let () = assert_with_error (token_metadata = token_m) "Views - Token metadata : This test should pass, wrong minter specified" in
+    let () = assert_with_error (token_metadata = token_m) "Views - Token metadata : This test should pass, wrong token_metadata" in
+    "Passed"
+
+// -- Views - is token unique edition --
+// Success
+let test_is_unique_edition =
+    let contract_add, _, _, minter = FA2_STR.get_initial_storage(false, false) in
+    let strg = Test.get_storage contract_add in
+
+    let is_unique_edition = FA2_V.is_unique_edition(1n, strg) in
+
+    let () = assert_with_error (is_unique_edition = false) "Views - Is unique edition : This test should pass, test is unique edition" in
     "Passed"

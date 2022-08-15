@@ -74,7 +74,10 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
 
     let asset_strg : nft_token_storage = {
         ledger = Big_map.literal([
-                (0n), (token_seller)        
+                (0n), (token_seller);
+                (1n), (token_seller);       
+                (250n), (token_seller);
+                (500n), (token_seller)        
             ]);
         operators = Big_map.literal([
                 ((token_seller, (fixed_price_contract_address, 0n)), ())  ;      
@@ -97,8 +100,41 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
             } : split )];
         } : edition_metadata ) in
 
+    let edition_meta_2 : edition_metadata = ({
+            minter = token_minter;
+            edition_info = (Map.empty : (string, bytes) map);
+            total_edition_number = 1n;
+            royalty = 150n;
+            splits = [({
+                address = token_minter;
+                pct = 500n;
+            } : split );
+            ({
+                address = token_split;
+                pct = 500n;
+            } : split )];
+        } : edition_metadata ) in
+
+    let edition_meta_3 : edition_metadata = ({
+            minter = token_minter;
+            edition_info = (Map.empty : (string, bytes) map);
+            total_edition_number = 1n;
+            royalty = 250n;
+            splits = [({
+                address = token_minter;
+                pct = 500n;
+            } : split );
+            ({
+                address = token_split;
+                pct = 500n;
+            } : split )];
+        } : edition_metadata ) in
+
+
     let edition_meta_strg : editions_metadata = Big_map.literal([
         (0n), (edition_meta);
+        (1n), (edition_meta_2);
+        (2n), (edition_meta_3);
     ]) in
 
     let edition_strg = {
@@ -237,14 +273,14 @@ let test_create_drops =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 0n 
+                    id = 250n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
                 price = 100000mutez;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 1n
+                    id = 500n
                 };
             } : FP_I.drop_info)]
         } : FP_I.drop_configuration)) 0tez
@@ -262,7 +298,7 @@ let test_create_drops =
                 let first_drop_key : FP_I.fa2_base * address = (
                     {
                         address = ( edition_contract : address);
-                        id = 0n
+                        id = 250n
                     },
                     token_minter
                  ) in
@@ -277,7 +313,7 @@ let test_create_drops =
                 let second_drop_key : FP_I.fa2_base * address = (
                     {
                         address = ( edition_contract : address);
-                        id = 1n
+                        id = 500n
                     },
                     token_minter
                  ) in
@@ -467,7 +503,7 @@ let test_create_drops_price_to_small_second_el =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 0n 
+                    id = 250n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
@@ -517,14 +553,14 @@ let test_create_drops_already_in_drop =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 0n 
+                    id = 250n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
                 price = 100000mutez;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 0n
+                    id = 250n
                 };
             } : FP_I.drop_info)]
         } : FP_I.drop_configuration)) 0tez
@@ -653,7 +689,7 @@ let test_create_drops_already_used_signature =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 0n 
+                    id = 250n 
                 };
             } : FP_I.drop_info )]
         } : FP_I.drop_configuration)) 0tez
@@ -713,7 +749,7 @@ let test_create_drops_wrong_drop_date =
                 drop_date = expected_time_result_less;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 0n 
+                    id = 250n 
                 };
             } : FP_I.drop_info )]
         } : FP_I.drop_configuration)) 0tez

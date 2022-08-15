@@ -11,7 +11,7 @@ let test_burn_token_no_amount =
 
     let () = Test.set_source owner1 in
 
-    let result = Test.transfer_to_contract contract (Burn_token (1n)) 1tez in
+    let result = Test.transfer_to_contract contract (Burn_token ({ owner = owner1; token_id = 1n;})) 1tez in
 
     match result with
         Success _gas -> failwith "Burn_token - No amount : This test should fail"
@@ -28,7 +28,7 @@ let test_burn_token_not_owner =
 
     let () = Test.set_source owner1 in
 
-    let result = Test.transfer_to_contract contract (Burn_token (3n)) 0tez in
+    let result = Test.transfer_to_contract contract (Burn_token ({ owner = owner1; token_id = 3n;})) 0tez in
 
     match result with
         Success _gas -> failwith "Burn_token - Not owner : This test should fail"
@@ -46,7 +46,7 @@ let test_burn_token_if_operator =
     let operator1 = Test.nth_bootstrap_account 4 in
     let () = Test.set_source operator1 in
 
-    let result = Test.transfer_to_contract contract (Burn_token (1n)) 0tez in
+    let result = Test.transfer_to_contract contract (Burn_token ({ owner = operator1; token_id = 1n;})) 0tez in
 
     match result with
         Success _gas -> failwith "Burn_token - Is operator : This test should fail"
@@ -64,7 +64,7 @@ let test_burn_token_token_undefined =
 
     let () = Test.set_source owner1 in
 
-    let result = Test.transfer_to_contract contract (Burn_token (9879n)) 0tez in
+    let result = Test.transfer_to_contract contract (Burn_token ({ owner = owner1; token_id = 9879n;})) 0tez in
 
     match result with
         Success _gas -> failwith "Burn_token - Token undefined : This test should fail"
@@ -82,7 +82,7 @@ let test_burn_token_token_undefined =
 
     let () = Test.set_source owner1 in
 
-    let _gas = Test.transfer_to_contract_exn contract (Burn_token (1n)) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract (Burn_token ({ owner = owner1; token_id = 1n;})) 0tez in
 
     let new_strg = Test.get_storage contract_add in
     match Big_map.find_opt 1n new_strg.assets.ledger with

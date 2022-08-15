@@ -79,7 +79,7 @@ let revoke_sales (revoke_sales_param, storage : revoke_param * storage) : return
     ([] : operation list), new_strg
 
 let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
-    let () = assert_msg (Tezos.sender <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
+    let () = assert_msg (buy_token.buyer <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
     let () = verify_signature (buy_token.authorization_signature, storage) in
 
     let concerned_fixed_price_sale : fixed_price_sale = get_sale (buy_token.fa2_token, buy_token.seller, storage) in
@@ -101,6 +101,7 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
     
     let create_drop : ( storage * drop_info ) -> storage =
         fun (strg, drop_param : storage * drop_info ) ->
+            
             let () = assert_msg (drop_param.price >= 100000mutez, "Price should be at least 0.1tez" ) in
             let () = fail_if_wrong_drop_date (drop_param.drop_date) in
 
