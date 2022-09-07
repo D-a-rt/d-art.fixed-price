@@ -159,7 +159,8 @@ let get_initial_storage (signature_saved : bool) =
         fee = {
             address = fee_account;
             percent = 35n;
-        }
+        };
+        metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
     let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in

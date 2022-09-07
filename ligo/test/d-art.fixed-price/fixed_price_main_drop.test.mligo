@@ -210,7 +210,8 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
         fee = {
             address = admin;
             percent = 3n;
-        }
+        };
+        metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
     if isDropped

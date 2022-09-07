@@ -41,7 +41,8 @@
              (pair (pair (nat %id) (address %address)) address)
              (pair (mutez %price) (timestamp %drop_date)))
           (big_map %fa2_dropped (pair (nat %id) (address %address)) unit)
-          (pair %fee (address %address) (nat %percent))) ;
+          (pair %fee (address %address) (nat %percent))
+          (big_map %metadata string bytes)) ;
   code { LAMBDA
            (pair bool string)
            unit
@@ -77,7 +78,8 @@
                        (big_map (pair (pair nat address) address) (pair mutez (option address)))
                        (big_map (pair (pair nat address) address) (pair mutez timestamp))
                        (big_map (pair nat address) unit)
-                       (pair address nat)))
+                       (pair address nat)
+                       (big_map string bytes)))
            unit
            { UNPAIR ;
              DUP ;
@@ -107,7 +109,8 @@
                        (big_map (pair (pair nat address) address) (pair mutez (option address)))
                        (big_map (pair (pair nat address) address) (pair mutez timestamp))
                        (big_map (pair nat address) unit)
-                       (pair address nat)))
+                       (pair address nat)
+                       (big_map string bytes)))
            (pair mutez timestamp)
            { UNPAIR ;
              UNPAIR ;
@@ -129,7 +132,8 @@
                              (big_map (pair (pair nat address) address) (pair mutez (option address)))
                              (big_map (pair (pair nat address) address) (pair mutez timestamp))
                              (big_map (pair nat address) unit)
-                             (pair address nat))))
+                             (pair address nat)
+                             (big_map string bytes))))
            (list operation)
            { UNPAIR ;
              UNPAIR 3 ;
@@ -137,14 +141,14 @@
              UNPAIR ;
              UNPAIR ;
              DUP 3 ;
-             GET 8 ;
+             GET 9 ;
              CAR ;
              DUP 5 ;
              SWAP ;
              EXEC ;
              DUP 3 ;
              DIG 4 ;
-             GET 8 ;
+             GET 9 ;
              CDR ;
              SOME ;
              PAIR ;
@@ -315,7 +319,7 @@
                              SWAP ;
                              EXEC ;
                              DROP ;
-                             UPDATE 8 ;
+                             UPDATE 9 ;
                              NIL operation ;
                              PAIR } }
                        { DIG 2 ;

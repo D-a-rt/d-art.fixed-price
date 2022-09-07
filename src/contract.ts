@@ -93,6 +93,25 @@ export async function calculateSize(param: any): Promise<void> {
 export async function deployFixedPriceContract(): Promise<void> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'))
 
+    const fixed_price_contract_metadata = {
+        name: 'A:RT - Marketplace (fixed price)',
+        description: 'Marketplace contract in order to sell edition tokens.',
+        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        license: "MIT",
+        interfaces: ['TZIP-016'],
+        imageUri: "ipfs://bafkreidnvjk6h7w7a6lp27t2tkmrzoqyjizedqnr5ojf525sm5jkfel2yy"
+    }
+
+    const contractMetadata = await client.storeBlob(
+		new Blob([JSON.stringify(fixed_price_contract_metadata)]),
+	)
+
+    if (!contractMetadata) {
+        console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
+        return;
+    }
+
     const originateParam = {
         code: code,
         storage: {
@@ -108,7 +127,10 @@ export async function deployFixedPriceContract(): Promise<void> {
             fee: {
                 address: process.env.ADMIN_PUBLIC_KEY_HASH,
                 percent: 100,
-            }
+            },
+            metadata: MichelsonMap.fromLiteral({
+                "": char2Bytes(`ipfs://${contractMetadata}`),
+            })
         }
     }
 
