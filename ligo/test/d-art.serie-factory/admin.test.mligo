@@ -1,7 +1,7 @@
 #import "storage.test.mligo" "FA2_STR"
 #include "../../d-art.serie-factory/serie_factory.mligo"
-// TEST FILE FOR ADMIN ENTRYPOINTS
 
+// TEST FILE FOR ADMIN ENTRYPOINTS
 
 // -- Add Minter --
 
@@ -309,7 +309,7 @@ let test_revoke_admin_invitation_not_admin =
     match result with
         Success _gas -> failwith "Admin -> Revoke_admin_invitation - Not admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Revoke_admin_invitation - No amount : Should not work if not admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Revoke_admin_invitation - Not admin : Should not work if not admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    

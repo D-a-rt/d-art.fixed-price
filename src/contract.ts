@@ -712,7 +712,41 @@ async function testEditionContract(): Promise<void> {
 }
 
 async function testFactoryContract(): Promise<void> {
-    console.log('Not implemented yet...')
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing serie factory admin entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.serie-factory/admin.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing serie factory main entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.serie-factory/serie_factory_main.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
 }
 
 
@@ -725,11 +759,12 @@ export const testContracts = async (param: any) => {
             await testEditionContract()
             break;
         case "serie-factory":
-            testFactoryContract()
+            await testFactoryContract()
             break;
         default:
             await testEditionContract()
             await testFixedPriceContract()
+            await testFactoryContract()
             break;
     }
 }
