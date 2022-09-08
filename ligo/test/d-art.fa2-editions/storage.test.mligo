@@ -11,7 +11,7 @@ let get_factory_contract () =
         admin = admin_str;
         origination_paused = false;
         minters = Big_map.literal([(Test.nth_bootstrap_account 7, unit);]);
-        series = (Big_map.empty : (address, S_F.serie) big_map);
+        series = (Big_map.empty : (nat, S_F.serie) big_map);
         metadata = (Big_map.empty : (string, bytes) big_map);
         next_serie_id = 1n;
     } in
