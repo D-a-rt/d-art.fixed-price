@@ -15,21 +15,21 @@ program
 
 program
     .command('compile-contract')
-    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions')
+    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions, fa2-editions-factory, serie-factory')
     .action((title: string) => {
         contract.compileContracts(title)
     })
 
 program
     .command('deploy-contract')
-    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions')
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, serie-factory')
     .action((title: string) => {
         contract.deployContracts(title)
     })
 
 program
     .command('contract-size')
-    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions')
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-factory, serie-factory')
     .action((title: string) => {
         contract.calculateSize(title)
     })

@@ -15,7 +15,8 @@ import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 import { default as Splits } from './views/fa2_editions_splits.tz';
 import { default as Minter } from './views/fa2_editions_minter.tz';
 import { default as Royalty } from './views/fa2_editions_royalty.tz';
-import { default as IsMinter } from './views/fa2_editions_is_minter.tz';
+// import { default as IsMinter } from './views/fa2_editions_is_minter.tz';
+import { default as IsMinter } from './views/serie_factory/is_minter.tz';
 import { default as RoyaltySplits } from './views/fa2_editions_royalty_splits.tz';
 import { default as EditionsMetadata } from './views/fa2_editions_token_metadata.tz';
 import { default as RoyaltyDistribution } from './views/fa2_editions_royalty_distribution.tz';
@@ -64,11 +65,19 @@ export async function compileContracts(param: any): Promise<void> {
             contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            break;
+        case "fa2-editions-factory":
+            contractAction("Fa2 editions factory", ContractAction.COMPILE, "d-art.fa2-editions/fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
+            break;
+        case "serie-factory":
+            contractAction("Serie factory", ContractAction.COMPILE, "d-art.serie-factory/views.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
             break;
         default:
             contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions factory", ContractAction.COMPILE, "d-art.fa2-editions/fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
+            contractAction("Serie factory", ContractAction.COMPILE, "d-art.serie-factory/views.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
             break;
     }
 }
@@ -80,6 +89,12 @@ export async function calculateSize(param: any): Promise<void> {
             break;
         case "fa2-editions":
             contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'")
+            break;
+        case "fa2-editions-factory":
+            contractAction("Fa2 editions factory", ContractAction.SIZE, "d-art.fa2-editions/fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
+            break;
+        case "serie-factory":
+            contractAction("Serie factory", ContractAction.SIZE, "d-art.serie-factory/views.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
             break;
         default:
             contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
@@ -135,7 +150,7 @@ export async function deployFixedPriceContract(): Promise<void> {
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ithaca-archive.tzconnect.berlin');
+        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
@@ -390,13 +405,12 @@ export async function deployEditionContract(): Promise<void> {
             },
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
-            }),
-            hash_used: MichelsonMap.fromLiteral({})
+            })
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ithaca-archive.tzconnect.berlin');
+        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
 
         toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
 
@@ -414,6 +428,84 @@ export async function deployEditionContract(): Promise<void> {
     }
 }
 
+export async function deploySerieFactory(): Promise<void> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.serie-factory/compile/serie_factory.tz'))
+
+    const p = new Parser();
+
+    const parsedIsMinterMichelsonCode = p.parseMichelineExpression(Minter.code);
+    
+    const serieFactoryMetadata = {
+        name: 'A:RT - Serie Factory',
+        description: 'This contract take care of holding the selection of authorized artists on D a:rt and is responsible to originate series.',
+        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        license: "MIT",
+        interfaces: ['TZIP-016'],
+        views: [{
+            name: 'is_minter',
+            description: 'Verify if address is minter on the contract.',
+            pure: false,
+            implementations: [
+                {
+                    michelsonStorageView:
+                    {
+                        parameter: {
+                            prim: 'address',
+                        },
+                        // nat
+                        returnType: {
+                            prim: 'bool',
+                        },
+                        code: parsedIsMinterMichelsonCode,
+                    },
+                },
+            ],
+        }]
+    }
+
+    const contractMetadata = await client.storeBlob(
+		new Blob([JSON.stringify(serieFactoryMetadata)]),
+	)
+
+    if (!contractMetadata) {
+        console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
+        return;
+    }
+
+    const originateParam = {
+        code: code,
+        storage: {
+            admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
+            origination_paused: false,
+            minters: MichelsonMap.fromLiteral({}),
+            series: MichelsonMap.fromLiteral({}),
+            metadata: MichelsonMap.fromLiteral({
+                "": char2Bytes(`ipfs://${contractMetadata}`),
+            }),
+            next_serie_id: 0
+        }
+    }
+
+    try {
+        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+
+        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+
+
+        const originationOp = await toolkit.contract.originate(originateParam);
+
+        await originationOp.confirmation();
+        const { address } = await originationOp.contract()
+
+        console.log('Serie Factory contract deployed at: ', address)
+
+    } catch (error) {
+        const jsonError = JSON.stringify(error);
+        console.log(kleur.red(`Serie Factory origination error ${jsonError}`));
+    }
+}
+
 export const deployContracts = async (param: any) => {
     switch (param.title) {
         case "fixed-price":
@@ -422,9 +514,13 @@ export const deployContracts = async (param: any) => {
         case "fa2-editions":        
             await deployEditionContract()
             break;
+        case "serie-factory":
+            await deploySerieFactory()
+            break;
         default:
             await deployEditionContract()
             await deployFixedPriceContract()
+            await deploySerieFactory()
             break;
     }
 }
@@ -615,6 +711,16 @@ async function testEditionContract(): Promise<void> {
     })
 }
 
+
+async function testEditionFactoryContract(): Promise<void> {
+    console.log('Not implemented yet...')
+}
+
+async function testFactoryContract(): Promise<void> {
+    console.log('Not implemented yet...')
+}
+
+
 export const testContracts = async (param: any) => {
     switch (param.title) {
         case "fixed-price":
@@ -622,6 +728,12 @@ export const testContracts = async (param: any) => {
             break;
         case "fa2-editions":        
             await testEditionContract()
+            break;
+        case "fa2-editions-factory":
+            testEditionFactoryContract()
+            break;
+        case "serie-factory":
+            testFactoryContract()
             break;
         default:
             await testEditionContract()

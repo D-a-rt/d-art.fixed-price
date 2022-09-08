@@ -98,6 +98,19 @@ type burn_param =
 
 // -- Edition entrypoints
 
+#if WILL_ORIGINATE_FROM_FACTORY
+
+type edition_metadata =
+[@layout:comb]
+{
+    edition_info: (string, bytes) map;
+    total_edition_number: nat;
+    royalty: nat;
+    splits: split list;
+}
+
+#else
+
 type edition_metadata =
 [@layout:comb]
 {
@@ -108,16 +121,28 @@ type edition_metadata =
     splits: split list;
 }
 
+#endif
+
 // -- Storage definition
 
 // Admin storage
 
+#if WILL_ORIGINATE_FROM_FACTORY
+
+type admin_storage = {
+    admin : address;
+    minting_revoked: bool;
+}
+
+#else
+
 type admin_storage = {
     admin : address;
     paused_minting : bool;
-    paused_nb_edition_minting : bool;
-    minters : (address, unit) big_map;
+    minters_manager : address;
 }
+
+#endif
 
 type ledger = (token_id, address) big_map
 
@@ -137,5 +162,4 @@ type editions_storage =
     assets : nft_token_storage;
     admin : admin_storage;
     metadata: (string, bytes) big_map;
-    hash_used: (bytes, unit) big_map;
 }
