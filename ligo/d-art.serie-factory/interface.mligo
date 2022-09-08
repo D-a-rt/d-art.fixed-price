@@ -29,7 +29,7 @@ type serie =
     minter: address;
 }
 
-type admin_storage = {
+type admin_factory_storage = {
     admin: address;
     pending_admin: address option;
 }
@@ -37,7 +37,7 @@ type admin_storage = {
 
 type serie_factory_storage =
 {
-    admin: address;
+    admin: admin_factory_storage;
     origination_paused: bool;
     minters: (address, unit) big_map;
     series : (nat, serie) big_map;

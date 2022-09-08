@@ -77,9 +77,9 @@ let art_serie_factory_main (param, storage : art_serie_factory * serie_factory_s
                 create_serie (create_param, storage)
 
         |   Accept_admin_invitation param ->
-                let () : unit = assert_msg (Tezos.sender = storage.admin.pending_admin, "SENDER_MUST_BE_PENDING_ADMIN")
+                let () : unit = fail_if_sender_not_pending_admin (storage) in
                 if param.accept = true
-                then ([] : operation list), { storage with admin.pending_admin = None; admin.admin = Tezos.sender }
-                else ([] : operation list), { storage with admin.pending_admin = None }
+                then ([] : operation list), { storage with admin.pending_admin = (None : address option); admin.admin = Tezos.sender }
+                else ([] : operation list), { storage with admin.pending_admin = (None : address option) }
 
 #endif

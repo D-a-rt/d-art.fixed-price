@@ -7,7 +7,7 @@ import * as child from 'child_process';
 import { loadFile } from './helper';
 import { NFTStorage } from 'nft.storage';
 import { char2Bytes } from '@taquito/tzip16';
-import { Parser} from '@taquito/michel-codec';
+import { Parser } from '@taquito/michel-codec';
 import { InMemorySigner } from '@taquito/signer';
 import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 
@@ -22,7 +22,7 @@ import { default as EditionsMetadata } from './views/fa2_editions_token_metadata
 import { default as RoyaltyDistribution } from './views/fa2_editions_royalty_distribution.tz';
 
 const client = new NFTStorage({
-	token: process.env.NFT_STORAGE_KEY!,
+    token: process.env.NFT_STORAGE_KEY!,
 })
 
 enum ContractAction {
@@ -30,7 +30,7 @@ enum ContractAction {
     SIZE = "info measure-contract"
 }
 
-async function contractAction (contractName: string, action: ContractAction, pathString: string, mainFunction: string, compilePath?: string) : Promise<void> {
+async function contractAction(contractName: string, action: ContractAction, pathString: string, mainFunction: string, compilePath?: string): Promise<void> {
     await new Promise<void>((resolve, reject) =>
         child.exec(
             path.join(__dirname, `../ligo/exec_ligo ${action} ` + path.join(__dirname, `../ligo/${pathString}`) + ` -e ${mainFunction}`),
@@ -65,7 +65,7 @@ export async function compileContracts(param: any): Promise<void> {
             contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             break;
         case "fa2-editions-factory":
             contractAction("Fa2 editions factory", ContractAction.COMPILE, "d-art.fa2-editions/fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
@@ -88,7 +88,7 @@ export async function calculateSize(param: any): Promise<void> {
             contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_minter'")
+            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/views.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'")
             break;
         case "fa2-editions-factory":
             contractAction("Fa2 editions factory", ContractAction.SIZE, "d-art.fa2-editions/fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
@@ -119,8 +119,8 @@ export async function deployFixedPriceContract(): Promise<void> {
     }
 
     const contractMetadata = await client.storeBlob(
-		new Blob([JSON.stringify(fixed_price_contract_metadata)]),
-	)
+        new Blob([JSON.stringify(fixed_price_contract_metadata)]),
+    )
 
     if (!contractMetadata) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
@@ -228,22 +228,22 @@ export async function deployEditionContract(): Promise<void> {
                             prim: "pair",
                             args: [
                                 { prim: "address" },
-                                { 
-                                    prim: "pair", 
+                                {
+                                    prim: "pair",
                                     args: [
                                         { prim: "nat", annots: ["%royalty"] },
-                                        { 
-                                            prim: "list", 
-                                            args : [
-                                                { 
+                                        {
+                                            prim: "list",
+                                            args: [
+                                                {
                                                     prim: "pair",
                                                     args: [
                                                         { prim: "address", annots: "address" },
                                                         { prim: "nat", annots: "pct" },
                                                     ]
                                                 }
-                                            ], 
-                                            annots: ["%splits"] 
+                                            ],
+                                            annots: ["%splits"]
                                         },
                                     ]
                                 },
@@ -265,18 +265,18 @@ export async function deployEditionContract(): Promise<void> {
                             prim: 'nat',
                         },
                         // (list (pair (address %address) (nat %pct)))
-                        returnType: { 
-                            prim: "list", 
-                            args : [
-                                { 
+                        returnType: {
+                            prim: "list",
+                            args: [
+                                {
                                     prim: "pair",
                                     args: [
                                         { prim: "address", annots: "address" },
                                         { prim: "nat", annots: "pct" },
                                     ]
                                 }
-                            ], 
-                            annots: ["%splits"] 
+                            ],
+                            annots: ["%splits"]
                         },
                         code: parsedSplitsMichelsonCode,
                     },
@@ -294,22 +294,22 @@ export async function deployEditionContract(): Promise<void> {
                             prim: 'nat',
                         },
                         // (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
-                        returnType: { 
-                            prim: "pair", 
+                        returnType: {
+                            prim: "pair",
                             args: [
                                 { prim: "nat", annots: ["%royalty"] },
-                                { 
-                                    prim: "list", 
-                                    args : [
-                                        { 
+                                {
+                                    prim: "list",
+                                    args: [
+                                        {
                                             prim: "pair",
                                             args: [
                                                 { prim: "address", annots: "address" },
                                                 { prim: "nat", annots: "pct" },
                                             ]
                                         }
-                                    ], 
-                                    annots: ["%splits"] 
+                                    ],
+                                    annots: ["%splits"]
                                 },
                             ]
                         },
@@ -378,8 +378,8 @@ export async function deployEditionContract(): Promise<void> {
     };
 
     const contractMetadata = await client.storeBlob(
-		new Blob([JSON.stringify(editions_contract_metadata)]),
-	)
+        new Blob([JSON.stringify(editions_contract_metadata)]),
+    )
 
     if (!contractMetadata) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
@@ -434,7 +434,7 @@ export async function deploySerieFactory(): Promise<void> {
     const p = new Parser();
 
     const parsedIsMinterMichelsonCode = p.parseMichelineExpression(Minter.code);
-    
+
     const serieFactoryMetadata = {
         name: 'A:RT - Serie Factory',
         description: 'This contract take care of holding the selection of authorized artists on D a:rt and is responsible to originate series.',
@@ -465,8 +465,8 @@ export async function deploySerieFactory(): Promise<void> {
     }
 
     const contractMetadata = await client.storeBlob(
-		new Blob([JSON.stringify(serieFactoryMetadata)]),
-	)
+        new Blob([JSON.stringify(serieFactoryMetadata)]),
+    )
 
     if (!contractMetadata) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
@@ -511,7 +511,7 @@ export const deployContracts = async (param: any) => {
         case "fixed-price":
             await deployFixedPriceContract()
             break;
-        case "fa2-editions":        
+        case "fa2-editions":
             await deployEditionContract()
             break;
         case "serie-factory":
@@ -711,11 +711,6 @@ async function testEditionContract(): Promise<void> {
     })
 }
 
-
-async function testEditionFactoryContract(): Promise<void> {
-    console.log('Not implemented yet...')
-}
-
 async function testFactoryContract(): Promise<void> {
     console.log('Not implemented yet...')
 }
@@ -726,11 +721,8 @@ export const testContracts = async (param: any) => {
         case "fixed-price":
             await testFixedPriceContract()
             break;
-        case "fa2-editions":        
+        case "fa2-editions":
             await testEditionContract()
-            break;
-        case "fa2-editions-factory":
-            testEditionFactoryContract()
             break;
         case "serie-factory":
             testFactoryContract()

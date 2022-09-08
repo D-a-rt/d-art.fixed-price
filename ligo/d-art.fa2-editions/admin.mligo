@@ -46,7 +46,7 @@ let fail_if_minting_paused (storage : admin_storage) : unit =
 
 let fail_if_not_minter (storage : admin_storage) : unit =
   match ((Tezos.call_view "is_minter" Tezos.sender storage.minters_manager ): bool option) with
-      None -> false
+      None -> failwith "NOT_A_MINTER"
       | Some is_minter -> 
         if is_minter
         then unit

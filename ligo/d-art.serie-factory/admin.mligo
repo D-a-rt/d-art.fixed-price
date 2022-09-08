@@ -11,6 +11,14 @@ let fail_if_not_admin (storage : serie_factory_storage) : unit =
   then failwith "NOT_AN_ADMIN"
   else unit
 
+let fail_if_sender_not_pending_admin (storage : serie_factory_storage) : unit =
+  match storage.admin.pending_admin with
+    None -> failwith "NOT_PENDING_ADMIN"
+    | Some pa -> 
+        if Tezos.sender <> pa
+        then failwith "NOT_PENDING_ADMIN"
+        else unit
+
 let admin_main(param, storage : admin_factory_entrypoints * serie_factory_storage) : (operation list) * serie_factory_storage =
     let () = fail_if_not_admin storage in 
     match param with
@@ -27,8 +35,8 @@ let admin_main(param, storage : admin_factory_entrypoints * serie_factory_storag
         |   Pause_serie_creation boolean -> 
             ([] : operation list), { storage with origination_paused = boolean }
 
-        |   Send_admin_invitation new_admin ->
-            ( []: operation list ), { storage with admin.pending_admin = new_admin }
+        |   Send_admin_invitation param ->
+            ( []: operation list ), { storage with admin.pending_admin = Some(param.new_admin) }
 
-        |   Revoke_admin_invitation old_admin ->
-            ([] : operation list ), { storage with admin.pending_admin = None }
+        |   Revoke_admin_invitation param ->
+            ([] : operation list ), { storage with admin.pending_admin = (None : address option) }

@@ -1,5 +1,6 @@
 #import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
 #import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
+#import "../../d-art.serie-factory/serie_factory.mligo" "S_F"
 
 type token_id = nat
 
@@ -8,8 +9,7 @@ type ledger = (token_id, address) big_map
 type admin_storage = {
     admin : address;
     paused_minting : bool;
-    paused_nb_edition_minting : bool;
-    minters : (address, unit) big_map;
+    minters_manager : address;
 }
 
 type operator_storage = ((address * (address * token_id)), unit) big_map
@@ -55,10 +55,9 @@ type editions_storage =
     assets : nft_token_storage;
     admin : admin_storage;
     metadata: (string, bytes) big_map;
-    hash_used: (bytes, unit) big_map;
 }
 
-let get_edition_fa2_contract (fixed_price_contract_address : address) = 
+let get_edition_fa2_contract (factory_contract, fixed_price_contract_address : address * address) = 
 
     let admin = Test.nth_bootstrap_account 0 in
     let token_seller = Test.nth_bootstrap_account 3 in
@@ -68,25 +67,22 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
     let admin_strg : admin_storage = {
         admin = admin;
         paused_minting = false;
-        paused_nb_edition_minting = false;
-        minters = Big_map.literal ([(token_minter), ()]);
+        minters_manager = factory_contract;
     } in
 
     let asset_strg : nft_token_storage = {
         ledger = Big_map.literal([
-                (0n), (token_seller);
-                (1n), (token_seller);       
-                (250n), (token_seller);
-                (500n), (token_seller)        
+                (0n), (admin);
+                (1n), (admin)        
             ]);
         operators = Big_map.literal([
-                ((token_seller, (fixed_price_contract_address, 0n)), ())  ;      
+                ((admin, (fixed_price_contract_address, 0n)), ())  ;      
             ]);
         token_metadata = (Big_map.empty : (token_id, token_metadata) big_map);
     } in
 
     let edition_meta : edition_metadata = ({
-            minter = token_minter;
+            minter = admin;
             edition_info = (Map.empty : (string, bytes) map);
             total_edition_number = 2n;
             royalty = 150n;
@@ -100,41 +96,8 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
             } : split )];
         } : edition_metadata ) in
 
-    let edition_meta_2 : edition_metadata = ({
-            minter = token_minter;
-            edition_info = (Map.empty : (string, bytes) map);
-            total_edition_number = 1n;
-            royalty = 150n;
-            splits = [({
-                address = token_minter;
-                pct = 500n;
-            } : split );
-            ({
-                address = token_split;
-                pct = 500n;
-            } : split )];
-        } : edition_metadata ) in
-
-    let edition_meta_3 : edition_metadata = ({
-            minter = token_minter;
-            edition_info = (Map.empty : (string, bytes) map);
-            total_edition_number = 1n;
-            royalty = 250n;
-            splits = [({
-                address = token_minter;
-                pct = 500n;
-            } : split );
-            ({
-                address = token_split;
-                pct = 500n;
-            } : split )];
-        } : edition_metadata ) in
-
-
     let edition_meta_strg : editions_metadata = Big_map.literal([
         (0n), (edition_meta);
-        (1n), (edition_meta_2);
-        (2n), (edition_meta_3);
     ]) in
 
     let edition_strg = {
@@ -144,7 +107,6 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
         assets = asset_strg;
         admin = admin_strg;
         metadata = (Big_map.empty : (string, bytes) big_map);
-        hash_used = (Big_map.empty : (bytes, unit) big_map);
     } in
 
     // Path of the contract on yout local machine
@@ -242,6 +204,25 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
         )
     )
 
+let get_factory_contract () =
+    
+    let admin_str = {
+        admin = Test.nth_bootstrap_account 0;
+        pending_admin = (None: address option);
+    } in
+
+    let str = {
+        admin = admin_str;
+        origination_paused = false;
+        minters = (Big_map.empty : (address, unit) big_map);
+        series = (Big_map.empty : (address, S_F.serie) big_map);
+        metadata = (Big_map.empty : (string, bytes) big_map);
+        next_serie_id = 1n;
+    } in
+
+    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.serie-factory/serie_factory.mligo" "art_serie_factory_main" ([] : string list) (Test.compile_value str) 0tez in
+    taddr
+
 // -- CREATE DROPS --
 
 // Success
@@ -249,10 +230,11 @@ let test_create_drops =
 
     let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let token_minter = Test.nth_bootstrap_account 4 in
+    let token_minter = Test.nth_bootstrap_account 0 in
     let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
@@ -274,14 +256,14 @@ let test_create_drops =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 250n 
+                    id = 0n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
                 price = 100000mutez;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 500n
+                    id = 1n
                 };
             } : FP_I.drop_info)]
         } : FP_I.drop_configuration)) 0tez
@@ -299,7 +281,7 @@ let test_create_drops =
                 let first_drop_key : FP_I.fa2_base * address = (
                     {
                         address = ( edition_contract : address);
-                        id = 250n
+                        id = 0n
                     },
                     token_minter
                  ) in
@@ -314,7 +296,7 @@ let test_create_drops =
                 let second_drop_key : FP_I.fa2_base * address = (
                     {
                         address = ( edition_contract : address);
-                        id = 500n
+                        id = 1n
                     },
                     token_minter
                  ) in
@@ -478,10 +460,11 @@ let test_create_drops_price_to_small_first_el =
 let test_create_drops_price_to_small_second_el = 
     let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let token_minter = Test.nth_bootstrap_account 4 in
+    let token_minter = Test.nth_bootstrap_account 0 in
     
     let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
@@ -504,7 +487,7 @@ let test_create_drops_price_to_small_second_el =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 250n 
+                    id = 0n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
@@ -520,6 +503,7 @@ let test_create_drops_price_to_small_second_el =
     match result with
         Success _gas -> failwith "Create_drops - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
+            
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "Create_drops - Wrong price : Should not work if wrong price" in
             "Passed"
         )
@@ -529,10 +513,11 @@ let test_create_drops_price_to_small_second_el =
 let test_create_drops_already_in_drop = 
     let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let token_minter = Test.nth_bootstrap_account 4 in
+    let token_minter = Test.nth_bootstrap_account 0 in
     let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
@@ -554,14 +539,14 @@ let test_create_drops_already_in_drop =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 250n 
+                    id = 0n 
                 };
             } : FP_I.drop_info ); ({
                 drop_date = expected_time_result_four;
                 price = 100000mutez;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 250n
+                    id = 0n
                 };
             } : FP_I.drop_info)]
         } : FP_I.drop_configuration)) 0tez
@@ -622,7 +607,8 @@ let test_create_drops_already_dropped =
 let test_create_drops_wrong_signature = 
     let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
 
     let token_minter = Test.nth_bootstrap_account 4 in
@@ -665,10 +651,11 @@ let test_create_drops_wrong_signature =
 let test_create_drops_already_used_signature = 
     let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let token_minter = Test.nth_bootstrap_account 4 in
+    let token_minter = Test.nth_bootstrap_account 0 in
     let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_add in
 
@@ -690,7 +677,7 @@ let test_create_drops_already_used_signature =
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract : address);
-                    id = 250n 
+                    id = 1n 
                 };
             } : FP_I.drop_info )]
         } : FP_I.drop_configuration)) 0tez
@@ -725,7 +712,8 @@ let test_create_drops_already_used_signature =
 let test_create_drops_wrong_drop_date = 
     let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
 
     let token_minter = Test.nth_bootstrap_account 4 in
@@ -791,12 +779,14 @@ let test_create_drops_wrong_drop_date =
 let test_create_drops_not_authorized_drop_seller = 
     let contract_address = get_initial_storage (false, false, false, Tezos.now + 28800) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
 
-    let () = Test.set_source init_str.admin.address in
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let () = Test.set_source token_minter in
+    
     let contract = Test.to_contract contract_add in
-
     let now : timestamp = Tezos.now in
     let three_days : int = 253800 in
     let expected_time_result_three = now + three_days in

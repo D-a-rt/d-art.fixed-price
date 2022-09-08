@@ -2,6 +2,7 @@
 #import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
 #import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 #import "../../d-art.fixed-price/common.mligo" "CM"
+#import "../../d-art.serie-factory/serie_factory.mligo" "S_F"
 
 // This storage is based on the contract fa2_editions
 // you can find it at this link https://github.com/D-a-rt/d-art.fa2-editions
@@ -13,8 +14,7 @@ type ledger = (token_id, address) big_map
 type admin_storage = {
     admin : address;
     paused_minting : bool;
-    paused_nb_edition_minting : bool;
-    minters : (address, unit) big_map;
+    minters_manager : address;
 }
 
 type operator_storage = ((address * (address * token_id)), unit) big_map
@@ -60,11 +60,10 @@ type editions_storage =
     assets : nft_token_storage;
     admin : admin_storage;
     metadata: (string, bytes) big_map;
-    hash_used: (bytes, unit) big_map;
 }
 
 
-let get_edition_fa2_contract (fixed_price_contract_address : address) = 
+let get_edition_fa2_contract (factory_contract, fixed_price_contract_address : address * address) = 
 
     let admin = Test.nth_bootstrap_account 0 in
     let token_seller = Test.nth_bootstrap_account 3 in
@@ -74,8 +73,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
     let admin_strg : admin_storage = {
         admin = admin;
         paused_minting = false;
-        paused_nb_edition_minting = false;
-        minters = (Big_map.empty : (address, unit) big_map);
+        minters_manager = factory_contract;
     } in
 
     let asset_strg : nft_token_storage = {
@@ -89,7 +87,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
     } in
 
     let edition_meta : edition_metadata = ({
-            minter = token_minter;
+            minter = admin;
             edition_info = (Map.empty : (string, bytes) map);
             total_edition_number = 2n;
             royalty = 150n;
@@ -103,7 +101,6 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
             } : split )];
         } : edition_metadata ) in
 
-
     let edition_meta_strg : editions_metadata = Big_map.literal([
         (0n), (edition_meta);
     ]) in
@@ -115,7 +112,6 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
         assets = asset_strg;
         admin = admin_strg;
         metadata = (Big_map.empty : (string, bytes) big_map);
-        hash_used = (Big_map.empty : (bytes, unit) big_map);
     } in
 
     // Path of the contract on yout local machine
@@ -123,7 +119,7 @@ let get_edition_fa2_contract (fixed_price_contract_address : address) =
     let edition_addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fa2-editions/views.mligo" "editions_main" ([] : string list) michelson_str 0tez in
     edition_addr
     
-let get_initial_storage (signature_saved : bool) =
+let get_initial_storage (signature_saved : bool ) =
     let () = Test.reset_state 6n ([233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez] : tez list) in
     
     let admin = Test.nth_bootstrap_account 0 in
@@ -147,14 +143,15 @@ let get_initial_storage (signature_saved : bool) =
     } in
 
     let empty_sales = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_sale) big_map ) in
-    let empty_sellers = (Big_map.empty : (address, unit) big_map ) in
-    let empty_drops = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
+    let empty_sellers = Big_map.literal([(admin), () ]) in
+    let drops_str = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
     let empty_dropped = (Big_map.empty : (FP_I.fa2_base, unit) big_map) in
 
+    
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
-        drops = empty_drops;
+        drops = drops_str;
         fa2_dropped = empty_dropped;
         fee = {
             address = fee_account;
@@ -165,6 +162,26 @@ let get_initial_storage (signature_saved : bool) =
 
     let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
     taddr
+
+let get_factory_contract () =
+    
+    let admin_str = {
+        admin = Test.nth_bootstrap_account 0;
+        pending_admin = (None: address option);
+    } in
+
+    let str = {
+        admin = admin_str;
+        origination_paused = false;
+        minters = (Big_map.empty : (address, unit) big_map);
+        series = (Big_map.empty : (address, S_F.serie) big_map);
+        metadata = (Big_map.empty : (string, bytes) big_map);
+        next_serie_id = 1n;
+    } in
+
+    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.serie-factory/serie_factory.mligo" "art_serie_factory_main" ([] : string list) (Test.compile_value str) 0tez in
+    taddr
+
 
 // Fail if buyer is seller
 let test_buy_fixed_price_token_seller_buyer =
@@ -270,7 +287,8 @@ let test_buy_fixed_price_token_signature_already_used =
 let test_buy_fixed_price_token_wrong_price = 
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
     
     let admin_addr = Test.nth_bootstrap_account 0 in
@@ -325,8 +343,9 @@ let test_buy_fixed_price_token_wrong_price =
 let test_buy_fixed_price_token_not_buyer =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let edition_contract = get_edition_fa2_contract(contract_address) in
-    
+    let factory_contract_address = get_factory_contract () in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
+
     let init_str = Test.get_storage contract_add in
     let admin_addr = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin_addr in
@@ -382,8 +401,9 @@ let test_buy_fixed_price_token_not_buyer =
 let test_buy_fixed_price_token_success =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let factory_contract_address = get_factory_contract () in
     
-    let edition_contract = get_edition_fa2_contract(contract_address) in
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let contract_edition_add : (E_M.editions_entrypoints, editions_storage) typed_address = Test.cast_address edition_contract in
     
     let init_str = Test.get_storage contract_add in
@@ -522,9 +542,10 @@ let test_buy_fixed_price_token_success =
 let test_buy_fixed_price_token_fail_if_wrong_seller =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let factory_contract_address = get_factory_contract () in
     
-    let edition_contract = get_edition_fa2_contract(contract_address) in
-    
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
+
     let init_str = Test.get_storage contract_add in
     
     let token_seller = Test.nth_bootstrap_account 3 in
