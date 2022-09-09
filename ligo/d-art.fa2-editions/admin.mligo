@@ -17,12 +17,12 @@ let fail_if_not_admin (storage : admin_storage) : unit =
 
 let fail_if_minting_revoked (storage : admin_storage) : unit =
   if storage.minting_revoked
-  then failwith "CONTRACT_KILLED_UNABLE_TO_MINT"
+  then failwith "MINTING_IS_REVOKED"
   else unit
 
 let admin_main(param, storage : admin_entrypoints * admin_storage) : (operation list) * admin_storage =
     let () = fail_if_not_admin storage in 
-    let () : unit = assert_msg ( storage.minting_revoked <> true , "MINTING_IS_REVOKED" ) in
+    let () = fail_if_minting_revoked storage in
     match param with
         | Revoke_minting param ->
             (([]: operation list), { storage with minting_revoked = param.revoke; })

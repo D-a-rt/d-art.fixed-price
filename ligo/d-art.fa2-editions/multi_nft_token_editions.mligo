@@ -114,7 +114,7 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
 
         | Mint_editions mint_param ->
             let () = fail_if_not_admin editions_storage.admin in
-            let () : unit = assert_msg ( editions_storage.admin.minting_revoked <> true , "MINTING_IS_REVOKED" ) in
+            let () = fail_if_minting_revoked editions_storage.admin in
             mint_editions (mint_param, editions_storage)
 
         | Burn_token burn_param ->

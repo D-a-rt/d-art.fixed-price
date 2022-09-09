@@ -2,7 +2,7 @@
 
 #### Introduction:
 
-This set of contracts has been developped in order to perform fixed price sale and drop on-chain.
+This set of contracts contain three different types of contract: fa2-editions, fixed-price and fa2-editions-factory (will call it serie-factory).
 
 #### Prerequisites
 
@@ -26,16 +26,18 @@ The different available commands are:
 Available contract title: ***fixed-price, fa2-editions***
 Note: these commands has been tested with the version 0.43 of ligo.
 ```
+contract-title values: fixed-price | fa2-editions | fa2-editions-factory | serie-factory
+
 $ d-art.contracts test-contract -t <contract-title>
     (Run the ligo test on the contract corresponding to the title - if no title specified run the test for the the two contracts)
 
-$ d-art.contracts compile-contract -t <contract-name>
+$ d-art.contracts compile-contract -t <contract-title>
     (Compile the contract corresponding to the title - if no title specified compile the two contracts)
 
-$ d-art.contracts deploy-contract -t <contract-name>
+$ d-art.contracts deploy-contract -t <contract-title>
     (Deploy the contract corresponding to the title - if no title specified deploy the two contracts)
 
-$ d-art.contracts contract-size -t <contract-name>
+$ d-art.contracts contract-size -t <contract-title>
     (Give the size of the contracts to deploy - if not title specified give the size of each contract)
 
 $ d-art.fixed-price gen-keypair

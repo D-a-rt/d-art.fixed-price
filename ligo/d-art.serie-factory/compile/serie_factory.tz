@@ -1,10 +1,13 @@
 { parameter
-    (or (or %admin
-           (or (address %add_minter) (bool %pause_serie_creation))
-           (address %remove_minter))
+    (or (or (bool %accept_admin_invitation)
+            (or %admin
+               (or (or (address %add_minter) (bool %pause_serie_creation))
+                   (or (address %remove_minter) (unit %revoke_admin_invitation)))
+               (address %send_admin_invitation)))
         (bytes %create_serie)) ;
   storage
-    (pair (pair (pair (address %admin) (big_map %metadata string bytes))
+    (pair (pair (pair (pair %admin (address %admin) (option %pending_admin address))
+                      (big_map %metadata string bytes))
                 (pair (big_map %minters address unit) (nat %next_serie_id)))
           (pair (bool %origination_paused)
                 (big_map %series nat (pair (address %address) (address %minter))))) ;
@@ -17,102 +20,234 @@
          NOT ;
          IF { FAILWITH } { DROP } ;
          IF_LEFT
-           { SWAP ;
-             DUP ;
-             DUG 2 ;
-             CAR ;
-             CAR ;
-             CAR ;
-             SENDER ;
-             COMPARE ;
-             NEQ ;
-             IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } {} ;
-             IF_LEFT
-               { IF_LEFT
-                   { SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     CAR ;
-                     CDR ;
-                     CAR ;
-                     SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     MEM ;
-                     IF { DROP 2 ; PUSH string "ALREADY_MINTER" ; FAILWITH }
-                        { SWAP ;
-                          DUP ;
-                          DUG 2 ;
-                          CDR ;
-                          DUP 3 ;
-                          CAR ;
-                          CDR ;
-                          CDR ;
-                          DUP 4 ;
-                          CAR ;
-                          CDR ;
-                          CAR ;
-                          UNIT ;
-                          DIG 4 ;
-                          SWAP ;
-                          SOME ;
-                          SWAP ;
-                          UPDATE ;
-                          PAIR ;
-                          DIG 2 ;
-                          CAR ;
-                          CAR ;
-                          PAIR ;
-                          PAIR ;
-                          NIL operation ;
-                          PAIR } }
-                   { SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     CDR ;
-                     CDR ;
-                     SWAP ;
-                     PAIR ;
-                     SWAP ;
-                     CAR ;
-                     PAIR ;
-                     NIL operation ;
-                     PAIR } }
+           { IF_LEFT
                { SWAP ;
                  DUP ;
                  DUG 2 ;
                  CAR ;
-                 CDR ;
                  CAR ;
+                 CAR ;
+                 CDR ;
+                 IF_NONE
+                   { PUSH string "NOT_PENDING_ADMIN" ; FAILWITH }
+                   { SENDER ;
+                     COMPARE ;
+                     NEQ ;
+                     IF { PUSH string "NOT_PENDING_ADMIN" ; FAILWITH } {} } ;
+                 PUSH bool True ;
                  SWAP ;
-                 DUP ;
-                 DUG 2 ;
-                 MEM ;
-                 IF { SWAP ;
+                 COMPARE ;
+                 EQ ;
+                 IF { DUP ;
+                      CDR ;
+                      SWAP ;
                       DUP ;
                       DUG 2 ;
+                      CAR ;
                       CDR ;
                       DUP 3 ;
                       CAR ;
-                      CDR ;
-                      CDR ;
-                      DUP 4 ;
                       CAR ;
                       CDR ;
+                      NONE address ;
+                      DIG 4 ;
                       CAR ;
-                      DIG 3 ;
-                      NONE unit ;
-                      SWAP ;
-                      UPDATE ;
+                      CAR ;
+                      CAR ;
+                      CAR ;
                       PAIR ;
+                      PAIR ;
+                      PAIR ;
+                      PAIR ;
+                      DUP ;
+                      CDR ;
+                      SWAP ;
+                      DUP ;
+                      DUG 2 ;
+                      CAR ;
+                      CDR ;
                       DIG 2 ;
                       CAR ;
                       CAR ;
+                      CDR ;
+                      NONE address ;
+                      SENDER ;
+                      PAIR ;
+                      PAIR ;
                       PAIR ;
                       PAIR ;
                       NIL operation ;
                       PAIR }
-                    { DROP 2 ; PUSH string "MINTER_NOT_FOUND" ; FAILWITH } } }
+                    { DUP ;
+                      CDR ;
+                      SWAP ;
+                      DUP ;
+                      DUG 2 ;
+                      CAR ;
+                      CDR ;
+                      DUP 3 ;
+                      CAR ;
+                      CAR ;
+                      CDR ;
+                      NONE address ;
+                      DIG 4 ;
+                      CAR ;
+                      CAR ;
+                      CAR ;
+                      CAR ;
+                      PAIR ;
+                      PAIR ;
+                      PAIR ;
+                      PAIR ;
+                      NIL operation ;
+                      PAIR } }
+               { SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 SOURCE ;
+                 COMPARE ;
+                 NEQ ;
+                 IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } {} ;
+                 IF_LEFT
+                   { IF_LEFT
+                       { IF_LEFT
+                           { SWAP ;
+                             DUP ;
+                             DUG 2 ;
+                             CAR ;
+                             CDR ;
+                             CAR ;
+                             SWAP ;
+                             DUP ;
+                             DUG 2 ;
+                             MEM ;
+                             IF { DROP 2 ; PUSH string "ALREADY_MINTER" ; FAILWITH }
+                                { SWAP ;
+                                  DUP ;
+                                  DUG 2 ;
+                                  CDR ;
+                                  DUP 3 ;
+                                  CAR ;
+                                  CDR ;
+                                  CDR ;
+                                  DUP 4 ;
+                                  CAR ;
+                                  CDR ;
+                                  CAR ;
+                                  UNIT ;
+                                  DIG 4 ;
+                                  SWAP ;
+                                  SOME ;
+                                  SWAP ;
+                                  UPDATE ;
+                                  PAIR ;
+                                  DIG 2 ;
+                                  CAR ;
+                                  CAR ;
+                                  PAIR ;
+                                  PAIR ;
+                                  NIL operation ;
+                                  PAIR } }
+                           { SWAP ;
+                             DUP ;
+                             DUG 2 ;
+                             CDR ;
+                             CDR ;
+                             SWAP ;
+                             PAIR ;
+                             SWAP ;
+                             CAR ;
+                             PAIR ;
+                             NIL operation ;
+                             PAIR } }
+                       { IF_LEFT
+                           { SWAP ;
+                             DUP ;
+                             DUG 2 ;
+                             CAR ;
+                             CDR ;
+                             CAR ;
+                             SWAP ;
+                             DUP ;
+                             DUG 2 ;
+                             MEM ;
+                             IF { SWAP ;
+                                  DUP ;
+                                  DUG 2 ;
+                                  CDR ;
+                                  DUP 3 ;
+                                  CAR ;
+                                  CDR ;
+                                  CDR ;
+                                  DUP 4 ;
+                                  CAR ;
+                                  CDR ;
+                                  CAR ;
+                                  DIG 3 ;
+                                  NONE unit ;
+                                  SWAP ;
+                                  UPDATE ;
+                                  PAIR ;
+                                  DIG 2 ;
+                                  CAR ;
+                                  CAR ;
+                                  PAIR ;
+                                  PAIR ;
+                                  NIL operation ;
+                                  PAIR }
+                                { DROP 2 ; PUSH string "MINTER_NOT_FOUND" ; FAILWITH } }
+                           { DROP ;
+                             DUP ;
+                             CDR ;
+                             SWAP ;
+                             DUP ;
+                             DUG 2 ;
+                             CAR ;
+                             CDR ;
+                             DUP 3 ;
+                             CAR ;
+                             CAR ;
+                             CDR ;
+                             NONE address ;
+                             DIG 4 ;
+                             CAR ;
+                             CAR ;
+                             CAR ;
+                             CAR ;
+                             PAIR ;
+                             PAIR ;
+                             PAIR ;
+                             PAIR ;
+                             NIL operation ;
+                             PAIR } } }
+                   { SWAP ;
+                     DUP ;
+                     DUG 2 ;
+                     CDR ;
+                     DUP 3 ;
+                     CAR ;
+                     CDR ;
+                     DUP 4 ;
+                     CAR ;
+                     CAR ;
+                     CDR ;
+                     DIG 3 ;
+                     SOME ;
+                     DIG 4 ;
+                     CAR ;
+                     CAR ;
+                     CAR ;
+                     CAR ;
+                     PAIR ;
+                     PAIR ;
+                     PAIR ;
+                     PAIR ;
+                     NIL operation ;
+                     PAIR } } }
            { SWAP ;
              DUP ;
              DUG 2 ;
@@ -127,10 +262,9 @@
              CDR ;
              CAR ;
              COMPARE ;
-             EQ ;
+             NEQ ;
              NOT ;
              IF { PUSH string "CREATION_OF_SERIES_PAUSED" ; FAILWITH } {} ;
-             EMPTY_BIG_MAP nat (pair (map string bytes) nat nat (list (pair address nat))) ;
              EMPTY_BIG_MAP nat (pair nat (map string bytes)) ;
              EMPTY_BIG_MAP (pair address (pair address nat)) unit ;
              EMPTY_BIG_MAP nat address ;
@@ -138,13 +272,13 @@
              PAIR ;
              PUSH nat 1 ;
              EMPTY_BIG_MAP string bytes ;
-             DIG 4 ;
+             DIG 3 ;
              SOME ;
              PUSH string "" ;
              UPDATE ;
              PAIR ;
              PUSH nat 250 ;
-             DIG 3 ;
+             EMPTY_BIG_MAP nat (pair (map string bytes) nat nat (list (pair address nat))) ;
              PAIR ;
              DIG 2 ;
              PUSH bool False ;
@@ -312,7 +446,7 @@
                                 SWAP ;
                                 EXEC ;
                                 DROP ;
-                                PUSH bool False ;
+                                PUSH bool True ;
                                 SWAP ;
                                 DUP ;
                                 DUG 2 ;
@@ -563,6 +697,16 @@
                                 SWAP ;
                                 EXEC ;
                                 DROP ;
+                                PUSH bool True ;
+                                DUP 3 ;
+                                CAR ;
+                                CAR ;
+                                CAR ;
+                                CDR ;
+                                COMPARE ;
+                                NEQ ;
+                                NOT ;
+                                IF { PUSH string "MINTING_IS_REVOKED" ; FAILWITH } {} ;
                                 ITER { SWAP ;
                                        PUSH nat 250 ;
                                        DUP 3 ;

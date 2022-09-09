@@ -182,7 +182,7 @@ let get_serie_originated_initial_storage (mr: bool) : ( ((editions_entrypoints, 
 // Revoke minting
 
 // Fail not admin
-let test_factory_originated_pause_minting_not_admin =
+let test_factory_originated_revoke_minting_not_admin =
     let contract_add, _, owner1, _ = get_serie_originated_initial_storage(false) in
     let contract = Test.to_contract contract_add in
 
@@ -199,7 +199,7 @@ let test_factory_originated_pause_minting_not_admin =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Fail no amount
-let test_factory_originated_pause_minting_not_admin =
+let test_factory_originated_revoke_minting_not_admin =
     let contract_add, _, owner1, _ = get_serie_originated_initial_storage(false) in
     let contract = Test.to_contract contract_add in
 
@@ -215,8 +215,28 @@ let test_factory_originated_pause_minting_not_admin =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
+// Fail undo revoke minting
+let test_factory_originated_undo_revoke_minting =
+    let contract_add, admin, _, _ = get_serie_originated_initial_storage(false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source admin in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin (Revoke_minting ({ revoke = true } : revoke_minting_param))) 0tez in
+
+    let result = Test.transfer_to_contract contract (Admin (Revoke_minting ({ revoke = false } : revoke_minting_param))) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Serie originated fa2 contract) -> Revoke_minting - undo revoke : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "MINTING_IS_REVOKED") ) "Admin (Serie originated fa2 contract) -> Revoke_minting - undo revoke : Should not work if minting has been revoked" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+
 // Success
-let test_factory_originated_pause_minting =
+let test_factory_originated_revoke_minting =
     let contract_add, admin, _, _ = get_serie_originated_initial_storage(false) in
     let contract = Test.to_contract contract_add in
 

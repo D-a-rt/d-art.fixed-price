@@ -1,6 +1,6 @@
-export type MinterViewCodeType = { __type: 'MinterViewCodeType'; code: string; };
+export type MinterViewNoFactoryCodeType = { __type: 'MinterViewNoFactoryCodeType'; code: string; };
 export default {
-  __type: 'MinterViewCodeType', code: `
+  __type: 'MinterViewNoFactoryCodeType', code: `
   { UNPAIR ;
     SWAP ;
     DUP ;
@@ -20,4 +20,4 @@ export default {
     GET ;
     IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { CAR } }
   `
-} as MinterViewCodeType
+} as MinterViewNoFactoryCodeType

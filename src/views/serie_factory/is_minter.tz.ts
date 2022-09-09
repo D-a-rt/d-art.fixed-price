@@ -8,6 +8,6 @@ export default {
     CAR ;
     SWAP ;
     GET ;
-    IF_NONE { PUSH bool False } { DROP ; PUSH bool True } }
+    IF_NONE { PUSH bool False } { DROP ; PUSH bool True } } 
   `
 } as IsMinterViewCodeType

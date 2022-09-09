@@ -852,7 +852,7 @@ let test_factory_originated_mint_edition_splits_exceed_100_pct =
         )
     |   Fail _ -> failwith "Internal test failure"
 
-// Fail if pause minting true
+// Fail if revoke minting true
 let test_factory_originated_mint_edition_revoked_minting = 
     let contract_add, admin, owner1, minter = get_serie_originated_initial_storage(true) in
     let contract = Test.to_contract contract_add in
@@ -1030,6 +1030,3 @@ let test_factory_originated_mint_edition_success_no_receivers =
             failwith "Mint_editions (Serie originated fa2 contract) - No receivers : This test should pass"
         )
     |   Fail _ -> failwith "Internal test failure"
-
-
-
