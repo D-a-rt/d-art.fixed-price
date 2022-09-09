@@ -453,7 +453,6 @@ export async function deploySerieFactory(): Promise<void> {
                         parameter: {
                             prim: 'address',
                         },
-                        // nat
                         returnType: {
                             prim: 'bool',
                         },

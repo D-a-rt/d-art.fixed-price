@@ -5,7 +5,7 @@
 // Test on views are only meant to check the success as it's not possible to 
 // catch a failwith while testing a view using the Ligo Test API (I might have missed it)
 
-// -- Is minter --
+// -- Is token minter --
 
 let test_is_token_minter_view =
     let contract_t_add, _, _, minter = FA2_STR.get_initial_storage(false, false) in
@@ -14,7 +14,7 @@ let test_is_token_minter_view =
     let minter = Test.nth_bootstrap_account 7 in
     let is_minter = FA2_V.is_token_minter ((minter, 0n : address * FA2_I.token_id), strg) in
 
-    let () = assert_with_error (is_minter) "Views - Is minter : This test should pass, correct minter specified" in
+    let () = assert_with_error (is_minter) "Views - Is token minter : This test should pass, correct minter specified" in
     "Passed"
 
 
@@ -25,7 +25,7 @@ let test_is_token_minter_view_false =
     let not_minter = Test.nth_bootstrap_account 6 in
     let is_minter = FA2_V.is_token_minter ((not_minter, 0n : address * FA2_I.token_id ), strg) in
 
-    let () = assert_with_error (is_minter <> true) "Views - Is minter : This test should pass, wrong minter specified" in
+    let () = assert_with_error (is_minter <> true) "Views - Is token minter : This test should pass, wrong minter specified" in
     "Passed"
 
 // -- Minter --
