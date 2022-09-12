@@ -15,13 +15,23 @@ type mint_edition_param =
   receivers : address list;
 }
 
+#if WILL_ORIGINATE_FROM_FACTORY
 
+type editions_entrypoints =
+    |   Revoke_minting of revoke_minting_param
+    |   FA2 of fa2_entry_points
+    |   Mint_editions of mint_edition_param list
+    |   Burn_token of burn_param
+
+#else 
 
 type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
     |   Mint_editions of mint_edition_param list
     |   Burn_token of burn_param
+
+#endif
 
 let fail_if_not_owner (sender, token_id, storage : address * token_id * editions_storage) : unit =
     match (Big_map.find_opt token_id storage.assets.ledger) with
@@ -103,10 +113,10 @@ let mint_editions ( edition_run_list , storage : mint_edition_param list * editi
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
     let () : unit = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     match param with
-        | Admin a ->
-            let ops, admin = admin_main (a, editions_storage.admin) in
-            let new_storage = { editions_storage with admin = admin; } in
-            ops, new_storage
+        | Revoke_minting revoke_param ->
+            let () = fail_if_not_admin editions_storage.admin in 
+            let () = fail_if_minting_revoked editions_storage.admin in
+            (([]: operation list), { editions_storage with admin.minting_revoked = revoke_param.revoke; })
 
         | FA2 fa2_entry_points ->
             let ops, new_storage = fa2_main (fa2_entry_points, editions_storage.assets) in

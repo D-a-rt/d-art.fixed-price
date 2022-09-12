@@ -1,6 +1,6 @@
 #import "storage.test.mligo" "FA2_STR"
 #include "../../d-art.serie-factory/serie_factory.mligo"
-#import "../../d-art.fa2-editions/fa2_editions_factory.mligo" "FA2"
+#import "../../d-art.fa2-editions/compile_fa2_editions_factory.mligo" "FA2"
 
 // TEST FILE FOR MAIN ENTRYPOINTS
 

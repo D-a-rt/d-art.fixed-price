@@ -523,7 +523,7 @@ let test_mint_edition_success_no_receivers =
 
 
 // -- FA2 editions version originated from Serie factory contract --
-#include "../../d-art.fa2-editions/fa2_editions_factory.mligo"
+#include "../../d-art.fa2-editions/compile_fa2_editions_factory.mligo"
 
 let get_serie_originated_initial_storage (mr: bool) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
     let () = Test.reset_state 8n ([]: tez list) in

@@ -422,7 +422,11 @@
                             COMPARE ;
                             NEQ ;
                             IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } { UNIT } } ;
-                        DIG 2 ;
+                        LAMBDA
+                          (pair address bool)
+                          unit
+                          { CDR ; IF { PUSH string "MINTING_IS_REVOKED" ; FAILWITH } { UNIT } } ;
+                        DIG 3 ;
                         UNPAIR ;
                         PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
                         PUSH mutez 0 ;
@@ -432,7 +436,7 @@
                         NOT ;
                         IF { FAILWITH } { DROP } ;
                         IF_LEFT
-                          { DIG 3 ;
+                          { DIG 4 ;
                             DROP ;
                             IF_LEFT
                               { SWAP ;
@@ -442,19 +446,15 @@
                                 CAR ;
                                 CAR ;
                                 DUP ;
+                                DIG 5 ;
+                                SWAP ;
+                                EXEC ;
+                                DROP ;
+                                DUP ;
                                 DIG 4 ;
                                 SWAP ;
                                 EXEC ;
                                 DROP ;
-                                PUSH bool True ;
-                                SWAP ;
-                                DUP ;
-                                DUG 2 ;
-                                CDR ;
-                                COMPARE ;
-                                NEQ ;
-                                NOT ;
-                                IF { PUSH string "MINTING_IS_REVOKED" ; FAILWITH } {} ;
                                 DUP 3 ;
                                 CDR ;
                                 DUP 4 ;
@@ -474,7 +474,8 @@
                                 NIL operation ;
                                 PAIR }
                               { DIG 2 ;
-                                DROP ;
+                                DIG 3 ;
+                                DROP 2 ;
                                 PUSH string "NOT_OWNER" ;
                                 SENDER ;
                                 DUP 3 ;
@@ -541,7 +542,8 @@
                                 PAIR } }
                           { IF_LEFT
                               { DIG 2 ;
-                                DROP ;
+                                DIG 3 ;
+                                DROP 2 ;
                                 SWAP ;
                                 DUP ;
                                 DUG 2 ;
@@ -693,20 +695,20 @@
                                 CAR ;
                                 CAR ;
                                 CAR ;
+                                DIG 4 ;
+                                SWAP ;
+                                EXEC ;
+                                DROP ;
+                                SWAP ;
+                                DUP ;
+                                DUG 2 ;
+                                CAR ;
+                                CAR ;
+                                CAR ;
                                 DIG 3 ;
                                 SWAP ;
                                 EXEC ;
                                 DROP ;
-                                PUSH bool True ;
-                                DUP 3 ;
-                                CAR ;
-                                CAR ;
-                                CAR ;
-                                CDR ;
-                                COMPARE ;
-                                NEQ ;
-                                NOT ;
-                                IF { PUSH string "MINTING_IS_REVOKED" ; FAILWITH } {} ;
                                 ITER { SWAP ;
                                        PUSH nat 250 ;
                                        DUP 3 ;

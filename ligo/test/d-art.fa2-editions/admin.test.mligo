@@ -102,7 +102,7 @@ let test_update_minter_manager =
 
 // -- FA2 editions version originated from Serie factory contract
 
-#include "../../d-art.fa2-editions/fa2_editions_factory.mligo"
+#include "../../d-art.fa2-editions/compile_fa2_editions_factory.mligo"
 
 let get_serie_originated_initial_storage (mr: bool) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
     let () = Test.reset_state 8n ([]: tez list) in
@@ -188,7 +188,7 @@ let test_factory_originated_revoke_minting_not_admin =
 
     let () = Test.set_source owner1 in
 
-    let result = Test.transfer_to_contract contract (Admin (Revoke_minting ({ revoke = true } : revoke_minting_param))) 0tez in
+    let result = Test.transfer_to_contract contract (Revoke_minting ({ revoke = true } : revoke_minting_param)) 0tez in
 
     match result with
         Success _gas -> failwith "Admin (Serie originated fa2 contract) -> Revoke_minting - Not admin : This test should fail"
@@ -205,7 +205,7 @@ let test_factory_originated_revoke_minting_not_admin =
 
     let () = Test.set_source owner1 in
 
-    let result = Test.transfer_to_contract contract (Admin (Revoke_minting ({ revoke = true } : revoke_minting_param))) 1tez in
+    let result = Test.transfer_to_contract contract  (Revoke_minting ({ revoke = true } : revoke_minting_param)) 1tez in
 
     match result with
         Success _gas -> failwith "Admin (Serie originated fa2 contract) -> Revoke_minting - No amount : This test should fail"
@@ -222,9 +222,9 @@ let test_factory_originated_undo_revoke_minting =
 
     let () = Test.set_source admin in
 
-    let _gas = Test.transfer_to_contract_exn contract (Admin (Revoke_minting ({ revoke = true } : revoke_minting_param))) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract (Revoke_minting ({ revoke = true } : revoke_minting_param)) 0tez in
 
-    let result = Test.transfer_to_contract contract (Admin (Revoke_minting ({ revoke = false } : revoke_minting_param))) 0tez in
+    let result = Test.transfer_to_contract contract (Revoke_minting ({ revoke = false } : revoke_minting_param)) 0tez in
 
     match result with
         Success _gas -> failwith "Admin (Serie originated fa2 contract) -> Revoke_minting - undo revoke : This test should fail"
@@ -242,7 +242,7 @@ let test_factory_originated_revoke_minting =
 
     let () = Test.set_source admin in
 
-    let result = Test.transfer_to_contract contract (Admin (Revoke_minting ({ revoke = true } : revoke_minting_param))) 0tez in
+    let result = Test.transfer_to_contract contract (Revoke_minting ({ revoke = true } : revoke_minting_param)) 0tez in
 
     let new_str = Test.get_storage contract_add in
     let () = assert_with_error (new_str.admin.minting_revoked = true) "Admin (Serie originated fa2 contract) -> Revoke_minting - Success : This test should pass :  Wrong Revoke_minting" in

@@ -6,9 +6,6 @@ type revoke_minting_param =
   revoke: bool
 }
 
-type admin_entrypoints =
-    |   Revoke_minting of revoke_minting_param
-
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =
   if Tezos.sender <> storage.admin
@@ -19,13 +16,6 @@ let fail_if_minting_revoked (storage : admin_storage) : unit =
   if storage.minting_revoked
   then failwith "MINTING_IS_REVOKED"
   else unit
-
-let admin_main(param, storage : admin_entrypoints * admin_storage) : (operation list) * admin_storage =
-    let () = fail_if_not_admin storage in 
-    let () = fail_if_minting_revoked storage in
-    match param with
-        | Revoke_minting param ->
-            (([]: operation list), { storage with minting_revoked = param.revoke; })
 
 #else
 

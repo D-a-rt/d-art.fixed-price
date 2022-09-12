@@ -49,6 +49,12 @@ program
     })
 
 program
+    . command('upload_metadata')
+    .action((option: any) => {
+        contract.uploadContractMetadata()
+    })
+
+program
     .option('-v', 'show version', ver, '')
     .action(ver.showVersion);
 

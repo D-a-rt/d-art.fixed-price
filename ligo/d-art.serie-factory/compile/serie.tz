@@ -1,6 +1,6 @@
 { parameter
-    (or (or (bool %admin) (pair %burn_token (address %owner) (nat %token_id)))
-        (or (or %fA2
+    (or (or (pair %burn_token (address %owner) (nat %token_id))
+            (or %fA2
                (or (pair %balance_of
                       (list %requests (pair (address %owner) (nat %token_id)))
                       (contract %callback
@@ -9,13 +9,14 @@
                       (pair (address %from_) (list %txs (pair (address %to_) (nat %token_id) (nat %amount))))))
                (list %update_operators
                   (or (pair %add_operator (address %owner) (address %operator) (nat %token_id))
-                      (pair %remove_operator (address %owner) (address %operator) (nat %token_id)))))
-            (list %mint_editions
+                      (pair %remove_operator (address %owner) (address %operator) (nat %token_id))))))
+        (or (list %mint_editions
                (pair (bytes %edition_info)
                      (nat %total_edition_number)
                      (nat %royalty)
                      (list %splits (pair (address %address) (nat %pct)))
-                     (list %receivers address))))) ;
+                     (list %receivers address)))
+            (bool %revoke_minting))) ;
   storage
     (pair (pair (pair (pair %admin (address %admin) (bool %minting_revoked))
                       (pair %assets
@@ -144,46 +145,12 @@
          NOT ;
          IF { FAILWITH } { DROP } ;
          IF_LEFT
-           { DIG 4 ;
-             DROP ;
+           { DIG 2 ;
+             DIG 3 ;
+             DROP 2 ;
              IF_LEFT
-               { SWAP ;
-                 DUP ;
-                 DUG 2 ;
-                 CAR ;
-                 CAR ;
-                 CAR ;
-                 DUP ;
-                 DIG 5 ;
-                 SWAP ;
-                 EXEC ;
-                 DROP ;
-                 DUP ;
-                 DIG 4 ;
-                 SWAP ;
-                 EXEC ;
-                 DROP ;
-                 DUP 3 ;
-                 CDR ;
-                 DUP 4 ;
-                 CAR ;
-                 CDR ;
-                 DIG 4 ;
-                 CAR ;
-                 CAR ;
-                 CDR ;
-                 DIG 4 ;
-                 DIG 4 ;
-                 CAR ;
-                 PAIR ;
-                 PAIR ;
-                 PAIR ;
-                 PAIR ;
-                 NIL operation ;
-                 PAIR }
                { DIG 2 ;
-                 DIG 3 ;
-                 DROP 2 ;
+                 DROP ;
                  PUSH string "NOT_OWNER" ;
                  SENDER ;
                  DUP 3 ;
@@ -247,12 +214,8 @@
                  PAIR ;
                  PAIR ;
                  NIL operation ;
-                 PAIR } }
-           { IF_LEFT
-               { DIG 2 ;
-                 DIG 3 ;
-                 DROP 2 ;
-                 SWAP ;
+                 PAIR }
+               { SWAP ;
                  DUP ;
                  DUG 2 ;
                  CAR ;
@@ -396,7 +359,8 @@
                  PAIR ;
                  PAIR ;
                  SWAP ;
-                 PAIR }
+                 PAIR } }
+           { IF_LEFT
                { SWAP ;
                  DUP ;
                  DUG 2 ;
@@ -651,6 +615,51 @@
                         PAIR } ;
                  SWAP ;
                  DROP ;
+                 NIL operation ;
+                 PAIR }
+               { DIG 4 ;
+                 DROP ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 DIG 4 ;
+                 SWAP ;
+                 EXEC ;
+                 DROP ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 DIG 3 ;
+                 SWAP ;
+                 EXEC ;
+                 DROP ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CDR ;
+                 DUP 3 ;
+                 CAR ;
+                 CDR ;
+                 DUP 4 ;
+                 CAR ;
+                 CAR ;
+                 CDR ;
+                 DIG 3 ;
+                 DIG 4 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 PAIR ;
+                 PAIR ;
+                 PAIR ;
+                 PAIR ;
                  NIL operation ;
                  PAIR } } } ;
   view "token_metadata"
