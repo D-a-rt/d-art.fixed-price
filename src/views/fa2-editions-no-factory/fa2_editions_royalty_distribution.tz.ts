@@ -1,6 +1,6 @@
-export type RoyaltyDistributionViewCodeType = { __type: 'RoyaltyDistributionViewCodeType'; code: string; };
+export type RoyaltyDistributionNoFactoryViewCodeType = { __type: 'RoyaltyDistributionNoFactoryViewCodeType'; code: string; };
 export default {
-  __type: 'RoyaltyDistributionViewCodeType', code: `
+  __type: 'RoyaltyDistributionNoFactoryViewCodeType', code: `
   { UNPAIR ;
     SWAP ;
     DUP ;
@@ -22,4 +22,4 @@ export default {
       { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
       { DUP ; GET 8 ; SWAP ; DUP ; DUG 2 ; GET 7 ; PAIR ; SWAP ; CAR ; PAIR } }
   `
-} as RoyaltyDistributionViewCodeType
+} as RoyaltyDistributionNoFactoryViewCodeType

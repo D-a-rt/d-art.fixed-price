@@ -78,7 +78,7 @@ let transfer_token (transfer, fa2_address: transfer * address) : operation =
 // -- Authorize drop seller
 
 let is_authorized_drop_seller (add, token : address * fa2_base) : bool = 
-  match ((Tezos.call_view "is_minter" add token.address ): bool option) with
+  match ((Tezos.call_view "is_token_minter" (add, token.id) token.address ): bool option) with
       None -> false
     | Some _b -> _b
 

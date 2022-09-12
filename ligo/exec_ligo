@@ -1,1 +1,1 @@
-docker run --rm -v "$PWD":"$PWD" -w "$PWD" ligolang/ligo:next "$@"
+docker run --rm -v "$PWD":"$PWD" -w "$PWD" ligolang/ligo:0.43.0 "$@"

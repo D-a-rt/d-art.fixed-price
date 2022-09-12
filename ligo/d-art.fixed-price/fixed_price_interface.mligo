@@ -149,6 +149,7 @@ type storage =
   drops: drops_storage;
   fa2_dropped: (fa2_base, unit) big_map;
   fee: fee_data;
+  metadata : (string, bytes) big_map;
 }
 
 type return = operation list * storage

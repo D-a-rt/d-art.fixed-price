@@ -1,7 +1,6 @@
 { parameter
-    (or (or (or %admin (bool %pause_minting) (address %update_minter_manager))
-            (pair %burn_token (address %owner) (nat %token_id)))
-        (or (or %fA2
+    (or (or (pair %burn_token (address %owner) (nat %token_id))
+            (or %fA2
                (or (pair %balance_of
                       (list %requests (pair (address %owner) (nat %token_id)))
                       (contract %callback
@@ -10,25 +9,23 @@
                       (pair (address %from_) (list %txs (pair (address %to_) (nat %token_id) (nat %amount))))))
                (list %update_operators
                   (or (pair %add_operator (address %owner) (address %operator) (nat %token_id))
-                      (pair %remove_operator (address %owner) (address %operator) (nat %token_id)))))
-            (list %mint_editions
+                      (pair %remove_operator (address %owner) (address %operator) (nat %token_id))))))
+        (or (list %mint_editions
                (pair (bytes %edition_info)
                      (nat %total_edition_number)
                      (nat %royalty)
                      (list %splits (pair (address %address) (nat %pct)))
-                     (list %receivers address))))) ;
+                     (list %receivers address)))
+            (bool %revoke_minting))) ;
   storage
-    (pair (pair (pair (pair %admin
-                         (pair (address %admin) (address %minters_manager))
-                         (bool %paused_minting))
+    (pair (pair (pair (pair %admin (address %admin) (bool %minting_revoked))
                       (pair %assets
                          (pair (big_map %ledger nat address)
                                (big_map %operators (pair address (pair address nat)) unit))
                          (big_map %token_metadata nat (pair (nat %token_id) (map %token_info string bytes)))))
                 (pair (big_map %editions_metadata
                          nat
-                         (pair (address %minter)
-                               (map %edition_info string bytes)
+                         (pair (map %edition_info string bytes)
                                (nat %total_edition_number)
                                (nat %royalty)
                                (list %splits (pair (address %address) (nat %pct)))))
@@ -126,7 +123,19 @@
              PAIR ;
              NIL operation ;
              PAIR } ;
-         SWAP ;
+         LAMBDA
+           (pair address bool)
+           unit
+           { CAR ;
+             SENDER ;
+             COMPARE ;
+             NEQ ;
+             IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } { UNIT } } ;
+         LAMBDA
+           (pair address bool)
+           unit
+           { CDR ; IF { PUSH string "MINTING_IS_REVOKED" ; FAILWITH } { UNIT } } ;
+         DIG 3 ;
          UNPAIR ;
          PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
          PUSH mutez 0 ;
@@ -137,53 +146,12 @@
          IF { FAILWITH } { DROP } ;
          IF_LEFT
            { DIG 2 ;
-             DROP ;
+             DIG 3 ;
+             DROP 2 ;
              IF_LEFT
-               { SWAP ;
-                 DUP ;
-                 DUG 2 ;
-                 CAR ;
-                 CAR ;
-                 CAR ;
-                 DUP ;
-                 CAR ;
-                 CAR ;
-                 SENDER ;
-                 COMPARE ;
-                 NEQ ;
-                 IF { PUSH string "NOT_AN_ADMIN" ; FAILWITH } {} ;
-                 SWAP ;
-                 IF_LEFT
-                   { SWAP ; CAR ; PAIR ; NIL operation ; PAIR }
-                   { SWAP ;
-                     DUP ;
-                     DUG 2 ;
-                     CDR ;
-                     SWAP ;
-                     DIG 2 ;
-                     CAR ;
-                     CAR ;
-                     PAIR ;
-                     PAIR ;
-                     NIL operation ;
-                     PAIR } ;
-                 UNPAIR ;
-                 DUP 3 ;
-                 CDR ;
-                 DUP 4 ;
-                 CAR ;
-                 CDR ;
-                 DIG 4 ;
-                 CAR ;
-                 CAR ;
-                 CDR ;
-                 DIG 4 ;
-                 PAIR ;
-                 PAIR ;
-                 PAIR ;
-                 SWAP ;
-                 PAIR }
-               { PUSH string "NOT_OWNER" ;
+               { DIG 2 ;
+                 DROP ;
+                 PUSH string "NOT_OWNER" ;
                  SENDER ;
                  DUP 3 ;
                  CAR ;
@@ -246,8 +214,7 @@
                  PAIR ;
                  PAIR ;
                  NIL operation ;
-                 PAIR } }
-           { IF_LEFT
+                 PAIR }
                { SWAP ;
                  DUP ;
                  DUG 2 ;
@@ -392,28 +359,28 @@
                  PAIR ;
                  PAIR ;
                  SWAP ;
-                 PAIR }
+                 PAIR } }
+           { IF_LEFT
                { SWAP ;
                  DUP ;
                  DUG 2 ;
                  CAR ;
                  CAR ;
                  CAR ;
-                 CDR ;
-                 IF { PUSH string "MINTING_PAUSED" ; FAILWITH } {} ;
+                 DIG 4 ;
+                 SWAP ;
+                 EXEC ;
+                 DROP ;
                  SWAP ;
                  DUP ;
                  DUG 2 ;
                  CAR ;
                  CAR ;
                  CAR ;
-                 CAR ;
-                 CDR ;
-                 SENDER ;
-                 VIEW "is_minter" bool ;
-                 IF_NONE
-                   { PUSH string "NOT_A_MINTER" ; FAILWITH }
-                   { IF {} { PUSH string "NOT_A_MINTER" ; FAILWITH } } ;
+                 DIG 3 ;
+                 SWAP ;
+                 EXEC ;
+                 DROP ;
                  ITER { SWAP ;
                         PUSH nat 250 ;
                         DUP 3 ;
@@ -473,8 +440,7 @@
                         SOME ;
                         PUSH string "" ;
                         UPDATE ;
-                        SENDER ;
-                        PAIR 5 ;
+                        PAIR 4 ;
                         PUSH nat 1 ;
                         DUP 3 ;
                         CDR ;
@@ -527,7 +493,7 @@
                         DUP 4 ;
                         SIZE ;
                         DIG 5 ;
-                        GET 5 ;
+                        GET 3 ;
                         SUB ;
                         ABS ;
                         PAIR ;
@@ -650,6 +616,51 @@
                  SWAP ;
                  DROP ;
                  NIL operation ;
+                 PAIR }
+               { DIG 4 ;
+                 DROP ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 DIG 4 ;
+                 SWAP ;
+                 EXEC ;
+                 DROP ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 DIG 3 ;
+                 SWAP ;
+                 EXEC ;
+                 DROP ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CDR ;
+                 DUP 3 ;
+                 CAR ;
+                 CDR ;
+                 DUP 4 ;
+                 CAR ;
+                 CAR ;
+                 CDR ;
+                 DIG 3 ;
+                 DIG 4 ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 CAR ;
+                 PAIR ;
+                 PAIR ;
+                 PAIR ;
+                 PAIR ;
+                 NIL operation ;
                  PAIR } } } ;
   view "token_metadata"
        nat
@@ -692,7 +703,7 @@
              GET ;
              IF_NONE
                { DROP 3 ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-               { GET 3 ;
+               { CAR ;
                  PUSH nat 1 ;
                  DIG 4 ;
                  CAR ;
@@ -728,14 +739,16 @@
          IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
          CAR ;
          SWAP ;
+         DUP ;
+         DUG 2 ;
          CAR ;
          CDR ;
          CAR ;
          SWAP ;
          GET ;
          IF_NONE
-           { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-           { DUP ; GET 8 ; SWAP ; DUP ; DUG 2 ; GET 7 ; PAIR ; SWAP ; CAR ; PAIR } } ;
+           { DROP ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+           { DUP ; GET 6 ; SWAP ; GET 5 ; PAIR ; SWAP ; CAR ; CAR ; CAR ; CAR ; PAIR } } ;
   view "splits"
        nat
        (list (pair (address %address) (nat %pct)))
@@ -756,7 +769,7 @@
          CAR ;
          SWAP ;
          GET ;
-         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 8 } } ;
+         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 6 } } ;
   view "royalty_splits"
        nat
        (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
@@ -779,7 +792,7 @@
          GET ;
          IF_NONE
            { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-           { DUP ; GET 8 ; SWAP ; GET 7 ; PAIR } } ;
+           { DUP ; GET 6 ; SWAP ; GET 5 ; PAIR } } ;
   view "royalty"
        nat
        nat
@@ -800,28 +813,8 @@
          CAR ;
          SWAP ;
          GET ;
-         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 7 } } ;
-  view "minter"
-       nat
-       address
-       { UNPAIR ;
-         SWAP ;
-         DUP ;
-         DUG 2 ;
-         CAR ;
-         CDR ;
-         CDR ;
-         SWAP ;
-         EDIV ;
-         IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
-         CAR ;
-         SWAP ;
-         CAR ;
-         CDR ;
-         CAR ;
-         SWAP ;
-         GET ;
-         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { CAR } } ;
+         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 5 } } ;
+  view "minter" nat address { CDR ; CAR ; CAR ; CAR ; CAR } ;
   view "is_token_minter"
        (pair address nat)
        bool
@@ -839,17 +832,20 @@
          EDIV ;
          IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
          CAR ;
-         DIG 2 ;
+         DUP 3 ;
          CAR ;
          CDR ;
          CAR ;
          SWAP ;
          GET ;
          IF_NONE
-           { DROP ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-           { SWAP ;
+           { DROP 2 ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+           { DROP ;
              CAR ;
              SWAP ;
+             CAR ;
+             CAR ;
+             CAR ;
              CAR ;
              COMPARE ;
              EQ ;
@@ -878,7 +874,7 @@
            { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
            { PUSH nat 1 ;
              SWAP ;
-             GET 5 ;
+             GET 3 ;
              COMPARE ;
              GT ;
              IF { PUSH bool False } { PUSH bool True } } } }

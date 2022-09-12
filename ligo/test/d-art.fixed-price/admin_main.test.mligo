@@ -29,7 +29,8 @@ let get_initial_storage () =
         fee = {
             address = admin;
             percent = 3n;
-        }
+        };
+        metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
     let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
