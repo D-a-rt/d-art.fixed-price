@@ -521,6 +521,52 @@ let test_mint_edition_success_no_receivers =
     |   Fail _ -> failwith "Internal test failure"
 
 
+// -- Update Metadata
+
+// Fail if not admin
+let test_update_metadata_no_admin =
+    let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(false, false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source owner1 in
+
+    let str = Test.get_storage contract_add in
+
+    let result = Test.transfer_to_contract contract (Update_metadata ("54657374206d657373616765207465746574657465" : bytes) ) 0tez in
+
+    match result with
+            Success _gas -> failwith "Update_metadata (Serie originated fa2 contract) - Update metadata : This test should fail"
+        |   Fail (Rejected (err, _)) -> (
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Update_metadata (Serie originated fa2 contract) - Update metadata : Should not work if not an admin" in
+                "Passed"
+            )
+        |   Fail _ -> failwith "Internal test failure"
+      
+let test_update_metadata_success =
+    let contract_add, admin, owner1, minter = FA2_STR.get_initial_storage(false, false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source admin in
+
+    let str = Test.get_storage contract_add in
+
+    let result = Test.transfer_to_contract contract (Update_metadata ("54657374206d65737361676520746574657465746567" : bytes) ) 0tez in
+
+    match result with
+        Success _gas -> (
+            let new_str = Test.get_storage contract_add in
+            let () = match Big_map.find_opt "" new_str.metadata with 
+                    Some meta -> assert_with_error (meta = ("54657374206d65737361676520746574657465746567" : bytes)) "Update_metadata (Serie originated fa2 contract) - Update metadata success : Metadata shoule be updated"
+                |   None -> failwith "Update_metadata (Serie originated fa2 contract) - Update metadata : Metadata should exist"
+            in
+            "Passed"
+        )
+    |   Fail (Rejected (err, _)) -> (
+            let () = Test.log(err, "error") in
+            failwith "Update_metadata (Serie originated fa2 contract) - Update metadata success : This test should pass"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
 
 // -- FA2 editions version originated from Serie factory contract --
 #include "../../d-art.fa2-editions/compile_fa2_editions_factory.mligo"
@@ -1028,5 +1074,52 @@ let test_factory_originated_mint_edition_success_no_receivers =
         )
     |   Fail (Rejected (err, _)) -> (
             failwith "Mint_editions (Serie originated fa2 contract) - No receivers : This test should pass"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+
+// -- Update Metadata
+
+// Fail if not admin
+let test_factory_originated_update_metadata_no_admin =
+    let contract_add, admin, owner1, minter = get_serie_originated_initial_storage(false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source owner1 in
+
+    let str = Test.get_storage contract_add in
+
+    let result = Test.transfer_to_contract contract (Update_metadata ("54657374206d657373616765207465746574657465" : bytes) ) 0tez in
+
+    match result with
+            Success _gas -> failwith "Update_metadata (Serie originated fa2 contract) - Update metadata : This test should fail"
+        |   Fail (Rejected (err, _)) -> (
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Update_metadata (Serie originated fa2 contract) - Update metadata : Should not work if not an admin" in
+                "Passed"
+            )
+        |   Fail _ -> failwith "Internal test failure"
+      
+let test_factory_originated_update_metadata_success =
+    let contract_add, admin, owner1, minter = get_serie_originated_initial_storage(false) in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+
+    let str = Test.get_storage contract_add in
+
+    let result = Test.transfer_to_contract contract (Update_metadata ("54657374206d65737361676520746574657465746567" : bytes) ) 0tez in
+
+    match result with
+        Success _gas -> (
+            let new_str = Test.get_storage contract_add in
+            let () = match Big_map.find_opt "" new_str.metadata with 
+                    Some meta -> assert_with_error (meta = ("54657374206d65737361676520746574657465746567" : bytes)) "Update_metadata (Serie originated fa2 contract) - Update metadata success : Metadata shoule be updated"
+                |   None -> failwith "Update_metadata (Serie originated fa2 contract) - Update metadata : Metadata should exist"
+            in
+            "Passed"
+        )
+    |   Fail (Rejected (err, _)) -> (
+            let () = Test.log(err, "error") in
+            failwith "Update_metadata (Serie originated fa2 contract) - Update metadata success : This test should pass"
         )
     |   Fail _ -> failwith "Internal test failure"
