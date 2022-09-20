@@ -21,6 +21,7 @@ type editions_entrypoints =
     |   Revoke_minting of revoke_minting_param
     |   FA2 of fa2_entry_points
     |   Mint_editions of mint_edition_param list
+    |   Update_metadata of bytes
     |   Burn_token of burn_param
 
 #else 
@@ -29,6 +30,7 @@ type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
     |   Mint_editions of mint_edition_param list
+    |   Update_metadata of bytes
     |   Burn_token of burn_param
 
 #endif
@@ -127,6 +129,14 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let () = fail_if_minting_revoked editions_storage.admin in
             mint_editions (mint_param, editions_storage)
 
+        | Update_metadata metadata_param -> 
+            let () = fail_if_not_admin editions_storage.admin in
+            let res = match Big_map.find_opt "" editions_storage.metadata with
+                |   Some _ -> ([]: operation list), {editions_storage with metadata = Big_map.update ("") (Some metadata_param) editions_storage.metadata }
+                |   None -> ([]: operation list), {editions_storage with metadata = Big_map.add ("") metadata_param editions_storage.metadata }
+            in
+            res
+
         | Burn_token burn_param ->
             let () = assert_msg (burn_param.owner = Tezos.sender, "NOT_OWNER") in
             let () : unit = fail_if_not_owner (Tezos.sender, burn_param.token_id, editions_storage) in
@@ -182,6 +192,15 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let () = fail_if_minting_paused editions_storage.admin in
             let () = fail_if_not_minter editions_storage.admin in
             mint_editions (mint_param, editions_storage)
+
+        | Update_metadata metadata_param -> 
+            let () = fail_if_not_admin editions_storage.admin in
+            
+            let res = match Big_map.find_opt "" editions_storage.metadata with
+                |   Some _ -> ([]: operation list), {editions_storage with metadata = Big_map.update ("") (Some metadata_param) editions_storage.metadata }
+                |   None -> ([]: operation list), {editions_storage with metadata = Big_map.add ("") metadata_param editions_storage.metadata }
+            in
+            res
 
         | Burn_token burn_param ->
             let () = assert_msg (burn_param.owner = Tezos.sender, "NOT_OWNER") in
