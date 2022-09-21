@@ -14,20 +14,24 @@ import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 // -- View import
 // Serie factory
 import { default as IsMinter } from './views/serie_factory/is_minter.tz';
-// FA2 shared
-import { default as Splits } from './views/fa2-editions-shared/fa2_editions_splits.tz';
-import { default as Royalty } from './views/fa2-editions-shared/fa2_editions_royalty.tz';
-import { default as RoyaltySplits } from './views/fa2-editions-shared/fa2_editions_royalty_splits.tz';
-import { default as EditionsMetadata } from './views/fa2-editions-shared/fa2_editions_token_metadata.tz';
+
 // FA2 no factory
-import { default as MinterNoFactory } from './views/fa2-editions-no-factory/fa2_editions_minter.tz';
-import { default as IsTokenMinterNoFactory } from './views/fa2-editions-no-factory/fa2_editions_is_token_minter.tz';
-import { default as RoyaltyDistributionNoFactory } from './views/fa2-editions-no-factory/fa2_editions_royalty_distribution.tz';
+import { default as Minter } from './views/fa2-editions-no-factory/fa2_editions_minter.tz';
+import { default as Splits } from './views/fa2-editions-no-factory/fa2_editions_splits.tz';
+import { default as Royalty } from './views/fa2-editions-no-factory/fa2_editions_royalty.tz';
+import { default as RoyaltySplits } from './views/fa2-editions-no-factory/fa2_editions_royalty_splits.tz';
+import { default as IsTokenMinter } from './views/fa2-editions-no-factory/fa2_editions_is_token_minter.tz';
+import { default as EditionsMetadata } from './views/fa2-editions-no-factory/fa2_editions_token_metadata.tz';
+import { default as RoyaltyDistribution } from './views/fa2-editions-no-factory/fa2_editions_royalty_distribution.tz';
 
 // FA2 factory
 import { default as MinterFactory } from './views/fa2-editions-factory/fa2_editions_minter.tz';
 import { default as IsTokenMinterFactory } from './views/fa2-editions-factory/fa2_editions_is_token_minter.tz';
 import { default as RoyaltyDistributionFactory } from './views/fa2-editions-factory/fa2_editions_royalty_distribution.tz';
+import { default as EditionsMetadataFactory } from './views/fa2-editions-factory/fa2_editions_token_metadata.tz';
+import { default as SplitsFactory } from './views/fa2-editions-factory/fa2_editions_splits.tz';
+import { default as RoyaltyFactory } from './views/fa2-editions-factory/fa2_editions_royalty.tz';
+import { default as RoyaltySplitsFactory } from './views/fa2-editions-factory/fa2_editions_royalty_splits.tz';
 
 const client = new NFTStorage({
     token: process.env.NFT_STORAGE_KEY!,
@@ -183,17 +187,17 @@ export async function deployEditionContract(): Promise<void> {
     const p = new Parser();
 
     const parsedSplitsMichelsonCode = p.parseMichelineExpression(Splits.code);
-    const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterNoFactory.code);
+    const parsedMinterMichelsonCode = p.parseMichelineExpression(Minter.code);
     const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(Royalty.code);
-    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterNoFactory.code);
+    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinter.code);
     const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplits.code);
     const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(EditionsMetadata.code);
-    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionNoFactory.code);
+    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistribution.code);
 
     // TODO : Add missing views
     const editions_contract_metadata = {
         name: 'A:RT - Original',
-        description: 'Original collection for D a:rt NFTs. Edition version of the FA2 contract',
+        description: 'The original serie for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create unique pieces.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -248,8 +252,8 @@ export async function deployEditionContract(): Promise<void> {
                                                 {
                                                     prim: "pair",
                                                     args: [
-                                                        { prim: "address", annots: "address" },
-                                                        { prim: "nat", annots: "pct" },
+                                                        { prim: "address", annots: ["%address"] },
+                                                        { prim: "nat", annots: ["%pct"] },
                                                     ]
                                                 }
                                             ],
@@ -281,8 +285,8 @@ export async function deployEditionContract(): Promise<void> {
                                 {
                                     prim: "pair",
                                     args: [
-                                        { prim: "address", annots: "address" },
-                                        { prim: "nat", annots: "pct" },
+                                        { prim: "address", annots: ["%address"] },
+                                        { prim: "nat", annots: ["%pct"] },
                                     ]
                                 }
                             ],
@@ -314,8 +318,8 @@ export async function deployEditionContract(): Promise<void> {
                                         {
                                             prim: "pair",
                                             args: [
-                                                { prim: "address", annots: "address" },
-                                                { prim: "nat", annots: "pct" },
+                                                { prim: "address", annots: ["%address"] },
+                                                { prim: "nat", annots: ["%pct"] },
                                             ]
                                         }
                                     ],
@@ -784,27 +788,26 @@ export const testContracts = async (param: any) => {
 }
 
 
-
+// Example metadata upload for factory generated contracts
 export const uploadContractMetadata = async () => {
     
     const p = new Parser();
 
-    const parsedSplitsMichelsonCode = p.parseMichelineExpression(Splits.code);
+    const parsedSplitsMichelsonCode = p.parseMichelineExpression(SplitsFactory.code);
     const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterFactory.code);
-    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(Royalty.code);
+    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(RoyaltyFactory.code);
     const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterFactory.code);
-    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplits.code);
-    const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(EditionsMetadata.code);
+    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplitsFactory.code);
+    const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(EditionsMetadataFactory.code);
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionFactory.code);
 
     // TODO : Add missing views
     const editions_contract_metadata = {
-        name: 'A:RT - Factory originated',
-        description: 'Factory originated collection for D a:rt NFTs. Edition version of the FA2 contract',
+        name: 'Name...',
+        description: 'Description...',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
-        license: "MIT",
         interfaces: ['TZIP-012', 'TZIP-016'],
-        imageUri: "ipfs://bafkreidnvjk6h7w7a6lp27t2tkmrzoqyjizedqnr5ojf525sm5jkfel2yy",
+        imageUri: "ipfs://...",
         views: [{
             name: 'token_metadata',
             description: 'Get the metadata for the tokens minted using this contract',
@@ -854,8 +857,8 @@ export const uploadContractMetadata = async () => {
                                                 {
                                                     prim: "pair",
                                                     args: [
-                                                        { prim: "address", annots: "address" },
-                                                        { prim: "nat", annots: "pct" },
+                                                        { prim: "address", annots: ["%address"] },
+                                                        { prim: "nat", annots: ["%pct"] },
                                                     ]
                                                 }
                                             ],
@@ -887,8 +890,8 @@ export const uploadContractMetadata = async () => {
                                 {
                                     prim: "pair",
                                     args: [
-                                        { prim: "address", annots: "address" },
-                                        { prim: "nat", annots: "pct" },
+                                        { prim: "address", annots: ["%address"] },
+                                        { prim: "nat", annots: ["%pct"] },
                                     ]
                                 }
                             ],
@@ -920,8 +923,8 @@ export const uploadContractMetadata = async () => {
                                         {
                                             prim: "pair",
                                             args: [
-                                                { prim: "address", annots: "address" },
-                                                { prim: "nat", annots: "pct" },
+                                                { prim: "address", annots: ["%address"] },
+                                                { prim: "nat", annots: ["%pct"] },
                                             ]
                                         }
                                     ],
