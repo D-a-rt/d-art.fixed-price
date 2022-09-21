@@ -36,7 +36,7 @@ let create_serie (param, storage : create_serie_entrypoint * serie_factory_stora
     } in
 
     let initial_str = {
-        next_edition_id = 1n;
+        next_edition_id = 0n;
         max_editions_per_run = 250n ;
         editions_metadata = editions_metadata_str;
         assets = asset_str;
