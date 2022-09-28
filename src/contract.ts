@@ -152,10 +152,15 @@ export async function deployFixedPriceContract(): Promise<void> {
             },
             for_sale: MichelsonMap.fromLiteral({}),
             drops: MichelsonMap.fromLiteral({}),
+            fa2_sold: MichelsonMap.fromLiteral({}),
             fa2_dropped: MichelsonMap.fromLiteral({}),
-            fee: {
+            fee_primary: {
                 address: process.env.ADMIN_PUBLIC_KEY_HASH,
                 percent: 100,
+            },
+            fee_secondary: {
+                address: process.env.ADMIN_PUBLIC_KEY_HASH,
+                percent: 25,
             },
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),

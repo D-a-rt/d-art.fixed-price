@@ -153,10 +153,15 @@ let get_initial_storage (signature_saved : bool ) =
         admin = admin_str;
         for_sale = empty_sales ;
         drops = drops_str;
+        fa2_sold = empty_dropped;
         fa2_dropped = empty_dropped;
-        fee = {
+        fee_primary = {
             address = fee_account;
             percent = 35n;
+        };
+        fee_secondary = {
+            address = fee_account;
+            percent = 100n;
         };
         metadata = (Big_map.empty : (string, bytes) big_map);
     } in

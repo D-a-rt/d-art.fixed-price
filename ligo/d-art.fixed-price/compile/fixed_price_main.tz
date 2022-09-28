@@ -1,7 +1,9 @@
 { parameter
     (or (or (or (or %admin
-                   (or (bool %contractWillUpdate) (pair %updateFee (address %address) (nat %percent)))
-                   (key %updatePublicKey))
+                   (or (bool %contractWillUpdate)
+                       (pair %updatePrimaryFee (address %address) (nat %percent)))
+                   (or (key %updatePublicKey)
+                       (pair %updateSecondaryFee (address %address) (nat %percent))))
                 (pair %buy_dropped_token
                    (pair %fa2_token (nat %id) (address %address))
                    (address %seller)
@@ -40,8 +42,10 @@
           (big_map %drops
              (pair (pair (nat %id) (address %address)) address)
              (pair (mutez %price) (timestamp %drop_date)))
+          (big_map %fa2_sold (pair (nat %id) (address %address)) unit)
           (big_map %fa2_dropped (pair (nat %id) (address %address)) unit)
-          (pair %fee (address %address) (nat %percent))
+          (pair %fee_primary (address %address) (nat %percent))
+          (pair %fee_secondary (address %address) (nat %percent))
           (big_map %metadata string bytes)) ;
   code { LAMBDA
            (pair bool string)
@@ -78,6 +82,8 @@
                        (big_map (pair (pair nat address) address) (pair mutez (option address)))
                        (big_map (pair (pair nat address) address) (pair mutez timestamp))
                        (big_map (pair nat address) unit)
+                       (big_map (pair nat address) unit)
+                       (pair address nat)
                        (pair address nat)
                        (big_map string bytes)))
            unit
@@ -109,6 +115,8 @@
                        (big_map (pair (pair nat address) address) (pair mutez (option address)))
                        (big_map (pair (pair nat address) address) (pair mutez timestamp))
                        (big_map (pair nat address) unit)
+                       (big_map (pair nat address) unit)
+                       (pair address nat)
                        (pair address nat)
                        (big_map string bytes)))
            (pair mutez timestamp)
@@ -132,6 +140,8 @@
                              (big_map (pair (pair nat address) address) (pair mutez (option address)))
                              (big_map (pair (pair nat address) address) (pair mutez timestamp))
                              (big_map (pair nat address) unit)
+                             (big_map (pair nat address) unit)
+                             (pair address nat)
                              (pair address nat)
                              (big_map string bytes))))
            (list operation)
@@ -141,35 +151,65 @@
              UNPAIR ;
              UNPAIR ;
              DUP 3 ;
-             GET 9 ;
+             GET 7 ;
+             SWAP ;
+             DUP ;
+             DUG 2 ;
              CAR ;
-             DUP 5 ;
+             MEM ;
+             IF { SWAP ;
+                  DUP ;
+                  DUG 2 ;
+                  DUP 4 ;
+                  GET 13 ;
+                  CDR ;
+                  SOME ;
+                  PAIR ;
+                  DUP 7 ;
+                  SWAP ;
+                  EXEC ;
+                  DIG 3 ;
+                  GET 13 ;
+                  CAR ;
+                  DUP 5 ;
+                  SWAP ;
+                  EXEC ;
+                  PAIR }
+                { SWAP ;
+                  DUP ;
+                  DUG 2 ;
+                  DUP 4 ;
+                  GET 11 ;
+                  CDR ;
+                  SOME ;
+                  PAIR ;
+                  DUP 7 ;
+                  SWAP ;
+                  EXEC ;
+                  DIG 3 ;
+                  GET 11 ;
+                  CAR ;
+                  DUP 5 ;
+                  SWAP ;
+                  EXEC ;
+                  PAIR } ;
              SWAP ;
-             EXEC ;
-             DUP 3 ;
-             DIG 4 ;
-             GET 9 ;
-             CDR ;
-             SOME ;
-             PAIR ;
-             DUP 7 ;
-             SWAP ;
-             EXEC ;
-             DUP 3 ;
+             DUP ;
+             DUG 2 ;
              CAR ;
              UNPAIR ;
              VIEW "royalty_splits"
                   (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))) ;
              IF_NONE
-               { DIG 6 ; DROP ; NIL operation ; PUSH mutez 0 ; PAIR }
-               { DUP 5 ;
+               { DIG 5 ; DROP ; NIL operation ; PUSH mutez 0 ; PAIR }
+               { DUP 4 ;
                  SWAP ;
                  DUP ;
                  DUG 2 ;
                  CAR ;
                  SOME ;
                  PAIR ;
-                 DUP 9 ;
+                 DUP 8 ;
                  SWAP ;
                  EXEC ;
                  PUSH mutez 0 ;
@@ -181,7 +221,7 @@
                         UNPAIR ;
                         DUP 3 ;
                         CAR ;
-                        DUP 10 ;
+                        DUP 9 ;
                         SWAP ;
                         EXEC ;
                         DUP 5 ;
@@ -189,7 +229,7 @@
                         CDR ;
                         SOME ;
                         PAIR ;
-                        DUP 12 ;
+                        DUP 11 ;
                         SWAP ;
                         EXEC ;
                         DUP ;
@@ -201,30 +241,33 @@
                         CONS ;
                         PAIR } ;
                  SWAP ;
-                 DIG 8 ;
+                 DIG 7 ;
                  DROP 2 ;
                  UNPAIR ;
                  SWAP ;
                  PAIR } ;
              UNPAIR ;
-             DUP 5 ;
+             DUP 4 ;
              GET 3 ;
-             DIG 7 ;
+             DIG 6 ;
              SWAP ;
              EXEC ;
              SWAP ;
              DUP 4 ;
-             DIG 7 ;
-             PAIR ;
-             DUP 8 ;
-             SWAP ;
-             EXEC ;
-             PAIR ;
+             CDR ;
              DIG 6 ;
+             PAIR ;
+             DUP 7 ;
              SWAP ;
              EXEC ;
+             PAIR ;
+             DIG 5 ;
+             SWAP ;
+             EXEC ;
+             DUP 4 ;
+             CAR ;
              DIG 4 ;
-             DIG 4 ;
+             CDR ;
              UNIT ;
              TRANSFER_TOKENS ;
              DUG 2 ;
@@ -308,8 +351,8 @@
                              UPDATE 1 ;
                              NIL operation ;
                              PAIR }
-                           { PUSH string "PERCENTAGE_MUST_BE_MAXIUM_50" ;
-                             PUSH nat 50 ;
+                           { PUSH string "PERCENTAGE_MUST_BE_MAXIUM_15_PERCENT" ;
+                             PUSH nat 500 ;
                              DUP 3 ;
                              CDR ;
                              COMPARE ;
@@ -319,25 +362,40 @@
                              SWAP ;
                              EXEC ;
                              DROP ;
-                             UPDATE 9 ;
+                             UPDATE 11 ;
                              NIL operation ;
                              PAIR } }
-                       { DIG 2 ;
-                         DROP ;
-                         SWAP ;
-                         DUP ;
-                         CAR ;
-                         DUP ;
-                         CDR ;
-                         CDR ;
-                         DIG 3 ;
-                         PAIR ;
-                         SWAP ;
-                         CAR ;
-                         PAIR ;
-                         UPDATE 1 ;
-                         NIL operation ;
-                         PAIR } }
+                       { IF_LEFT
+                           { DIG 2 ;
+                             DROP ;
+                             SWAP ;
+                             DUP ;
+                             CAR ;
+                             DUP ;
+                             CDR ;
+                             CDR ;
+                             DIG 3 ;
+                             PAIR ;
+                             SWAP ;
+                             CAR ;
+                             PAIR ;
+                             UPDATE 1 ;
+                             NIL operation ;
+                             PAIR }
+                           { PUSH string "PERCENTAGE_MUST_BE_MAXIUM_15_PERCENT" ;
+                             PUSH nat 500 ;
+                             DUP 3 ;
+                             CDR ;
+                             COMPARE ;
+                             LE ;
+                             PAIR ;
+                             DIG 3 ;
+                             SWAP ;
+                             EXEC ;
+                             DROP ;
+                             UPDATE 13 ;
+                             NIL operation ;
+                             PAIR } } }
                    { PUSH string "SELLER_NOT_AUTHORIZED" ;
                      SWAP ;
                      DUP ;
@@ -407,6 +465,16 @@
                      DUP ;
                      DUP ;
                      DUG 4 ;
+                     GET 7 ;
+                     UNIT ;
+                     DUP 5 ;
+                     CAR ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 7 ;
+                     DUP 4 ;
                      GET 5 ;
                      DUP 4 ;
                      GET 3 ;
@@ -421,6 +489,16 @@
                      DUP ;
                      DUP ;
                      DUG 5 ;
+                     GET 7 ;
+                     UNIT ;
+                     DUP 6 ;
+                     CAR ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 7 ;
+                     DUP 5 ;
                      GET 5 ;
                      DUP 5 ;
                      GET 3 ;
@@ -533,6 +611,16 @@
                      DUP ;
                      DUP ;
                      DUG 4 ;
+                     GET 7 ;
+                     UNIT ;
+                     DUP 5 ;
+                     CAR ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 7 ;
+                     DUP 4 ;
                      GET 3 ;
                      DUP 4 ;
                      GET 3 ;
@@ -547,6 +635,16 @@
                      DUP ;
                      DUP ;
                      DUG 5 ;
+                     GET 7 ;
+                     UNIT ;
+                     DUP 6 ;
+                     CAR ;
+                     SWAP ;
+                     SOME ;
+                     SWAP ;
+                     UPDATE ;
+                     UPDATE 7 ;
+                     DUP 5 ;
                      GET 3 ;
                      DUP 5 ;
                      GET 3 ;
@@ -683,6 +781,18 @@
                             SWAP ;
                             EXEC ;
                             DROP ;
+                            PUSH string "CANNOT_DROP_ALREADY_SOLD_TOKEN" ;
+                            DUP 5 ;
+                            GET 9 ;
+                            DUP 4 ;
+                            CAR ;
+                            MEM ;
+                            NOT ;
+                            PAIR ;
+                            DUP 6 ;
+                            SWAP ;
+                            EXEC ;
+                            DROP ;
                             SWAP ;
                             DUP ;
                             DUG 2 ;
@@ -717,23 +827,14 @@
                             PAIR ;
                             DUP 5 ;
                             DUP 3 ;
-                            GET 7 ;
-                            UNIT ;
-                            DUP 6 ;
-                            CAR ;
-                            SWAP ;
-                            SOME ;
-                            SWAP ;
-                            UPDATE ;
-                            UPDATE 7 ;
+                            GET 5 ;
+                            DUP 3 ;
                             SENDER ;
-                            DUP 5 ;
+                            DUP 7 ;
                             CAR ;
                             PAIR ;
-                            DUP 4 ;
-                            GET 5 ;
-                            DUP 4 ;
-                            DIG 2 ;
+                            PAIR 3 ;
+                            UNPAIR 3 ;
                             SWAP ;
                             SOME ;
                             SWAP ;
@@ -741,23 +842,14 @@
                             UPDATE 5 ;
                             DUP 6 ;
                             DUP 4 ;
-                            GET 7 ;
-                            UNIT ;
-                            DUP 7 ;
-                            CAR ;
-                            SWAP ;
-                            SOME ;
-                            SWAP ;
-                            UPDATE ;
-                            UPDATE 7 ;
+                            GET 5 ;
+                            DIG 3 ;
                             SENDER ;
-                            DIG 5 ;
+                            DIG 6 ;
                             CAR ;
                             PAIR ;
-                            DUP 5 ;
-                            GET 5 ;
-                            DIG 4 ;
-                            DIG 2 ;
+                            PAIR 3 ;
+                            UNPAIR 3 ;
                             SWAP ;
                             SOME ;
                             SWAP ;

@@ -119,6 +119,7 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
     let () = Test.reset_state 6n ([233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez] : tez list) in
     
     let admin = Test.nth_bootstrap_account 0 in
+    let admin_2 = Test.nth_bootstrap_account 2 in
     let signed_ms = (Big_map.empty : FP_I.signed_message_used) in
     
     let admin_str : FP_I.admin_storage = {
@@ -168,9 +169,14 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
         admin = admin_str;
         for_sale = empty_sales ;
         drops = empty_drops;
+        fa2_sold = empty_dropped;
         fa2_dropped = empty_dropped;
-        fee = {
+        fee_primary = {
             address = admin;
+            percent = 10n;
+        };
+        fee_secondary = {
+            address = admin_2;
             percent = 3n;
         };
         metadata = (Big_map.empty : (string, bytes) big_map);
@@ -180,12 +186,12 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
     then (
         if isInDrops
         then (
-            let str = { str with drops = drops_str; fa2_dropped = dropped } in
+            let str = { str with drops = drops_str; fa2_sold = dropped } in
             let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
             taddr
         )
         else (
-            let str = { str with fa2_dropped = dropped } in
+            let str = { str with fa2_sold = dropped } in
             let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
             taddr
         )
@@ -863,7 +869,7 @@ let test_revoke_drops_before_drop_date =
                     address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n
                 } in
-                let () = match Big_map.find_opt first_revoke_sale_dropped_key new_str.fa2_dropped with
+                let () = match Big_map.find_opt first_revoke_sale_dropped_key new_str.fa2_sold with
                         Some first_revoke_sale_dropped_key -> (failwith "RevokeSale - Success : This test should pass (err: First drop should be deleted from dropped big_map)" : unit)
                     |   None -> unit
                 in
@@ -884,7 +890,7 @@ let test_revoke_drops_before_drop_date =
                 address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 0n
             } in
-            let () = match Big_map.find_opt second_revoke_sale_dropped_key new_str.fa2_dropped with
+            let () = match Big_map.find_opt second_revoke_sale_dropped_key new_str.fa2_sold with
                     Some second_revoke_sale_dropped_key -> (failwith "RevokeSale - Success : This test should pass (err: Second drop should be deleted from dropped big_map)" : unit)
                 |   None -> unit
             in
@@ -936,7 +942,7 @@ let test_revoke_drops_after_drope_date =
                     address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n
                 } in
-                let () = match Big_map.find_opt first_revoke_sale_dropped_key new_str.fa2_dropped with
+                let () = match Big_map.find_opt first_revoke_sale_dropped_key new_str.fa2_sold with
                         Some first_revoke_sale_dropped_key -> unit
                     |   None -> (failwith "RevokeSale - Success : This test should pass (err: First drop should not be deleted from dropped big_map)" : unit)
                 in
@@ -957,7 +963,7 @@ let test_revoke_drops_after_drope_date =
                 address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 0n
             } in
-            let () = match Big_map.find_opt second_revoke_sale_dropped_key new_str.fa2_dropped with
+            let () = match Big_map.find_opt second_revoke_sale_dropped_key new_str.fa2_sold with
                     Some second_revoke_sale_dropped_key -> unit
                 |   None -> (failwith "RevokeSale - Success : This test should pass (err: Second drop should not be deleted from dropped big_map)" : unit)
             in

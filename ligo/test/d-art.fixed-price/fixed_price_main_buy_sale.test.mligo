@@ -64,8 +64,9 @@ type editions_storage =
 
 
 let get_edition_fa2_contract (factory_contract, fixed_price_contract_address : address * address) = 
-
+    
     let admin = Test.nth_bootstrap_account 0 in
+    let buyer = Test.nth_bootstrap_account 1 in
     let token_seller = Test.nth_bootstrap_account 3 in
     let token_minter = Test.nth_bootstrap_account 4 in
     let token_split = Test.nth_bootstrap_account 5 in
@@ -81,7 +82,8 @@ let get_edition_fa2_contract (factory_contract, fixed_price_contract_address : a
                 (0n), (token_seller)        
             ]);
         operators = Big_map.literal([
-                ((token_seller, (fixed_price_contract_address, 0n)), ())  ;      
+                ((token_seller, (fixed_price_contract_address, 0n)), ())  ;
+                ((buyer, (fixed_price_contract_address, 0n)), ())  ;      
             ]);
         token_metadata = (Big_map.empty : (token_id, token_metadata) big_map);
     } in
@@ -152,8 +154,13 @@ let get_initial_storage (signature_saved : bool ) =
         admin = admin_str;
         for_sale = empty_sales ;
         drops = drops_str;
+        fa2_sold = empty_dropped;
         fa2_dropped = empty_dropped;
-        fee = {
+        fee_primary = {
+            address = fee_account;
+            percent = 100n;
+        };
+        fee_secondary = {
             address = fee_account;
             percent = 35n;
         };
@@ -287,9 +294,10 @@ let test_buy_fixed_price_token_signature_already_used =
 let test_buy_fixed_price_token_wrong_price = 
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let init_str = Test.get_storage contract_add in
+    
     let factory_contract_address = get_factory_contract () in
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
-    let init_str = Test.get_storage contract_add in
     
     let admin_addr = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin_addr in
@@ -487,24 +495,23 @@ let test_buy_fixed_price_token_success =
             let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
                     Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
                 |   None -> unit
-            in    
-            
+            in
             
             // Check that fees been transfer to fee address
             let new_fee_account_bal = Test.get_balance fee_account in
-            let () =    if new_fee_account_bal - fee_account_bal = Some (7462362899171mutez)
+            let () =    if new_fee_account_bal - fee_account_bal = Some (21321036854775mutez)
                         then unit
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
             in
 
-            // Check that royalties have been sent correctly to minter 50%
+            // Check that 50% of the 15% royalties have been sent correctly to minter
             let new_minter_account_bal = Test.get_balance token_minter in
             let () =    if new_minter_account_bal - token_minter_bal = Some (15990777641081mutez)
                         then unit
-                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to minter address)" : unit)
             in
 
-            // Admin 50% of the royalties here
+            // Admin 50% of the 15% royalties here
             let new_token_split_bal = Test.get_balance token_split in
             let () =    if new_token_split_bal - token_split_bal = Some (15990777641081mutez)
                         then unit
@@ -513,7 +520,7 @@ let test_buy_fixed_price_token_success =
 
             // Check that seller got the right amount
             let new_token_seller_bal = Test.get_balance token_seller in
-            let () =    if new_token_seller_bal - token_seller_bal = Some (173766450366424mutez)
+            let () =    if new_token_seller_bal - token_seller_bal = Some (159907776410820mutez)
                         then unit
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong value sent to seller)" : unit)
             in
@@ -522,6 +529,181 @@ let test_buy_fixed_price_token_success =
             let () = match Big_map.find_opt 0n edition_str.assets.ledger with
                     Some add -> (
                         if add = buyer
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong address to the token)" : unit) 
+                    )
+                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token should have a value)" : unit)
+            in
+            "Passed"
+        )   
+    |   Fail (Rejected (err, _)) -> (
+            let () = Test.log("errL:", err) in
+           failwith "Buy_fixed_price_token - Success : This test should pass"    
+        )
+    |   Fail err -> (
+        let () = Test.log ("err: ", err) in
+        failwith "Internal test failure"    
+    )
+
+let test_buy_fixed_price_token_success_secondary = 
+    let contract_address = get_initial_storage (false) in
+    let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
+    let factory_contract_address = get_factory_contract () in
+    
+    let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
+    let contract_edition_add : (E_M.editions_entrypoints, editions_storage) typed_address = Test.cast_address edition_contract in
+    
+    let init_str = Test.get_storage contract_add in
+    let edition_str = Test.get_storage contract_edition_add in
+    
+    let token_seller = Test.nth_bootstrap_account 3 in
+    let () = Test.set_source token_seller in
+    
+    let contract = Test.to_contract contract_add in
+
+    let gas_creation_sale = Test.transfer_to_contract_exn contract
+        (Create_sales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 213210368547757mutez;
+                buyer = None;
+                fa2_token = {
+                    address = (edition_contract : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info );]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    let buyer = Test.nth_bootstrap_account 1 in
+    let token_buyer_bal = Test.get_balance buyer in
+    let () = Test.set_source buyer in
+
+    let _gas = Test.transfer_to_contract_exn contract
+        (Buy_fixed_price_token ({
+            fa2_token = ({
+                id = 0n;
+                address = (edition_contract : address);
+            } : FP_I.fa2_base);
+            seller = token_seller;
+            buyer = buyer;
+            authorization_signature = ({
+                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
+                message = ("54657374206d6573736167652074657374207269676874" : bytes);
+            }: FP_I.authorization_signature);
+      
+        })) 213210368547757mutez
+    in
+
+    // Get balance of different actors of the sale to verify 
+    // that fees and royalties are sent correctly
+    
+
+    let fee_account = Test.nth_bootstrap_account 2 in
+    let fee_account_bal = Test.get_balance fee_account in
+    
+    let token_minter = Test.nth_bootstrap_account 4 in
+    let token_minter_bal = Test.get_balance token_minter in
+
+    let token_split = Test.nth_bootstrap_account 5 in
+    let token_split_bal = Test.get_balance token_split in
+
+    let gas_creation_sale = Test.transfer_to_contract_exn contract
+        (Create_sales ({
+            authorization_signature = ({
+                signed = ("edsigtcPETftjKnjZC7kXTi4FkTvu7HxFffuJvnMQBARqHN5vSdvURHcipybYM6j72e3N9eH69cnFjBAZA4qjaVfQ5mkCfdzF9L" : signature);
+                message = ("726572657265" : bytes);
+            }: FP_I.authorization_signature);
+            sale_infos = [({
+                price = 213210368547757mutez;
+                buyer = None;
+                fa2_token = {
+                    address = (edition_contract : address);
+                    id = 0n 
+                };
+            } : FP_I.sale_info );]
+        } : FP_I.sale_configuration)) 0tez
+    in
+
+    let () = Test.set_source token_seller in
+    let token_seller_bal = Test.get_balance buyer in
+
+    let result = Test.transfer_to_contract contract
+        (Buy_fixed_price_token ({
+            fa2_token = ({
+                id = 0n;
+                address = (edition_contract : address);
+            } : FP_I.fa2_base);
+            seller = buyer;
+            buyer = token_seller;
+            authorization_signature = ({
+                signed = ("edsigte3DXyd46Qh8cqb2vCFSBZkyha9S4co9L2zKk4s3x8wMwR6TPUs7nLX2bYfzjDnzp5xaxuxg3cBJvnoMARAeyz8AkKJkLh" : signature);
+                message = ("7265726572657265" : bytes);
+            }: FP_I.authorization_signature);
+      
+        })) 213210368547757mutez
+    in
+
+    // To check the result of the edition storage account
+    let edition_str = Test.get_storage contract_edition_add in
+    // To check the result of the fixed price storage account
+    let new_fp_str = Test.get_storage contract_add in
+
+    match result with
+        Success _gas -> (
+            // Check that message has been correctly saved 
+            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
+                    Some _ -> unit
+                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
+            in
+            // Check that sale is deleted from big map
+            let sale_key : FP_I.fa2_base * address = (
+                {
+                    address = (edition_contract : address);
+                    id = 0n
+                },
+                init_str.admin.address
+            ) in
+            let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
+                    Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
+                |   None -> unit
+            in
+            
+            // Check that fees been transfer to fee address
+            let new_fee_account_bal = Test.get_balance fee_account in
+            let () =    if new_fee_account_bal - fee_account_bal = Some (7462362899171mutez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
+            in
+
+            // Check that 50% of the 15% royalties have been sent correctly to minter
+            let new_minter_account_bal = Test.get_balance token_minter in
+            let () =    if new_minter_account_bal - token_minter_bal = Some (15990777641081mutez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to minter address)" : unit)
+            in
+
+            // Admin 50% of the 15% royalties here
+            let new_token_split_bal = Test.get_balance token_split in
+            let () =    if new_token_split_bal - token_split_bal = Some (15990777641081mutez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
+            in
+
+            // Check that seller got the right amount
+            let new_token_seller_bal = Test.get_balance buyer in
+            let () =    if new_token_seller_bal - token_seller_bal = Some (173766450366424mutez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong value sent to seller)" : unit)
+            in
+
+            // Check that buyer owns the token
+            let () = match Big_map.find_opt 0n edition_str.assets.ledger with
+                    Some add -> (
+                        if add = token_seller
                         then unit
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong address to the token)" : unit) 
                     )

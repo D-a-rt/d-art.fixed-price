@@ -11,7 +11,6 @@ type fixed_price_entrypoints =
     | Buy_dropped_token of buy_token
 
 // Fixed price sales functions
-
 let create_sales (sale_configuration, storage : sale_configuration * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
@@ -21,6 +20,10 @@ let create_sales (sale_configuration, storage : sale_configuration * storage) : 
         fun (strg, sale_param : storage * sale_info ) ->
             let () = assert_msg (sale_param.price >= 100000mutez, "Price should be at least 0.1tez" ) in
             
+            match ((Tezos.call_view "FA2_TOKEN_UNDEFINED" sale_param.fa2_token.id sale_param.fa2_token.address ): bool option) with
+                None -> false
+                | Some _ -> failwith ("FA2_TOKEN_UNDEFINED": token_metadata)
+
             let () = match sale_param.buyer with
                     Some buyer -> assert_msg (buyer <> Tezos.sender, "BUYER_CANNOT_BE_SELLER" )
                 |   None -> unit
@@ -89,11 +92,9 @@ let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
 
     let operation_list : operation list = perform_sale_operation (buy_token, concerned_fixed_price_sale.price, storage) in
     
-    operation_list, { storage with for_sale = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.for_sale; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used }
-    
+    operation_list, { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; for_sale = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.for_sale; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used }
 
 // Drop functions
-
 let create_drops (drop_configuration, storage : drop_configuration * storage) : return =
     let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
@@ -107,6 +108,7 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
 
             let () = assert_msg (not Big_map.mem (drop_param.fa2_token, Tezos.sender) strg.drops, "ALREADY_DROPED") in
             let () = assert_msg (not Big_map.mem drop_param.fa2_token storage.fa2_dropped, "ALREADY_DROPED") in
+            let () = assert_msg (not Big_map.mem drop_param.fa2_token storage.fa2_sold, "CANNOT_DROP_ALREADY_SOLD_TOKEN") in
 
             let auhorized = is_authorized_drop_seller (Tezos.sender, drop_param.fa2_token) in
             let () = assert_msg (auhorized = true , "NOT_AUTHORIZED_DROP_SELLER") in
@@ -118,10 +120,9 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
 
             {
                 storage with
-                fa2_dropped = Big_map.add drop_param.fa2_token unit strg.fa2_dropped;
                 drops = Big_map.add (drop_param.fa2_token, Tezos.sender) fixed_price_drop strg.drops;
                 admin.signed_message_used = Big_map.add drop_configuration.authorization_signature.message unit strg.admin.signed_message_used
-            } 
+            }
     in
     let new_storage = List.fold create_drop drop_configuration.drop_infos storage in
     ([] : operation list), new_storage
@@ -138,7 +139,7 @@ let revoke_drops (revoke_drops_param, storage : revoke_param * storage) : return
 
             // Erase the token from drop
             if drop.drop_date - 21600 > Tezos.now 
-            then { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops; fa2_dropped = Big_map.remove fa2_b strg.fa2_dropped }
+            then { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops; fa2_sold = Big_map.remove fa2_b strg.fa2_sold }
             else { storage with drops = Big_map.remove (fa2_b, Tezos.sender) strg.drops }
 
     in
@@ -156,7 +157,7 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
 
     let operation_list : operation list = perform_sale_operation (buy_token, concerned_fixed_price_drop.price, storage) in
 
-    let new_strg = { storage with drops = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.drops; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used } in
+    let new_strg = { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; drops = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.drops; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used } in
 
     operation_list, new_strg
 
