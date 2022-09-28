@@ -3,7 +3,9 @@
 
 // Create initial storage
 let get_initial_storage (will_update : bool) = 
+    let () = Test.reset_state 8n ([]: tez list) in
     let admin = Test.nth_bootstrap_account 0 in
+    let admin_2 = Test.nth_bootstrap_account 2 in
     let signed_ms = (Big_map.empty : FP_I.signed_message_used) in
     
     let admin_str : FP_I.admin_storage = {
@@ -22,9 +24,14 @@ let get_initial_storage (will_update : bool) =
         admin = admin_str;
         for_sale = empty_sales ;
         drops = empty_drops;
+        fa2_sold = empty_dropped;
         fa2_dropped = empty_dropped;
-        fee = {
+        fee_primary = {
             address = admin;
+            percent = 10n;
+        };
+        fee_secondary = {
+            address = admin_2;
             percent = 3n;
         };
         metadata = (Big_map.empty : (string, bytes) big_map);

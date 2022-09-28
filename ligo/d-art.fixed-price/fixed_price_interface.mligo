@@ -131,7 +131,6 @@ type token_metadata =
   }
   
 // Revoke
-
 type revoke_param =
 [@layout:comb]
 {
@@ -140,15 +139,16 @@ type revoke_param =
 
 
 // Contract storage
-
 type storage =
 [@layout:comb]
 {
   admin: admin_storage;
   for_sale: (fa2_base * address, fixed_price_sale) big_map;
   drops: drops_storage;
+  fa2_sold: (fa2_base, unit) big_map;
   fa2_dropped: (fa2_base, unit) big_map;
-  fee: fee_data;
+  fee_primary: fee_data;
+  fee_secondary: fee_data;
   metadata : (string, bytes) big_map;
 }
 

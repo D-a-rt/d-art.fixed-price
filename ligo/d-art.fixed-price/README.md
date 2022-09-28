@@ -27,8 +27,10 @@ type storage =
     admin: admin_storage;
     for_sale: (fa2_base * seller, fixed_price_sale) big_map;
     drops: drops_storage;
+    fa2_sold: (fa2_base, unit) big_map;
     fa2_dropped: (fa2_base, unit) big_map;
-    fee: fee_data;
+    fee_primary: fee_data;
+    fee_secondary: fee_data;
 }
 ```
 
@@ -110,7 +112,7 @@ Why `buyer` in `fixed_price_sale` ?
 
 A sale can be public or private, which will allow the owner of the token to either open the sell to everyone or restrict the access to a specific buyer.
 
-## fa2_dropped
+## fa2_sold
 
 
 ``` ocaml
@@ -118,14 +120,14 @@ type storage =
 [@layout:comb]
 {
     ...
-    fa2_dropped: fa2_dropped_storage;
+    fa2_sold: fa2_sold_storage;
     ...
 }
 
-type fa2_dropped_storage = (fa2_base, unit) big_map
+type fa2_sold_storage = (fa2_base, unit) big_map
 ```
 
-``fa2_dropped`` : The list of token already dropped. Here we make sure that it can only be dropped once.
+``fa2_sold`` : The list of token already dropped. Here we make sure that it can only be dropped once.
 
 
 ## drops
@@ -211,21 +213,22 @@ The `Admin` entrypoints are responsible for updating fees and the `pb_key` respo
 
 ``` ocaml
 type admin_entrypoints =
-    | Update_fee of fee_data
-    | Update_public_key of key
-    | Contract_will_update of bool
+    | UpdatePrimaryFee of fee_data
+    | UpdateSecondaryfee of fee_data
+    | UpdatePublicKey of key
+    | ContractWillUpdate of bool
 ```
 
 
-##### Update_fee
+##### UpdatePrimaryFee & UpdateSecondaryFee
 
 Entrypoints in order to update the address and the percentage of the fee for transactions.
 
-##### Update_public_key
+##### UpdatePublicKey
 
 Entrypoints to update public key for the signature verification.
 
-##### Contract_will_update
+##### ContractWillUpdate
 
 Entrypoint responsible to block access to any seller for the entrypoints `Create_sales` and `Create_drops` in order to empty this contract and update the a newer version (in case a new one or new logic is implemented)
 
