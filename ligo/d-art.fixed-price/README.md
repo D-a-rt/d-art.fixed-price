@@ -27,6 +27,7 @@ type storage =
     admin: admin_storage;
     for_sale: (fa2_base * seller, fixed_price_sale) big_map;
     drops: drops_storage;
+    offers: (fa2_base * address, tez) big_map;
     fa2_sold: (fa2_base, unit) big_map;
     fa2_dropped: (fa2_base, unit) big_map;
     fee_primary: fee_data;
@@ -162,7 +163,23 @@ type fixed_price_drop =
 ``drop_date`` : The time when the sale start. Note
 
 
-### Fee
+## offers
+
+
+``` ocaml
+type storage =
+[@layout:comb]
+{
+    ...
+    offers: (fa2_base * address, tez) big_map;
+    ...
+}
+
+
+```
+
+
+## Fee
 
 ``` ocaml
 type storage =
@@ -195,6 +212,11 @@ type fix_price_entrypoints =
     | Create_sales of sale_configuration
     | Update_sales of sale_edition
     | Revoke_sales of sale_deletion
+
+    (* Offers entrypoint *)
+    | Create_offer of offer_conf
+    | Revoke_offer of offer_conf
+    | Accept_offer of accept_off
 
     (* Drops entrypoint *)
     | Create_drops of drop_configuration
