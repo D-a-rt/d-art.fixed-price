@@ -148,7 +148,7 @@ let get_initial_storage (signature_saved : bool ) =
     let empty_sellers = Big_map.literal([(admin), () ]) in
     let drops_str = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
     let empty_dropped = (Big_map.empty : (FP_I.fa2_base, unit) big_map) in
-
+    let empty_offers = (Big_map.empty : (FP_I.fa2_base * address, tez) big_map) in
     
     let str = {
         admin = admin_str;
@@ -156,6 +156,7 @@ let get_initial_storage (signature_saved : bool ) =
         drops = drops_str;
         fa2_sold = empty_dropped;
         fa2_dropped = empty_dropped;
+        offers = empty_offers;
         fee_primary = {
             address = fee_account;
             percent = 100n;

@@ -19,13 +19,15 @@ let get_initial_storage (will_update : bool) =
     let empty_sellers = (Big_map.empty : (address, unit) big_map ) in
     let empty_drops = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
     let empty_dropped = (Big_map.empty : (FP_I.fa2_base, unit) big_map) in
-
+    let empty_offers = (Big_map.empty : (FP_I.fa2_base * address, tez) big_map) in
+    
     let str = {
         admin = admin_str;
         for_sale = empty_sales ;
         drops = empty_drops;
         fa2_sold = empty_dropped;
         fa2_dropped = empty_dropped;
+        offers = empty_offers;
         fee_primary = {
             address = admin;
             percent = 10n;

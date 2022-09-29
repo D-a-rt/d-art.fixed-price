@@ -57,7 +57,7 @@ type fee_data =
   percent : nat;
 }
 
-// -- Fixed price sale types
+// -- Fixed  price sale types
 
 type fixed_price_sale =
 [@layout:comb]
@@ -67,6 +67,21 @@ type fixed_price_sale =
 }
 
 // Entrypoints record params
+
+// -- Offer
+
+type offer_conf =
+[@layout:comb]
+{
+  fa2_token: fa2_base
+}
+
+type accept_offer = 
+[@layout:comb]
+{
+  fa2_token: fa2_base;
+  buyer: address;
+}
 
 // -- Fixed price sale
 
@@ -145,6 +160,7 @@ type storage =
   admin: admin_storage;
   for_sale: (fa2_base * address, fixed_price_sale) big_map;
   drops: drops_storage;
+  offers: (fa2_base * address, tez) big_map;
   fa2_sold: (fa2_base, unit) big_map;
   fa2_dropped: (fa2_base, unit) big_map;
   fee_primary: fee_data;
