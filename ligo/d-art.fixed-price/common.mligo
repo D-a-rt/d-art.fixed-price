@@ -122,26 +122,25 @@ let verify_unique_edition (token : fa2_base) : unit =
     | Some is_unique_ed -> if is_unique_ed then unit else failwith "ONLY_UNIQUE_EDITION_ALLOWED"
 
 // -- Manage admin fees
-let select_fee (buy_token, price, str : buy_token * tez * storage) : (unit contract) * tez =
-  if Big_map.mem buy_token.fa2_token str.fa2_sold
+let select_fee (fa2_token, price, str : fa2_base * tez * storage) : (unit contract) * tez =
+  if Big_map.mem fa2_token str.fa2_sold
   then resolve_contract (str.fee_secondary.address), calculate_fee (Some (str.fee_secondary.percent), price)
   else resolve_contract (str.fee_primary.address), calculate_fee (Some (str.fee_primary.percent), price)
 
 // -- Any kind of sale
 
-let perform_sale_operation (buy_token, price, storage : buy_token * tez * storage) : operation list =
+let perform_sale_operation (fa2_token, seller, buyer, price, storage : fa2_base * address * address * tez * storage) : operation list =
 
-  let admin_fee : (unit contract) * tez = select_fee (buy_token, price, storage) in
+  let admin_fee : (unit contract) * tez = select_fee (fa2_token, price, storage) in
 
-  let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (buy_token.fa2_token, price) in
+  let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (fa2_token, price) in
 
-  let seller_contract : unit contract = resolve_contract buy_token.seller in
+  let seller_contract : unit contract = resolve_contract seller in
   let seller_tez_amount : tez = sub_tez(sub_tez(price, admin_fee.1), royalties_fee) in
 
   let admin_fee_transfer : operation = Tezos.transaction unit admin_fee.1 admin_fee.0 in
   let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
-  let buyer_transfer : operation = transfer_token ({ from_ = buy_token.seller; txs = [{ to_ = buy_token.buyer; token_id = buy_token.fa2_token.id; amount = 1n}] }, buy_token.fa2_token.address) in
+  let buyer_transfer : operation = transfer_token ({ from_ = seller; txs = [{ to_ = buyer; token_id = fa2_token.id; amount = 1n}] }, fa2_token.address) in
 
   // List of all the performed operation
   (admin_fee_transfer :: buyer_transfer :: seller_transfer :: royalties_transfer )
-

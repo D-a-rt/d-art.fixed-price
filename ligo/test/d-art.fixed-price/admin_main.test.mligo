@@ -24,6 +24,7 @@ let get_initial_storage () =
     let empty_sellers = (Big_map.empty : (address, unit) big_map ) in
     let empty_drops = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
     let empty_dropped = (Big_map.empty : (FP_I.fa2_base, unit) big_map) in
+    let empty_offers = (Big_map.empty : (FP_I.fa2_base * address, tez) big_map) in
 
     let str = {
         admin = admin_str;
@@ -31,6 +32,7 @@ let get_initial_storage () =
         drops = empty_drops;
         fa2_sold = empty_dropped;
         fa2_dropped = empty_dropped;
+        offers = empty_offers;
         fee_primary = {
             address = admin;
             percent = 10n;
@@ -109,13 +111,13 @@ let test_primary_update_fee_negative_value =
         (Admin
             (UpdatePrimaryFee ({
                 address = init_str.admin.address;
-                percent = 51n;
+                percent = 251n;
             } : FP_I.fee_data ))) 0tez in
     
     match result with
-        Success _gas -> failwith "Admin -> UpdatePrimaryFee - Greater than 50 : This test should fail"
+        Success _gas -> failwith "Admin -> UpdatePrimaryFee - Greater than 25 : This test should fail"
     |   Fail (Rejected (err, _)) ->  (
-        let () = assert_with_error ( Test.michelson_equal err (Test.eval "PERCENTAGE_MUST_BE_MAXIUM_15_PERCENT") ) "Admin -> UpdatePrimaryFee - Greater than 50 : Should not work if percentage is greater than 50" in
+        let () = assert_with_error ( Test.michelson_equal err (Test.eval "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") ) "Admin -> UpdatePrimaryFee - Greater than 25 : Should not work if percentage is greater than 50" in
         "Passed"
     )
     |   Fail _ -> failwith "Internal test failure"    
@@ -230,13 +232,13 @@ let test_secondary_update_fee_negative_value =
         (Admin
             (UpdateSecondaryFee ({
                 address = init_str.admin.address;
-                percent = 51n;
+                percent = 251n;
             } : FP_I.fee_data ))) 0tez in
     
     match result with
-        Success _gas -> failwith "Admin -> UpdateSecondaryFee - Greater than 50 : This test should fail"
+        Success _gas -> failwith "Admin -> UpdateSecondaryFee - Greater than 25 : This test should fail"
     |   Fail (Rejected (err, _)) ->  (
-        let () = assert_with_error ( Test.michelson_equal err (Test.eval "PERCENTAGE_MUST_BE_MAXIUM_15_PERCENT") ) "Admin -> UpdateSecondaryFee - Greater than 50 : Should not work if percentage is greater than 50" in
+        let () = assert_with_error ( Test.michelson_equal err (Test.eval "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") ) "Admin -> UpdateSecondaryFee - Greater than 25 : Should not work if percentage is greater than 50" in
         "Passed"
     )
     |   Fail _ -> failwith "Internal test failure"    

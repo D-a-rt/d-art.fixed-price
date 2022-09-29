@@ -13,14 +13,14 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
   let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
   match param with
     | UpdatePrimaryFee new_fee_data ->
-        let () = assert_msg (new_fee_data.percent <= 150n, "PERCENTAGE_MUST_BE_MAXIUM_15_PERCENT") in
+        let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in
         ([] : operation list), { storage with fee_primary = new_fee_data }
 
     | UpdateSecondaryFee new_fee_data ->
-        let () = assert_msg (new_fee_data.percent <= 150n, "PERCENTAGE_MUST_BE_MAXIUM_15_PERCENT") in
+        let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in
         ([] : operation list), { storage with fee_secondary = new_fee_data }
     
-    | UpdatePublicKey key ->FALREAD
+    | UpdatePublicKey key ->
       ([] : operation list), { storage with admin.pb_key = key; }
 
     | ContractWillUpdate bool -> ([] : operation list), { storage with admin.contract_will_update = bool }
