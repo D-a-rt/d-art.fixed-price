@@ -1,13 +1,15 @@
 type admin_factory_entrypoints =
     |   Add_minter of address
     |   Remove_minter of address
+    |   Add_gallery of address
+    |   Remove_gallery of address
     |   Pause_serie_creation of bool
     |   Send_admin_invitation of admin_invitation_param
     |   Revoke_admin_invitation of unit
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : serie_factory_storage) : unit =
-  if Tezos.source <> storage.admin.admin
+  if Tezos.sender <> storage.admin.admin
   then failwith "NOT_AN_ADMIN"
   else unit
 
@@ -31,6 +33,16 @@ let admin_main(param, storage : admin_factory_entrypoints * serie_factory_storag
                 if Big_map.mem old_minter_addess storage.minters
                 then ([]: operation list), { storage with minters = Big_map.remove old_minter_addess storage.minters }
                 else (failwith "MINTER_NOT_FOUND" : operation list * serie_factory_storage)
+
+        |   Add_gallery new_gallery ->
+                if Big_map.mem new_gallery storage.galleries
+                then (failwith "ALREADY_GALLERY" : operation list * serie_factory_storage)
+                else ([]: operation list), { storage with galleries = Big_map.add new_gallery unit storage.galleries}
+
+        |   Remove_minter old_gallery ->
+                if Big_map.mem old_gallery storage.galleries
+                then ([]: operation list), { storage with galleries = Big_map.remove old_gallery storage.galleries }
+                else (failwith "GALLERY_NOT_FOUND" : operation list * serie_factory_storage)
 
         |   Pause_serie_creation boolean -> 
                 ([] : operation list), { storage with origination_paused = boolean }

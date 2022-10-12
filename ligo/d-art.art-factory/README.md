@@ -105,7 +105,7 @@ The different entrypoints of the contract are define by:
 ``` ocaml
 type art_serie_factory = 
     |   Admin of admin_factory_entrypoints
-    |   Create_serie of create_serie_entrypoint
+    |   Create_serie of create_entrypoint
     |   Accept_admin_invitation of admin_response_param 
 
 ```

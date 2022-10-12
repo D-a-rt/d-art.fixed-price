@@ -85,7 +85,6 @@ permissions or constraints are violated.
 @param validate_op function that validates of the tokens from the particular owner can be transferred.
 *)
 
-
 let fa2_update_operators (updates, storage
     : (update_operator list) * operator_storage) : operator_storage =
   let updater = Tezos.sender in

@@ -111,6 +111,22 @@ type edition_metadata =
 
 #else
 
+#if GALLERY_CONTRACT
+
+type edition_metadata =
+[@layout:comb]
+{
+    minter : address;
+    edition_info: (string, bytes) map;
+    total_edition_number: nat;
+    royalty: nat;
+    splits: split list;
+    gallery_comission: nat;
+    gallery_comission_split: split list;
+}
+
+#else
+
 type edition_metadata =
 [@layout:comb]
 {
@@ -121,6 +137,7 @@ type edition_metadata =
     splits: split list;
 }
 
+#endif
 #endif
 
 // -- Storage definition
@@ -136,12 +153,22 @@ type admin_storage = {
 
 #else
 
+#if GALLERY_CONTRACT
+
+type admin_storage = {
+    admin: address;
+    minters: (address, unit) big_map;
+}
+
+#else
+
 type admin_storage = {
     admin : address;
     paused_minting : bool;
     minters_manager : address;
 }
 
+#endif
 #endif
 
 type ledger = (token_id, address) big_map
@@ -154,6 +181,22 @@ type nft_token_storage = {
 
 type editions_metadata = (nat, edition_metadata) big_map
 
+
+#if GALLERY_CONTRACT
+
+type editions_storage =
+{
+    next_edition_id : nat;
+    max_editions_per_run : nat;
+    editions_metadata : editions_metadata;
+    mint_proposals : editions_metadata;
+    assets : nft_token_storage;
+    admin : admin_storage;
+    metadata: (string, bytes) big_map;
+}
+
+#else
+
 type editions_storage =
 {
     next_edition_id : nat;
@@ -163,3 +206,4 @@ type editions_storage =
     admin : admin_storage;
     metadata: (string, bytes) big_map;
 }
+#endif
