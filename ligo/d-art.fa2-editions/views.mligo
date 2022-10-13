@@ -7,6 +7,22 @@ type royalties =
   splits: split list;
 }
 
+#if GALLERY_CONTRACT
+
+[@view]
+let comission_splits (token_id, storage : token_id * editions_storage) : royalties =
+    let edition_id = token_id_to_edition_id(token_id, storage) in
+    match (Big_map.find_opt edition_id storage.editions_metadata) with
+            Some edition_metadata -> ({
+                royalty = edition_metadata.gallery_comission;
+                splits = edition_metadata.gallery_comission_splits;
+            }: royalties)
+
+        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : royalties)
+
+
+#endif
+
 #if WILL_ORIGINATE_FROM_FACTORY
 
 [@view]
@@ -112,3 +128,4 @@ let is_unique_edition (token_id, storage: nat * editions_storage) : bool =
     match (Big_map.find_opt edition_id storage.editions_metadata) with
             Some edition_metadata -> if edition_metadata.total_edition_number > 1n then false else true
         |   None -> (failwith "FA2_TOKEN_UNDEFINED" : bool)
+

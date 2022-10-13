@@ -12,8 +12,6 @@ import { InMemorySigner } from '@taquito/signer';
 import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 
 // -- View import
-// Serie factory
-import { default as IsMinter } from './views/serie_factory/is_minter.tz';
 
 // FA2 no factory
 import { default as Minter } from './views/fa2-editions-no-factory/fa2_editions_minter.tz';
@@ -37,7 +35,7 @@ const client = new NFTStorage({
     token: process.env.NFT_STORAGE_KEY!,
 })
 
-enum ContractAction {
+export enum ContractAction {
     COMPILE = "compile contract",
     SIZE = "info measure-contract"
 }
@@ -71,48 +69,36 @@ async function contractAction(contractName: string, action: ContractAction, path
 
 // -- Compile contracts --
 
-export async function compileContracts(param: any): Promise<void> {
+export async function contracts (param: any, type: ContractAction): Promise<void> {
     switch (param.title) {
         case "fixed-price":
-            contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             break;
-        case "fa2-editions-factory":
-            contractAction("Fa2 editions factory", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
+        case "fa2-editions-serie":
+            contractAction("Fa2 editions serie", type, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factory/compile/serie.tz")
             break;
-        case "serie-factory":
-            contractAction("Serie factory", ContractAction.COMPILE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
-            break;
-        default:
-            contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
-            contractAction("Fa2 editions factory", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
-            contractAction("Serie factory", ContractAction.COMPILE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
-            break;
-    }
-}
-
-export async function calculateSize(param: any): Promise<void> {
-    switch (param.title) {
-        case "fixed-price":
-            contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
-            break;
-        case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'")
-            break;
-        case "fa2-editions-factory":
-            contractAction("Fa2 editions factory", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
+        case "fa2-editions-gallery":
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factory/compile/gallery.tz")
             break;
         case "serie-factory":
-            contractAction("Serie factory", ContractAction.SIZE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
+            contractAction("Serie factory", type, "d-art.art-factory/serie_factory.mligo", "serie_factory_main", "d-art.art-factory/compile/serie_factory.tz")
+            break;
+        case "gallery-factory":
+            contractAction("Gallery factory", type, "d-art.art-factory/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factory/compile/gallery_factory.tz")
+            break;
+        case "permission-manager":
+            contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
             break;
         default:
-            await contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
-            await contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'")
-            await contractAction("Fa2 editions factory", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
-            await contractAction("Serie factory", ContractAction.SIZE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
+            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factory/compile/serie.tz")
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factory/compile/gallery.tz")
+            contractAction("Serie factory", type, "d-art.art-factory/serie_factory.mligo", "serie_factory_main", "d-art.art-factory/compile/serie_factory.tz")
+            contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
             break;
     }
 }
@@ -451,39 +437,16 @@ export async function deployEditionContract(): Promise<void> {
     }
 }
 
-export async function deploySerieFactory(): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.serie-factory/compile/serie_factory.tz'))
-
-    const p = new Parser();
-
-    const parsedIsMinterMichelsonCode = p.parseMichelineExpression(IsMinter.code);
+export async function deployArtFactory(): Promise<void> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factory/compile/art_factory.tz'))
 
     const serieFactoryMetadata = {
-        name: 'A:RT - Serie Factory',
-        description: 'This contract take care of holding the selection of authorized artists on D a:rt and is responsible to originate series.',
+        name: 'A:RT - Art Factory',
+        description: 'This contract is responsible to originate series for authorized artists on D a:rt and new gallery contract to let them the possibilities to curate artists and create NFTs in collaboration with them.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
-        interfaces: ['TZIP-016'],
-        views: [{
-            name: 'is_minter',
-            description: 'Verify if address is minter on the contract.',
-            pure: false,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'address',
-                        },
-                        returnType: {
-                            prim: 'bool',
-                        },
-                        code: parsedIsMinterMichelsonCode,
-                    },
-                },
-            ],
-        }]
+        interfaces: ['TZIP-016']
     }
 
     const contractMetadata = await client.storeBlob(
@@ -538,13 +501,13 @@ export const deployContracts = async (param: any) => {
         case "fa2-editions":
             await deployEditionContract()
             break;
-        case "serie-factory":
-            await deploySerieFactory()
+        case "art-factory":
+            await deployArtFactory()
             break;
         default:
             await deployEditionContract()
             await deployFixedPriceContract()
-            await deploySerieFactory()
+            await deployArtFactory()
             break;
     }
 }
@@ -740,7 +703,7 @@ async function testFactoryContract(): Promise<void> {
         console.log(kleur.green(`Testing serie factory admin entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.serie-factory/admin.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factory/admin.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -758,7 +721,7 @@ async function testFactoryContract(): Promise<void> {
         console.log(kleur.green(`Testing serie factory main entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.serie-factory/serie_factory_main.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factory/art_factory_main.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -782,7 +745,7 @@ export const testContracts = async (param: any) => {
         case "fa2-editions":
             await testEditionContract()
             break;
-        case "serie-factory":
+        case "art-factory":
             await testFactoryContract()
             break;
         default:

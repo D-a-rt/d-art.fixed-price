@@ -15,9 +15,9 @@ program
 
 program
     .command('compile-contract')
-    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions, fa2-editions-factory, serie-factory')
+    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions, fa2-editions-factory, art-factory')
     .action((title: string) => {
-        contract.compileContracts(title)
+        contract.contracts(title, contract.ContractAction.COMPILE)
     })
 
 program
@@ -31,7 +31,7 @@ program
     .command('contract-size')
     .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-factory, serie-factory')
     .action((title: string) => {
-        contract.calculateSize(title)
+        contract.contracts(title, contract.ContractAction.SIZE)
     })
 
 program

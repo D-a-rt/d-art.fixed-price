@@ -33,8 +33,8 @@ let fail_if_not_admin (storage : admin_storage) : unit =
 
 let fail_if_not_minter (add, storage : address * admin_storage) : unit =
     match (Big_map.find_opt add storage.minters ) with
-            Some minter -> unit
-        |   None -> "NOT_A_MINTER"
+            Some _minter -> unit
+        |   None -> (failwith "NOT_A_MINTER" : unit) 
 
 let admin_main(param, storage : admin_entrypoints * admin_storage) : (operation list) * admin_storage =
     let () = fail_if_not_admin storage in 

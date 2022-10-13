@@ -16,7 +16,8 @@ type pre_mint_edition_param =
     total_edition_number : nat;
     royalty: nat;
     splits: split list;
-    gallery_commission: split list;
+    gallery_comission: nat;
+    gallery_comission_splits: split list;
 }
 
 type proposal_param = 
@@ -74,6 +75,12 @@ let fail_if_not_owner (sender, token_id, storage : address * token_id * editions
       then unit
       else (failwith "FA2_INSUFFICIENT_BALANCE" : unit)
 
+
+let rec recurs_add (address, acc, len : address * (address list) * nat) : (address list) =
+    if len > 0n
+    then let l = address :: acc in recurs_add (address, l, abs (len - 1n))
+    else acc
+
 let mint_edition_to_addresses ( edition_id, receiver, edition_metadata, storage : edition_id * address * edition_metadata * editions_storage) : editions_storage =
     
     let mint_edition_to_address : (((assign_edition_param list) * token_id) * address) -> ((assign_edition_param list) * token_id) =
@@ -86,8 +93,8 @@ let mint_edition_to_addresses ( edition_id, receiver, edition_metadata, storage 
     in
 
     let initial_token_id : nat = (edition_id * storage.max_editions_per_run) in
-
-    let create_editions_param, _ : (assign_edition_param list) * token_id = (List.fold mint_edition_to_address receiver (([] : (assign_edition_param list)), initial_token_id)) in
+    let receiver_list = recurs_add (receiver, ([] : address list), edition_metadata.total_edition_number) in
+    let create_editions_param, _ : (assign_edition_param list) * token_id = (List.fold mint_edition_to_address receiver_list (([] : (assign_edition_param list)), initial_token_id)) in
     let _ , nft_token_storage = mint_edition_set (create_editions_param, storage.assets) in
     
     let new_storage = {storage with assets = nft_token_storage } in
@@ -163,22 +170,25 @@ let create_proposal (edition_run_list , storage : pre_mint_edition_param list * 
         fun (storage, param : editions_storage * pre_mint_edition_param) ->
 
             let () : unit = assert_msg(param.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
+            let () : unit = assert_msg(param.gallery_comission <= 500n, "COMISSIONS_CANNOT_EXCEED_50_PERCENT") in
             let () : unit = assert_msg(param.royalty >= 50n, "ROYALTIES_MINIMUM_5_PERCENT") in
             let () : unit = assert_msg(param.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
             let () : unit = assert_msg(param.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
-            let () : unit = fail_if_not_minter (param.minter, storage) in
+            let () : unit = fail_if_not_minter (param.minter, storage.admin) in
 
             let split_count : nat = List.fold_left verify_split 0n param.splits  in
             let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
 
-            let commission_count : nat = List.fold_left verify_split 0n param.gallery_comission_split  in
-            let () : unit = assert_msg (split_count = 1000n, "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") in
+            let commission_count : nat = List.fold_left verify_split 0n param.gallery_comission_splits  in
+            let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") in
             
             let edition_metadata : edition_metadata = {
                 minter = param.minter;
                 edition_info = Map.literal [("", param.edition_info)];
                 royalty = param.royalty;
                 splits = param.splits;
+                gallery_comission = param.gallery_comission;
+                gallery_comission_splits = param.gallery_comission_splits;
                 total_edition_number = param.total_edition_number;
             } in
             
@@ -195,19 +205,19 @@ let remove_proposals (remove_list, storage : proposal_param list * editions_stor
     let new_storage = List.fold remove_single_proposal remove_list storage in
     ([] : operation list), new_storage
 
-let mint_editions (edition_run_list, storage : proposal_param lsit * editions_storage) : operation list * editions_storage =
+let mint_editions (edition_run_list, storage : proposal_param list * editions_storage) : operation list * editions_storage =
     let mint_single_edition_run : (editions_storage * proposal_param) -> editions_storage = 
         fun (storage, param : editions_storage * proposal_param) ->
             
             match Big_map.find_opt param.proposal_id storage.mint_proposals with
                 |   None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : editions_storage)
                 |   Some proposal -> (
-                    let () = assert_msg (propsal.minter = Tezos.sender, "MINTER_MUST_BE_SENDER") in
+                    let () = assert_msg (proposal.minter = Tezos.sender, "MINTER_MUST_BE_SENDER") in
                     let edition_storage = { storage with 
                         editions_metadata = Big_map.add param.proposal_id proposal storage.editions_metadata;
                         mint_proposals = Big_map.remove param.proposal_id storage.mint_proposals;
                     } in
-                    mint_edition_to_addresses (param.proposal_id, editions_storage.admin.admin, proposal, edition_storage)
+                    mint_edition_to_addresses (param.proposal_id, storage.admin.admin, proposal, edition_storage)
                 )
     in
     ([]: operation list), List.fold mint_single_edition_run edition_run_list storage
@@ -224,17 +234,17 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let ops, new_storage = fa2_main (fa2_entry_points, editions_storage.assets) in
             ops, { editions_storage with assets = new_storage } 
 
-        | Create_proposal create_param ->
-            let () = fail_if_not_admin storage in
-            create_proposal (create_param, storage)
+        | Create_proposals create_param ->
+            let () = fail_if_not_admin editions_storage.admin in
+            create_proposal (create_param, editions_storage)
 
-        | Remove_proposal remove_param ->
-            let () = fail_if_not_admin storage in
-            remove_proposals (remove_param, storage)
+        | Remove_proposals remove_param ->
+            let () = fail_if_not_admin editions_storage.admin in
+            remove_proposals (remove_param, editions_storage)
 
-        | Mint_proposal mint_param -> 
-            let () = fail_if_not_minter (Tezos.sender, storage) in
-            mint_editions (mint_param, storage)
+        | Mint_editions mint_param -> 
+            let () = fail_if_not_minter (Tezos.sender, editions_storage.admin) in
+            mint_editions (mint_param, editions_storage)
 
         | Update_metadata metadata_param -> 
             let () = fail_if_not_admin editions_storage.admin in

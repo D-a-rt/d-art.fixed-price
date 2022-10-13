@@ -122,7 +122,7 @@ type edition_metadata =
     royalty: nat;
     splits: split list;
     gallery_comission: nat;
-    gallery_comission_split: split list;
+    gallery_comission_splits: split list;
 }
 
 #else
