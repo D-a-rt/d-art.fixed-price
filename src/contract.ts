@@ -98,6 +98,7 @@ export async function contracts (param: any, type: ContractAction): Promise<void
             contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factory/compile/serie.tz")
             contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factory/compile/gallery.tz")
             contractAction("Serie factory", type, "d-art.art-factory/serie_factory.mligo", "serie_factory_main", "d-art.art-factory/compile/serie_factory.tz")
+            contractAction("Gallery factory", type, "d-art.art-factory/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factory/compile/gallery_factory.tz")
             contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
             break;
     }
@@ -399,9 +400,10 @@ export async function deployEditionContract(): Promise<void> {
     const originateParam = {
         code: code,
         storage: {
-            next_edition_id: 0,
+            next_token_id: 0,
+            as_minted: MichelsonMap.fromLiteral({}),
             editions_metadata: MichelsonMap.fromLiteral({}),
-            max_editions_per_run: 250,
+            max_editions_per_run: 1,
             assets: {
                 ledger: MichelsonMap.fromLiteral({}),
                 operators: MichelsonMap.fromLiteral({}),
@@ -437,12 +439,12 @@ export async function deployEditionContract(): Promise<void> {
     }
 }
 
-export async function deployArtFactory(): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factory/compile/art_factory.tz'))
+export async function deploySerieFactory(permisionManagerAdd: string): Promise<void> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factory/compile/serie_factory.tz'))
 
     const serieFactoryMetadata = {
-        name: 'A:RT - Art Factory',
-        description: 'This contract is responsible to originate series for authorized artists on D a:rt and new gallery contract to let them the possibilities to curate artists and create NFTs in collaboration with them.',
+        name: 'A:RT - Serie Factory',
+        description: 'This contract is responsible to originate series for authorized artists on D a:rt.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -461,11 +463,8 @@ export async function deployArtFactory(): Promise<void> {
     const originateParam = {
         code: code,
         storage: {
-            admin: {
-                admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
-                origination_paused: false,
-            },
-            minters: MichelsonMap.fromLiteral({}),
+            admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
+            permission_manager: permisionManagerAdd,
             series: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
@@ -493,7 +492,116 @@ export async function deployArtFactory(): Promise<void> {
     }
 }
 
-export const deployContracts = async (param: any) => {
+export async function deployGalleryFactory(permisionManagerAdd: string): Promise<void> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factory/compile/gallery_factory.tz'))
+
+    const galleryFactoryMetadata = {
+        name: 'A:RT - Gallery Factory',
+        description: 'This contract is responsible to originate new gallery contract to let them the possibilities to curate artists and create NFTs in collaboration with them on the D a:rt platform.',
+        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        license: "MIT",
+        interfaces: ['TZIP-016']
+    }
+
+    const contractMetadata = await client.storeBlob(
+        new Blob([JSON.stringify(galleryFactoryMetadata)]),
+    )
+
+    if (!contractMetadata) {
+        console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
+        return;
+    }
+
+    const originateParam = {
+        code: code,
+        storage: {
+            admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
+            permission_manager: permisionManagerAdd,
+            galleries: MichelsonMap.fromLiteral({}),
+            metadata: MichelsonMap.fromLiteral({
+                "": char2Bytes(`ipfs://${contractMetadata}`),
+            })
+        }
+    }
+
+    try {
+        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+
+        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+
+
+        const originationOp = await toolkit.contract.originate(originateParam);
+
+        await originationOp.confirmation();
+        const { address } = await originationOp.contract()
+
+        console.log('Gallery Factory contract deployed at: ', address)
+
+    } catch (error) {
+        const jsonError = JSON.stringify(error);
+        console.log(kleur.red(`Gallery Factory origination error ${jsonError}`));
+    }
+}
+
+
+export async function deployPermissionManager(): Promise<string | undefined> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.permission-manager/compile/permission_manager.tz'))
+
+    const permissionManagerMetadata = {
+        name: 'A:RT - Permission Manager',
+        description: 'This contract is responsible to manage the artists and galleries permissions around the network.',
+        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        license: "MIT",
+        interfaces: ['TZIP-016']
+    }
+
+    const contractMetadata = await client.storeBlob(
+        new Blob([JSON.stringify(permissionManagerMetadata)]),
+    )
+
+    if (!contractMetadata) {
+        console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
+        throw Error('Unable to upload data to ipfs')
+    }
+
+    const originateParam = {
+        code: code,
+        storage: {
+            admin: {
+                admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
+                pending_admin: null,
+            },
+            origznation_paused: false,
+            minters: MichelsonMap.fromLiteral({}),
+            galleries: MichelsonMap.fromLiteral({}),
+            metadata: MichelsonMap.fromLiteral({
+                "": char2Bytes(`ipfs://${contractMetadata}`),
+            })
+        }
+    }
+
+    try {
+        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+
+        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+
+
+        const originationOp = await toolkit.contract.originate(originateParam);
+
+        await originationOp.confirmation();
+        const { address } = await originationOp.contract()
+
+        console.log('Permission manager contract deployed at: ', address)
+        return address
+    } catch (error) {
+        const jsonError = JSON.stringify(error);
+        console.log(kleur.red(`Permission manager origination error ${jsonError}`));
+    }
+}
+
+export const deployContracts = async (param: any, permissionManager?: string) => {
     switch (param.title) {
         case "fixed-price":
             await deployFixedPriceContract()
@@ -501,13 +609,21 @@ export const deployContracts = async (param: any) => {
         case "fa2-editions":
             await deployEditionContract()
             break;
-        case "art-factory":
-            await deployArtFactory()
+        case "serie-factory":
+            if (permissionManager) await deploySerieFactory(permissionManager)
+            break;
+        case "gallery-factory":
+            if (permissionManager) await deployGalleryFactory(permissionManager)
+            break;
+        case "permission-manager":
+            await deployPermissionManager()
             break;
         default:
             await deployEditionContract()
             await deployFixedPriceContract()
-            await deployArtFactory()
+            const permissionManagerAdd = await deployPermissionManager()
+            if (permissionManagerAdd) await deploySerieFactory(permissionManagerAdd)
+            if (permissionManagerAdd) await deployGalleryFactory(permissionManagerAdd)
             break;
     }
 }

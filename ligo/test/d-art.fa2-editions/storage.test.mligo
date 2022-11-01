@@ -89,7 +89,7 @@ let get_initial_storage (pm, pnbm : bool * bool) : ( ((FA2_E.editions_entrypoint
     // Contract storage
     let str = {
         next_edition_id = 1n;
-        max_editions_per_run = 250n ;
+        max_editions_per_run = 50n ;
         editions_metadata = editions_metadata;
         assets = asset_str;
         admin = admin_str;

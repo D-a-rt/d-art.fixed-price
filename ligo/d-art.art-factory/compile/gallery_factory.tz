@@ -1,9 +1,7 @@
 { parameter (or (bytes %create_gallery) (address %update_permission_manager)) ;
   storage
-    (pair (pair (pair (address %admin) (big_map %galleries address address))
-                (pair (big_map %metadata string bytes) (nat %next_serie_id)))
-          (pair (address %permission_manager)
-                (big_map %series nat (pair (address %address) (address %minter))))) ;
+    (pair (pair (address %admin) (big_map %galleries address address))
+          (pair (big_map %metadata string bytes) (address %permission_manager))) ;
   code { UNPAIR ;
          PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
          PUSH mutez 0 ;
@@ -17,7 +15,7 @@
              DUP ;
              DUG 2 ;
              CDR ;
-             CAR ;
+             CDR ;
              SENDER ;
              VIEW "is_gallery" bool ;
              IF_NONE
@@ -26,7 +24,6 @@
              SWAP ;
              DUP ;
              DUG 2 ;
-             CAR ;
              CAR ;
              CDR ;
              SENDER ;
@@ -1272,11 +1269,7 @@
              DUP 3 ;
              CAR ;
              CDR ;
-             DUP 4 ;
-             CAR ;
-             CAR ;
-             CDR ;
-             DUP 4 ;
+             DUP 3 ;
              CDR ;
              SENDER ;
              PAIR 3 ;
@@ -1285,11 +1278,9 @@
              SOME ;
              SWAP ;
              UPDATE ;
-             DIG 4 ;
+             DIG 3 ;
              CAR ;
              CAR ;
-             CAR ;
-             PAIR ;
              PAIR ;
              PAIR ;
              NIL operation ;
@@ -1302,7 +1293,6 @@
              DUG 2 ;
              CAR ;
              CAR ;
-             CAR ;
              SENDER ;
              COMPARE ;
              NEQ ;
@@ -1311,8 +1301,7 @@
              DUP ;
              DUG 2 ;
              CDR ;
-             CDR ;
-             SWAP ;
+             CAR ;
              PAIR ;
              SWAP ;
              CAR ;

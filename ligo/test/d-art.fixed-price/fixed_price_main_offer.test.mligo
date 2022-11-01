@@ -109,7 +109,7 @@ let get_edition_fa2_contract (factory_contract, fixed_price_contract_address : a
 
     let edition_strg = {
         next_edition_id = 1n;
-        max_editions_per_run = 250n;
+        max_editions_per_run = 50n;
         editions_metadata = edition_meta_strg;
         assets = asset_strg;
         admin = admin_strg;

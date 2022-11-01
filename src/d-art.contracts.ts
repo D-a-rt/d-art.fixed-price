@@ -23,8 +23,9 @@ program
 program
     .command('deploy-contract')
     .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, serie-factory')
-    .action((title: string) => {
-        contract.deployContracts(title)
+    .option('-pm, --permission-manager <permissionManager>', 'Any permission manager contract already deployed')
+    .action((title: string, permissionManager: string) => {
+        contract.deployContracts(title, permissionManager)
     })
 
 program

@@ -21,12 +21,25 @@ type serie =
 
 type admin = address
 
+#if GALLERY_CONTRACT
+
+type storage =
+{
+    admin: address;
+    permission_manager: address;
+    galleries : (admin, address) big_map;
+    metadata: (string, bytes) big_map;
+}
+
+#else
+
 type storage =
 {
     admin: address;
     permission_manager: address;
     series : (nat, serie) big_map;
-    galleries : (admin, address) big_map;
     metadata: (string, bytes) big_map;
     next_serie_id: nat;
 }
+
+#endif

@@ -197,6 +197,8 @@ type editions_storage =
 
 #else
 
+#if WILL_ORIGINATE_FROM_FACTORY
+
 type editions_storage =
 {
     next_edition_id : nat;
@@ -206,4 +208,19 @@ type editions_storage =
     admin : admin_storage;
     metadata: (string, bytes) big_map;
 }
+
+#else
+
+type editions_storage =
+{
+    next_token_id : nat;
+    max_editions_per_run : nat;
+    as_minted: (address, unit) big_map;
+    editions_metadata : editions_metadata;
+    assets : nft_token_storage;
+    admin : admin_storage;
+    metadata: (string, bytes) big_map;
+}
+
+#endif
 #endif

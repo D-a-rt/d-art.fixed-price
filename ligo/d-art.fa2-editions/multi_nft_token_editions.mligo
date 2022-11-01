@@ -20,6 +20,20 @@ type pre_mint_edition_param =
     gallery_comission_splits: split list;
 }
 
+
+type update_pre_mint_edition_param =
+[@layout:comb]
+{
+    edition_id: nat;
+    minter: address;
+    edition_info : bytes;
+    total_edition_number : nat;
+    royalty: nat;
+    splits: split list;
+    gallery_comission: nat;
+    gallery_comission_splits: split list;
+}
+
 type proposal_param = 
 [@layout:comb]
 {
@@ -30,6 +44,7 @@ type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
     |   Create_proposals of pre_mint_edition_param list
+    |   Update_proposal of update_pre_mint_edition_param
     |   Remove_proposals of proposal_param list
     |   Mint_editions of proposal_param list
     |   Update_metadata of bytes
@@ -60,7 +75,7 @@ type editions_entrypoints =
 type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
-    |   Mint_editions of mint_edition_param list
+    |   Mint_editions of mint_edition_param
     |   Update_metadata of bytes
     |   Burn_token of burn_param
 
@@ -197,6 +212,33 @@ let create_proposal (edition_run_list , storage : pre_mint_edition_param list * 
 
     ([] : operation list), List.fold create_single_proposal edition_run_list storage
 
+let update_proposal (edition_update, storage : update_pre_mint_edition_param * editions_storage) : operation list * editions_storage =
+        let () : unit = assert_msg(edition_update.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
+        let () : unit = assert_msg(edition_update.gallery_comission <= 500n, "COMISSIONS_CANNOT_EXCEED_50_PERCENT") in
+        let () : unit = assert_msg(edition_update.royalty >= 50n, "ROYALTIES_MINIMUM_5_PERCENT") in
+        let () : unit = assert_msg(edition_update.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
+        let () : unit = assert_msg(edition_update.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
+        let () : unit = assert_msg(Big_map.mem edition_update.edition_id storage.mint_proposals, "EDITION_NOT_FOUND") in
+        let () : unit = fail_if_not_minter (edition_update.minter, storage.admin) in
+
+        let split_count : nat = List.fold_left verify_split 0n edition_update.splits  in
+        let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+
+        let commission_count : nat = List.fold_left verify_split 0n edition_update.gallery_comission_splits  in
+        let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") in
+
+        let edition_metadata : edition_metadata = {
+            minter = edition_update.minter;
+            edition_info = Map.literal [("", edition_update.edition_info)];
+            royalty = edition_update.royalty;
+            splits = edition_update.splits;
+            gallery_comission = edition_update.gallery_comission;
+            gallery_comission_splits = edition_update.gallery_comission_splits;
+            total_edition_number = edition_update.total_edition_number;
+        } in
+
+        { storage with next_edition_id = storage.next_edition_id + 1n; mint_proposals = Big_map.add storage.next_edition_id edition_metadata storage.mint_proposals; }        
+
 let remove_proposals (remove_list, storage : proposal_param list * editions_storage ) : operation list * editions_storage =
     let remove_single_proposal : (editions_storage * proposal_param) -> editions_storage =
         fun (storage, param : editions_storage * proposal_param) -> { storage with mint_proposals = Big_map.remove param.proposal_id storage.mint_proposals }
@@ -238,6 +280,10 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let () = fail_if_not_admin editions_storage.admin in
             create_proposal (create_param, editions_storage)
 
+        | Update_proposal update_param ->
+            let () = fail_if_not_admin editions_storage.admin in
+            update_proposal (update_param, editions_storage)
+
         | Remove_proposals remove_param ->
             let () = fail_if_not_admin editions_storage.admin in
             remove_proposals (remove_param, editions_storage)
@@ -262,35 +308,29 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
 
 #else
 
-let mint_editions ( edition_run_list , storage : mint_edition_param list * editions_storage) : operation list * editions_storage =
+let mint_editions ( edition_run , storage : mint_edition_param * editions_storage) : operation list * editions_storage =
 
-    let mint_single_edition_run : (editions_storage * mint_edition_param) -> editions_storage =
-        fun (storage, param : editions_storage * mint_edition_param) ->
-        let () : unit = assert_msg(param.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
-        let () : unit = assert_msg(param.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
-        let () : unit = assert_msg(param.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
+    let () : unit = assert_msg(edition_run.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
+    let () : unit = assert_msg(edition_run.total_edition_number = 1n, "ONLY_ONE_OFF" ) in
 
-        let split_count : nat = List.fold_left verify_split 0n param.splits  in
-        let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
-        
-        let edition_metadata : edition_metadata = {
-            minter = Tezos.sender;
-            edition_info = Map.literal [("", param.edition_info)];
-            royalty = param.royalty;
-            splits = param.splits;
-            total_edition_number = param.total_edition_number;
-        } in
-        
-        let edition_storage = { storage with
-            next_edition_id = storage.next_edition_id + 1n;
-            editions_metadata = Big_map.add storage.next_edition_id edition_metadata storage.editions_metadata;
-        } in
+    let split_count : nat = List.fold_left verify_split 0n edition_run.splits  in
+    let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+    
+    let edition_metadata : edition_metadata = {
+        minter = Tezos.sender;
+        edition_info = Map.literal [("", edition_run.edition_info)];
+        royalty = edition_run.royalty;
+        splits = edition_run.splits;
+        total_edition_number = 1n;
+    } in
+    
+    let edition_storage = { storage with
+        next_token_id = storage.next_token_id + 1n;
+        editions_metadata = Big_map.add storage.next_token_id edition_metadata storage.editions_metadata;
+        as_minted = Big_map.add Tezos.sender unit storage.as_minted;
+    } in
 
-        mint_edition_to_addresses (storage.next_edition_id, Tezos.sender, edition_metadata, edition_storage)
-        in
-
-    let new_storage = List.fold mint_single_edition_run edition_run_list storage in
-    ([] : operation list), new_storage
+    ([] : operation list), mint_edition_to_addresses (storage.next_token_id, Tezos.sender, edition_metadata, edition_storage)
 
 
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
@@ -308,11 +348,11 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
         | Mint_editions mint_param ->
             let () = fail_if_minting_paused editions_storage.admin in
             let () = fail_if_not_minter editions_storage.admin in
+            let () = fail_if_already_minted editions_storage in
             mint_editions (mint_param, editions_storage)
 
         | Update_metadata metadata_param -> 
             let () = fail_if_not_admin editions_storage.admin in
-            
             let res = match Big_map.find_opt "" editions_storage.metadata with
                 |   Some _ -> ([]: operation list), {editions_storage with metadata = Big_map.update ("") (Some metadata_param) editions_storage.metadata }
                 |   None -> ([]: operation list), {editions_storage with metadata = Big_map.add ("") metadata_param editions_storage.metadata }

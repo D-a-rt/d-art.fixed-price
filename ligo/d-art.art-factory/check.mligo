@@ -1,14 +1,7 @@
 [@inline]
 let assert_msg (condition, msg : bool * string ) : unit = if (not condition) then failwith(msg) else unit
 
-(* Fails if sender is not admin *)
-let fail_if_not_minter (storage : storage) : unit =
-  match ((Tezos.call_view "is_minter" Tezos.sender storage.permission_manager ): bool option) with
-      None -> failwith "NOT_A_MINTER"
-      | Some is_minter -> 
-        if is_minter
-        then unit
-        else failwith "NOT_A_MINTER"
+#if GALLERY_CONTRACT
 
 (* Fails if sender is not gallery *)
 let fail_if_not_gallery (storage : storage) : unit =
@@ -25,6 +18,8 @@ let fail_if_already_originated (storage : storage) : unit =
     then failwith "ALREADY_ORIGINATED"
     else unit
 
+#else
+
 (* Fails if serie origination paused *)
 let fail_if_origination_paused (storage : storage) : unit =
   match ((Tezos.call_view "is_serie_origination_paused" unit storage.permission_manager ): bool option) with
@@ -34,6 +29,16 @@ let fail_if_origination_paused (storage : storage) : unit =
         then failwith "CREATION_OF_SERIES_PAUSED"
         else unit
 
+(* Fails if sender is not admin *)
+let fail_if_not_minter (storage : storage) : unit =
+  match ((Tezos.call_view "is_minter" Tezos.sender storage.permission_manager ): bool option) with
+      None -> failwith "NOT_A_MINTER"
+      | Some is_minter -> 
+        if is_minter
+        then unit
+        else failwith "NOT_A_MINTER"
+
+#endif
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : storage) : unit =
   if Tezos.sender <> storage.admin

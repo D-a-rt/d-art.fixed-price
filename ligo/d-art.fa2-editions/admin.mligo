@@ -74,6 +74,11 @@ let fail_if_not_minter (storage : admin_storage) : unit =
             then unit
             else failwith "NOT_A_MINTER"
 
+let fail_if_already_minted (storage : editions_storage) : unit =
+    if Big_map.mem Tezos.sender storage.as_minted
+    then failwith "ALREADY_MINTED"
+    else unit
+
 let admin_main(param, storage : admin_entrypoints * admin_storage) : (operation list) * admin_storage =
     let () = fail_if_not_admin storage in 
     match param with
@@ -82,5 +87,6 @@ let admin_main(param, storage : admin_entrypoints * admin_storage) : (operation 
 
         | Update_minter_manager add ->
             (([] : operation list), { storage with minters_manager = add; })
+
 #endif
 #endif

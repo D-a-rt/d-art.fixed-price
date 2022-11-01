@@ -207,7 +207,7 @@
              VIEW "royalty_splits"
                   (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))) ;
              IF_NONE
-               { DIG 7 ; DROP ; NIL operation ; PUSH mutez 0 ; PAIR }
+               { NIL operation ; PUSH mutez 0 ; PAIR }
                { DUP 4 ;
                  SWAP ;
                  DUP ;
@@ -247,17 +247,69 @@
                         CONS ;
                         PAIR } ;
                  SWAP ;
-                 DIG 9 ;
-                 DROP 2 ;
+                 DROP ;
                  UNPAIR ;
                  SWAP ;
                  PAIR } ;
              UNPAIR ;
+             DUP 6 ;
+             CDR ;
+             DUP 7 ;
+             CAR ;
+             VIEW "comission_splits"
+                  (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))) ;
+             IF_NONE
+               { DIG 9 ; DROP ; SWAP ; PUSH mutez 0 ; PAIR }
+               { DUP 6 ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 SOME ;
+                 PAIR ;
+                 DUP 12 ;
+                 SWAP ;
+                 EXEC ;
+                 PUSH mutez 0 ;
+                 DIG 4 ;
+                 PAIR ;
+                 DIG 2 ;
+                 CDR ;
+                 ITER { SWAP ;
+                        UNPAIR ;
+                        DUP 3 ;
+                        CAR ;
+                        DUP 12 ;
+                        SWAP ;
+                        EXEC ;
+                        DUP 5 ;
+                        DIG 4 ;
+                        CDR ;
+                        SOME ;
+                        PAIR ;
+                        DUP 14 ;
+                        SWAP ;
+                        EXEC ;
+                        DUP ;
+                        DIG 4 ;
+                        ADD ;
+                        DUG 3 ;
+                        UNIT ;
+                        TRANSFER_TOKENS ;
+                        CONS ;
+                        PAIR } ;
+                 SWAP ;
+                 DIG 10 ;
+                 DROP 2 ;
+                 UNPAIR ;
+                 SWAP ;
+                 PAIR } ;
+             CDR ;
              DUP 7 ;
              DIG 8 ;
              SWAP ;
              EXEC ;
-             SWAP ;
+             DIG 2 ;
              DUP 4 ;
              CDR ;
              DIG 6 ;
@@ -894,10 +946,10 @@
                                 DIG 2 ;
                                 PAIR ;
                                 VIEW "is_token_minter" bool ;
+                                IF_NONE { PUSH bool False } {} ;
                                 PUSH string "NOT_AUTHORIZED_DROP_SELLER" ;
                                 PUSH bool True ;
                                 DIG 2 ;
-                                IF_NONE { PUSH bool False } {} ;
                                 COMPARE ;
                                 EQ ;
                                 PAIR ;

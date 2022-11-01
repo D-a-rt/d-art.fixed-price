@@ -22,7 +22,6 @@ type admin_storage = {
 type storage =
 {
     admin: admin_storage;
-    origination_paused: bool;
     minters: (address, unit) big_map;
     galleries: (address, unit) big_map;
     metadata: (string, bytes) big_map;

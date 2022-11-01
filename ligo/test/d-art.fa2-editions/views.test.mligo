@@ -205,7 +205,7 @@ let get_serie_originated_initial_storage (mr: bool) : ( ((editions_entrypoints, 
     // Contract storage
     let str = {
         next_edition_id = 1n;
-        max_editions_per_run = 250n ;
+        max_editions_per_run = 50n ;
         editions_metadata = editions_metadata;
         assets = asset_str;
         admin = admin_str;

@@ -3,7 +3,6 @@ type admin_factory_entrypoints =
     |   Remove_minter of address
     |   Add_gallery of address
     |   Remove_gallery of address
-    |   Pause_serie_creation of bool
     |   Send_admin_invitation of admin_invitation_param
     |   Revoke_admin_invitation of unit
 
@@ -43,9 +42,6 @@ let admin_main(param, storage : admin_factory_entrypoints * storage) : (operatio
                 if Big_map.mem old_gallery storage.galleries
                 then ([]: operation list), { storage with galleries = Big_map.remove old_gallery storage.galleries }
                 else (failwith "GALLERY_NOT_FOUND" : operation list * storage)
-
-        |   Pause_serie_creation boolean -> 
-                ([] : operation list), { storage with origination_paused = boolean }
 
         |   Send_admin_invitation param ->
                 ( []: operation list ), { storage with admin.pending_admin = Some(param.new_admin) }

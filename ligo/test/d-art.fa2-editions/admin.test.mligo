@@ -22,7 +22,7 @@ let test_pause_minting_not_admin =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Fail no amount
-let test_pause_minting_not_admin =
+let test_pause_minting_no_amount =
     let contract_add, _, owner1, _ = FA2_STR.get_initial_storage(false, false) in
     let contract = Test.to_contract contract_add in
 
@@ -169,7 +169,7 @@ let get_serie_originated_initial_storage (mr: bool) : ( ((editions_entrypoints, 
     // Contract storage
     let str = {
         next_edition_id = 1n;
-        max_editions_per_run = 250n ;
+        max_editions_per_run = 50n ;
         editions_metadata = editions_metadata;
         assets = asset_str;
         admin = admin_str;
