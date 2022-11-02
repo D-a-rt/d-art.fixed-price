@@ -25,15 +25,14 @@ let test_is_gallery =
     let contract = Test.to_contract contract_add  in
 
     let gallery = Test.nth_bootstrap_account 1 in
-
+    let not_gallery = Test.nth_bootstrap_account 2 in
+    
     let admin = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin in
 
     let _gas = Test.transfer_to_contract_exn contract (Admin (Add_gallery (gallery))) 0tez in
 
     let strg = Test.get_storage contract_add in
-
-    let not_gallery = Test.nth_bootstrap_account 2 in
 
     let is_gallery_true = is_gallery (gallery, strg) in
     let is_not_gallery_false = is_gallery (not_gallery, strg) in

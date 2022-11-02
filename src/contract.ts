@@ -852,6 +852,61 @@ async function testFactoryContract(): Promise<void> {
     })
 }
 
+async function testPermissionManagerContract(): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing permission manager admin entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/admin.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+    
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing permission manager main entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/permission_manager.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+    
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing permission manager views entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/views.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+}
 
 export const testContracts = async (param: any) => {
     switch (param.title) {
@@ -864,10 +919,14 @@ export const testContracts = async (param: any) => {
         case "art-factory":
             await testFactoryContract()
             break;
+        case "permission-manager":
+            await testPermissionManagerContract()
+            break;
         default:
             await testEditionContract()
             await testFixedPriceContract()
             await testFactoryContract()
+            await testPermissionManagerContract()
             break;
     }
 }
