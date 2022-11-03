@@ -7,18 +7,13 @@ type admin_factory_entrypoints =
     |   Revoke_admin_invitation of unit
 
 (* Fails if sender is not admin *)
-let fail_if_not_admin (storage : storage) : unit =
-  if Tezos.sender <> storage.admin.admin
-  then failwith "NOT_AN_ADMIN"
-  else unit
+[@inline]
+let fail_if_not_admin (storage : storage) : unit = if Tezos.get_sender() <> storage.admin.admin then failwith "NOT_AN_ADMIN"
 
 let fail_if_sender_not_pending_admin (storage : storage) : unit =
   match storage.admin.pending_admin with
     None -> failwith "NOT_PENDING_ADMIN"
-    | Some pa -> 
-        if Tezos.sender <> pa
-        then failwith "NOT_PENDING_ADMIN"
-        else unit
+    | Some pa -> if Tezos.get_sender() <> pa then failwith "NOT_PENDING_ADMIN"
 
 let admin_main(param, storage : admin_factory_entrypoints * storage) : (operation list) * storage =
     let () = fail_if_not_admin storage in 

@@ -1,10 +1,11 @@
 #import "storage.test.mligo" "FA2_STR"
+#include "../../d-art.fa2-editions/multi_nft_token_editions.mligo"
 
 // -- Add operator -- 
 
 // Fail if not owner
 let test_add_operator_not_owner =
-    let contract_add, _, owner1, _ = FA2_STR.get_initial_storage(false, false) in
+    let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
@@ -12,14 +13,14 @@ let test_add_operator_not_owner =
     let owner2 = Test.nth_bootstrap_account 2 in
 
     let result = Test.transfer_to_contract contract 
-        (FA2 
-            (Update_operators ([
+        ((FA2 
+            ((Update_operators ([
                 (Add_operator ({
                     owner = owner2;
                     operator = owner1;
                     token_id = 1n;
-                }))
-            ]))) 0tez 
+                }) : update_operator) 
+            ]  )) : fa2_entry_points )) : editions_entrypoints) 0tez 
     in
 
     match result with
@@ -32,7 +33,7 @@ let test_add_operator_not_owner =
 
 // Fail no amount
 let test_add_operator_no_amount =
-    let contract_add, _, owner1, _ = FA2_STR.get_initial_storage(false, false) in
+    let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
@@ -40,14 +41,14 @@ let test_add_operator_no_amount =
     let owner2 = Test.nth_bootstrap_account 2 in
 
     let result = Test.transfer_to_contract contract 
-        (FA2 
-            (Update_operators ([
+        ((FA2 
+            ((Update_operators ([
                 (Add_operator ({
                     owner = owner2;
                     operator = owner1;
                     token_id = 1n;
-                }))
-            ]))) 1tez 
+                }) : update_operator) 
+            ]  )) : fa2_entry_points )) : editions_entrypoints) 1tez 
     in
 
     match result with
@@ -60,7 +61,7 @@ let test_add_operator_no_amount =
 
 // Success
 let test_add_operator =
-    let contract_add, _, owner1, _ = FA2_STR.get_initial_storage(false, false) in
+    let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
@@ -68,26 +69,26 @@ let test_add_operator =
     let owner2 = Test.nth_bootstrap_account 2 in
 
     let _gas = Test.transfer_to_contract_exn contract 
-        (FA2 
-            (Update_operators ([
+        ((FA2 
+            ((Update_operators ([
                 (Add_operator ({
                     owner = owner1;
                     operator = owner2;
                     token_id = 1n;
-                }))
-            ]))) 0tez 
+                }) : update_operator) 
+            ]  )) : fa2_entry_points )) : editions_entrypoints) 0tez 
     in
 
     let new_str = Test.get_storage contract_add in
     match Big_map.find_opt ((owner1, (owner2, 1n))) new_str.assets.operators with
-            Some operator -> "Passed"
+            Some _ -> "Passed"
         |   None -> "FA2 -> Update_operators -> Add_operator - Success : This test should pass"
 
 // -- Remove operator --
 
 // Fail if not owner
 let test_remove_operator_not_owner =
-    let contract_add, _, owner1, _ = FA2_STR.get_initial_storage(false, false) in
+    let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
@@ -95,14 +96,14 @@ let test_remove_operator_not_owner =
     let owner2 = Test.nth_bootstrap_account 2 in
 
     let result = Test.transfer_to_contract contract 
-        (FA2 
-            (Update_operators ([
-                (Remove_operator ({
+        ((FA2 
+            ((Update_operators ([
+                (Add_operator ({
                     owner = owner2;
                     operator = owner1;
                     token_id = 1n;
-                }))
-            ]))) 0tez 
+                }) : update_operator) 
+            ]  )) : fa2_entry_points )) : editions_entrypoints) 0tez 
     in
 
     match result with
@@ -115,7 +116,7 @@ let test_remove_operator_not_owner =
 
 // Fail no amount
 let test_remove_operator_no_amount =
-    let contract_add, _, owner1, _ = FA2_STR.get_initial_storage(false, false) in
+    let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
@@ -123,14 +124,14 @@ let test_remove_operator_no_amount =
     let owner2 = Test.nth_bootstrap_account 2 in
 
     let result = Test.transfer_to_contract contract 
-        (FA2 
-            (Update_operators ([
+        ((FA2 
+            ((Update_operators ([
                 (Remove_operator ({
                     owner = owner2;
                     operator = owner1;
                     token_id = 1n;
-                }))
-            ]))) 1tez 
+                }) : update_operator) 
+            ]  )) : fa2_entry_points )) : editions_entrypoints) 1tez 
     in
 
     match result with
@@ -143,7 +144,7 @@ let test_remove_operator_no_amount =
 
 // Success
 let test_remove_operator =
-    let contract_add, _, owner1, _ = FA2_STR.get_initial_storage(false, false) in
+    let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
@@ -151,17 +152,17 @@ let test_remove_operator =
     let owner2 = Test.nth_bootstrap_account 2 in
 
     let _gas = Test.transfer_to_contract_exn contract 
-        (FA2 
-            (Update_operators ([
+        ((FA2 
+            ((Update_operators ([
                 (Remove_operator ({
                     owner = owner1;
                     operator = owner2;
                     token_id = 1n;
-                }))
-            ]))) 0tez 
+                }) : update_operator) 
+            ]  )) : fa2_entry_points )) : editions_entrypoints) 0tez 
     in
 
     let new_str = Test.get_storage contract_add in
     match Big_map.find_opt ((owner1, (owner2, 1n))) new_str.assets.operators with
-            Some operator -> "FA2 -> Update_operators -> Remove_operator - Success : This test should fail" 
+            Some _ -> "FA2 -> Update_operators -> Remove_operator - Success : This test should fail" 
         |   None -> "Passed"

@@ -42,7 +42,6 @@ type update_operator =
   | Add_operator of operator_param
   | Remove_operator of operator_param
 
-
 type token_metadata =
 [@layout:comb]
   {
@@ -98,7 +97,7 @@ type burn_param =
 
 // -- Edition entrypoints
 
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 type edition_metadata =
 [@layout:comb]
@@ -144,7 +143,7 @@ type edition_metadata =
 
 // Admin storage
 
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 type admin_storage = {
     admin : address;
@@ -197,7 +196,7 @@ type editions_storage =
 
 #else
 
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 type editions_storage =
 {

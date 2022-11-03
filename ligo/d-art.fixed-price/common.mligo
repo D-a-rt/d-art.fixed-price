@@ -54,6 +54,13 @@ type royalties =
   splits: split list;
 }
 
+type commissions =
+[@layout:comb]
+{
+  commission_pct: nat;
+  splits: split list;
+}
+
 let handle_royalties (token, price : fa2_base * tez) : tez * (operation list) =
     match ((Tezos.call_view "royalty_splits" token.id token.address ): royalties option) with
         None -> 0mutez, ([]: operation list)
@@ -74,14 +81,14 @@ let handle_comissions (token, price , operation_list : fa2_base * tez * (operati
     match ((Tezos.call_view "comission_splits" token.id token.address ): royalties option) with
             None -> 0mutez, operation_list
             |   Some param ->
-                let royalties_fee : tez = calculate_fee ( Some (param.royalty), price) in
+                let commissions_fee : tez = calculate_fee ( Some (param.commission_pct), price) in
                 
                 let handle_splits : (((operation list) * tez) * split) -> (operation list) * tez = 
                     fun ((operations, sp), split : ((operation list) * tez) * split) ->
 
-                    let royalties_contract : unit contract = resolve_contract split.address in    
-                    let split_fee : tez = calculate_fee (Some (split.pct), royalties_fee) in
-                    ((Tezos.transaction unit split_fee royalties_contract) :: operations), sp + split_fee
+                    let commissions_contract : unit contract = resolve_contract split.address in    
+                    let split_fee : tez = calculate_fee (Some (split.pct), commissions_fee) in
+                    ((Tezos.transaction unit split_fee commissions_contract) :: operations), sp + split_fee
                 in
                 let ops, fees = (List.fold handle_splits param.splits (operation_list, 0mutez)) in
                 fees, ops
@@ -139,14 +146,14 @@ let perform_sale_operation (fa2_token, seller, buyer, price, storage : fa2_base 
     let admin_fee : (unit contract) * tez = select_fee (fa2_token, price, storage) in
 
     let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (fa2_token, price) in
-    let (comission_fee, comission_royalyies_transfer) : tez * (operation list) = handle_comissions (fa2_token, price, royalties_transfer) in
+    let (comission_fee, comission_royalties_transfer) : tez * (operation list) = handle_comissions (fa2_token, price, royalties_transfer) in
 
     let seller_contract : unit contract = resolve_contract seller in
-    let seller_tez_amount : tez = sub_tez(sub_tez(price, admin_fee.1), royalties_fee) in
+    let seller_tez_amount : tez = sub_tez(sub_tez(sub_tez(price, admin_fee.1), royalties_fee), comission_fee) in
 
     let admin_fee_transfer : operation = Tezos.transaction unit admin_fee.1 admin_fee.0 in
     let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
     let buyer_transfer : operation = transfer_token ({ from_ = seller; txs = [{ to_ = buyer; token_id = fa2_token.id; amount = 1n}] }, fa2_token.address) in
 
     // List of all the performed operation
-    (admin_fee_transfer :: buyer_transfer :: seller_transfer :: comission_royalyies_transfer )
+    (admin_fee_transfer :: buyer_transfer :: seller_transfer :: comission_royalties_transfer )

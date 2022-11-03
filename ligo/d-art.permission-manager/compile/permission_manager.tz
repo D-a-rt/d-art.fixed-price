@@ -2,14 +2,13 @@
     (or (bool %accept_admin_invitation)
         (or %admin
            (or (or (address %add_gallery) (address %add_minter))
-               (or (bool %pause_serie_creation) (address %remove_gallery)))
-           (or (or (address %remove_minter) (unit %revoke_admin_invitation))
-               (address %send_admin_invitation)))) ;
+               (or (address %remove_gallery) (address %remove_minter)))
+           (or (unit %revoke_admin_invitation) (address %send_admin_invitation)))) ;
   storage
-    (pair (pair (pair (pair %admin (address %admin) (option %pending_admin address))
-                      (big_map %galleries address unit))
-                (pair (big_map %metadata string bytes) (big_map %minters address unit)))
-          (bool %origination_paused)) ;
+    (pair (pair (pair %admin (address %admin) (option %pending_admin address))
+                (big_map %galleries address unit))
+          (big_map %metadata string bytes)
+          (big_map %minters address unit)) ;
   code { UNPAIR ;
          PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
          PUSH mutez 0 ;
@@ -19,10 +18,7 @@
          NOT ;
          IF { FAILWITH } { DROP } ;
          IF_LEFT
-           { SWAP ;
-             DUP ;
-             DUG 2 ;
-             CAR ;
+           { DUP 2 ;
              CAR ;
              CAR ;
              CDR ;
@@ -38,71 +34,21 @@
              EQ ;
              IF { DUP ;
                   CDR ;
-                  SWAP ;
-                  DUP ;
-                  DUG 2 ;
-                  CAR ;
-                  CDR ;
-                  DUP 3 ;
-                  CAR ;
+                  DUP 2 ;
                   CAR ;
                   CDR ;
                   NONE address ;
-                  DIG 4 ;
-                  CAR ;
-                  CAR ;
-                  CAR ;
-                  CAR ;
-                  PAIR ;
-                  PAIR ;
-                  PAIR ;
-                  PAIR ;
-                  DUP ;
-                  CDR ;
-                  SWAP ;
-                  DUP ;
-                  DUG 2 ;
-                  CAR ;
-                  CDR ;
-                  DIG 2 ;
-                  CAR ;
-                  CAR ;
-                  CDR ;
+                  DIG 3 ;
+                  DROP 2 ;
                   NONE address ;
-                  SENDER ;
-                  PAIR ;
-                  PAIR ;
-                  PAIR ;
-                  PAIR ;
-                  NIL operation ;
-                  PAIR }
-                { DUP ;
-                  CDR ;
-                  SWAP ;
-                  DUP ;
-                  DUG 2 ;
-                  CAR ;
-                  CDR ;
-                  DUP 3 ;
-                  CAR ;
-                  CAR ;
-                  CDR ;
-                  NONE address ;
-                  DIG 4 ;
-                  CAR ;
-                  CAR ;
-                  CAR ;
-                  CAR ;
-                  PAIR ;
-                  PAIR ;
-                  PAIR ;
-                  PAIR ;
-                  NIL operation ;
-                  PAIR } }
-           { SWAP ;
-             DUP ;
-             DUG 2 ;
-             CAR ;
+                  SENDER }
+                { DUP ; CDR ; DUP 2 ; CAR ; CDR ; NONE address ; DIG 3 ; CAR ; CAR ; CAR } ;
+             PAIR ;
+             PAIR ;
+             PAIR ;
+             NIL operation ;
+             PAIR }
+           { DUP 2 ;
              CAR ;
              CAR ;
              CAR ;
@@ -113,200 +59,115 @@
              IF_LEFT
                { IF_LEFT
                    { IF_LEFT
-                       { SWAP ;
-                         DUP ;
-                         DUG 2 ;
-                         CAR ;
+                       { DUP 2 ;
                          CAR ;
                          CDR ;
-                         SWAP ;
-                         DUP ;
-                         DUG 2 ;
+                         DUP 2 ;
                          MEM ;
                          IF { DROP 2 ; PUSH string "ALREADY_GALLERY" ; FAILWITH }
-                            { SWAP ;
-                              DUP ;
-                              DUG 2 ;
+                            { DUP 2 ;
                               CDR ;
                               DUP 3 ;
                               CAR ;
                               CDR ;
-                              DUP 4 ;
-                              CAR ;
-                              CAR ;
-                              CDR ;
                               UNIT ;
-                              DIG 4 ;
+                              DIG 3 ;
                               SWAP ;
                               SOME ;
                               SWAP ;
                               UPDATE ;
-                              DIG 3 ;
+                              DIG 2 ;
                               CAR ;
                               CAR ;
-                              CAR ;
-                              PAIR ;
                               PAIR ;
                               PAIR ;
                               NIL operation ;
                               PAIR } }
-                       { SWAP ;
-                         DUP ;
-                         DUG 2 ;
-                         CAR ;
+                       { DUP 2 ;
                          CDR ;
                          CDR ;
-                         SWAP ;
-                         DUP ;
-                         DUG 2 ;
+                         DUP 2 ;
                          MEM ;
                          IF { DROP 2 ; PUSH string "ALREADY_MINTER" ; FAILWITH }
-                            { SWAP ;
-                              DUP ;
-                              DUG 2 ;
-                              CDR ;
-                              DUP 3 ;
-                              CAR ;
+                            { DUP 2 ;
                               CDR ;
                               CDR ;
                               UNIT ;
-                              DIG 3 ;
+                              DIG 2 ;
                               SWAP ;
                               SOME ;
                               SWAP ;
                               UPDATE ;
-                              DUP 3 ;
-                              CAR ;
+                              DUP 2 ;
                               CDR ;
                               CAR ;
                               PAIR ;
-                              DIG 2 ;
+                              SWAP ;
                               CAR ;
-                              CAR ;
-                              PAIR ;
                               PAIR ;
                               NIL operation ;
                               PAIR } } }
                    { IF_LEFT
-                       { SWAP ; CAR ; PAIR ; NIL operation ; PAIR }
-                       { SWAP ;
-                         DUP ;
-                         DUG 2 ;
-                         CAR ;
+                       { DUP 2 ;
                          CAR ;
                          CDR ;
-                         SWAP ;
-                         DUP ;
-                         DUG 2 ;
+                         DUP 2 ;
                          MEM ;
-                         IF { SWAP ;
-                              DUP ;
-                              DUG 2 ;
+                         IF { DUP 2 ;
                               CDR ;
                               DUP 3 ;
                               CAR ;
                               CDR ;
-                              DUP 4 ;
-                              CAR ;
-                              CAR ;
-                              CDR ;
-                              DIG 3 ;
+                              DIG 2 ;
                               NONE unit ;
                               SWAP ;
                               UPDATE ;
-                              DIG 3 ;
+                              DIG 2 ;
                               CAR ;
                               CAR ;
-                              CAR ;
-                              PAIR ;
                               PAIR ;
                               PAIR ;
                               NIL operation ;
                               PAIR }
-                            { DROP 2 ; PUSH string "GALLERY_NOT_FOUND" ; FAILWITH } } } }
+                            { DROP 2 ; PUSH string "GALLERY_NOT_FOUND" ; FAILWITH } }
+                       { DUP 2 ;
+                         CDR ;
+                         CDR ;
+                         DUP 2 ;
+                         MEM ;
+                         IF { DUP 2 ;
+                              CDR ;
+                              CDR ;
+                              SWAP ;
+                              NONE unit ;
+                              SWAP ;
+                              UPDATE ;
+                              DUP 2 ;
+                              CDR ;
+                              CAR ;
+                              PAIR ;
+                              SWAP ;
+                              CAR ;
+                              PAIR ;
+                              NIL operation ;
+                              PAIR }
+                            { DROP 2 ; PUSH string "MINTER_NOT_FOUND" ; FAILWITH } } } }
                { IF_LEFT
-                   { IF_LEFT
-                       { SWAP ;
-                         DUP ;
-                         DUG 2 ;
-                         CAR ;
-                         CDR ;
-                         CDR ;
-                         SWAP ;
-                         DUP ;
-                         DUG 2 ;
-                         MEM ;
-                         IF { SWAP ;
-                              DUP ;
-                              DUG 2 ;
-                              CDR ;
-                              DUP 3 ;
-                              CAR ;
-                              CDR ;
-                              CDR ;
-                              DIG 2 ;
-                              NONE unit ;
-                              SWAP ;
-                              UPDATE ;
-                              DUP 3 ;
-                              CAR ;
-                              CDR ;
-                              CAR ;
-                              PAIR ;
-                              DIG 2 ;
-                              CAR ;
-                              CAR ;
-                              PAIR ;
-                              PAIR ;
-                              NIL operation ;
-                              PAIR }
-                            { DROP 2 ; PUSH string "MINTER_NOT_FOUND" ; FAILWITH } }
-                       { DROP ;
-                         DUP ;
-                         CDR ;
-                         SWAP ;
-                         DUP ;
-                         DUG 2 ;
-                         CAR ;
-                         CDR ;
-                         DUP 3 ;
-                         CAR ;
-                         CAR ;
-                         CDR ;
-                         NONE address ;
-                         DIG 4 ;
-                         CAR ;
-                         CAR ;
-                         CAR ;
-                         CAR ;
-                         PAIR ;
-                         PAIR ;
-                         PAIR ;
-                         PAIR ;
-                         NIL operation ;
-                         PAIR } }
-                   { SWAP ;
+                   { DROP ;
                      DUP ;
-                     DUG 2 ;
                      CDR ;
-                     DUP 3 ;
+                     DUP 2 ;
                      CAR ;
                      CDR ;
-                     DUP 4 ;
-                     CAR ;
-                     CAR ;
-                     CDR ;
+                     NONE address ;
                      DIG 3 ;
-                     SOME ;
-                     DIG 4 ;
                      CAR ;
                      CAR ;
-                     CAR ;
-                     CAR ;
-                     PAIR ;
-                     PAIR ;
-                     PAIR ;
-                     PAIR ;
-                     NIL operation ;
-                     PAIR } } } } }
+                     CAR }
+                   { DUP 2 ; CDR ; DUP 3 ; CAR ; CDR ; DIG 2 ; SOME ; DIG 3 ; CAR ; CAR ; CAR } ;
+                 PAIR ;
+                 PAIR ;
+                 PAIR ;
+                 NIL operation ;
+                 PAIR } } } }
 

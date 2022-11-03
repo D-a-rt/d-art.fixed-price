@@ -78,16 +78,16 @@ export async function contracts (param: any, type: ContractAction): Promise<void
             contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             break;
         case "fa2-editions-serie":
-            contractAction("Fa2 editions serie", type, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factory/compile/serie.tz")
+            contractAction("Fa2 editions serie", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
             break;
         case "fa2-editions-gallery":
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factory/compile/gallery.tz")
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factories/compile/gallery.tz")
             break;
         case "serie-factory":
-            contractAction("Serie factory", type, "d-art.art-factory/serie_factory.mligo", "serie_factory_main", "d-art.art-factory/compile/serie_factory.tz")
+            contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
             break;
         case "gallery-factory":
-            contractAction("Gallery factory", type, "d-art.art-factory/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factory/compile/gallery_factory.tz")
+            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
             break;
         case "permission-manager":
             contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
@@ -95,10 +95,10 @@ export async function contracts (param: any, type: ContractAction): Promise<void
         default:
             contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
-            contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factory/compile/serie.tz")
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factory/compile/gallery.tz")
-            contractAction("Serie factory", type, "d-art.art-factory/serie_factory.mligo", "serie_factory_main", "d-art.art-factory/compile/serie_factory.tz")
-            contractAction("Gallery factory", type, "d-art.art-factory/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factory/compile/gallery_factory.tz")
+            contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factories/compile/gallery.tz")
+            contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
+            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
             contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
             break;
     }
@@ -440,7 +440,7 @@ export async function deployEditionContract(): Promise<void> {
 }
 
 export async function deploySerieFactory(permisionManagerAdd: string): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factory/compile/serie_factory.tz'))
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/serie_factory.tz'))
 
     const serieFactoryMetadata = {
         name: 'A:RT - Serie Factory',
@@ -493,7 +493,7 @@ export async function deploySerieFactory(permisionManagerAdd: string): Promise<v
 }
 
 export async function deployGalleryFactory(permisionManagerAdd: string): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factory/compile/gallery_factory.tz'))
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/gallery_factory.tz'))
 
     const galleryFactoryMetadata = {
         name: 'A:RT - Gallery Factory',
@@ -732,7 +732,7 @@ async function testEditionContract(): Promise<void> {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
                     console.log(kleur.yellow().dim(err.toString()))
-                    reject();
+                    
                 } else {
                     console.log(`Results: ${stdout}`)
                     resolve()
@@ -814,12 +814,13 @@ async function testEditionContract(): Promise<void> {
     })
 }
 
-async function testFactoryContract(): Promise<void> {
+async function testSerieFactoryContract(): Promise<void> {
+
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing serie factory admin entrypoints...`))
+        console.log(kleur.green(`Testing serie factory main entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factory/admin.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/serie_factory_main.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -832,12 +833,14 @@ async function testFactoryContract(): Promise<void> {
             }
         )
     })
+}
 
+async function testGalleryFactoryContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing serie factory main entrypoints...`))
+        console.log(kleur.green(`Testing gallery factory main entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factory/art_factory_main.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/gallery_factory_main.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -916,8 +919,11 @@ export const testContracts = async (param: any) => {
         case "fa2-editions":
             await testEditionContract()
             break;
-        case "art-factory":
-            await testFactoryContract()
+        case "serie-factory":
+            await testSerieFactoryContract()
+            break;
+        case "gallery-factory":
+            await testGalleryFactoryContract()
             break;
         case "permission-manager":
             await testPermissionManagerContract()
@@ -925,7 +931,8 @@ export const testContracts = async (param: any) => {
         default:
             await testEditionContract()
             await testFixedPriceContract()
-            await testFactoryContract()
+            await testSerieFactoryContract()
+            await testGalleryFactoryContract()
             await testPermissionManagerContract()
             break;
     }

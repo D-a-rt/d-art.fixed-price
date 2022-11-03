@@ -569,7 +569,7 @@ let test_update_metadata_success =
 
 
 // -- FA2 editions version originated from Serie factory contract --
-#include "../../d-art.fa2-editions/compile_fa2_editions_factory.mligo"
+#include "../../d-art.fa2-editions/compile_fa2_editions_serie.mligo"
 
 let get_serie_originated_initial_storage (mr: bool) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
     let () = Test.reset_state 8n ([]: tez list) in
@@ -579,7 +579,7 @@ let get_serie_originated_initial_storage (mr: bool) : ( ((editions_entrypoints, 
  
     let minter = Test.nth_bootstrap_account 7 in
 
-    let factory_contract_address = FA2_STR.get_factory_contract () in
+    let factory_contract_address = FA2_STR.get_serie_factory_contract () in
 
     let admin_str : admin_storage = {
         admin = minter;

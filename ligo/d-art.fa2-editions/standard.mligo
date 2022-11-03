@@ -44,7 +44,7 @@ let transfer (txs, validate_op, ops_storage, ledger : (transfer_descriptor list)
         (fun (ll, dst : ledger * transfer_destination_descriptor) ->
             let () = match tx.from_ with
             | None -> unit
-            | Some owner -> validate_op (owner, Tezos.sender, dst.token_id, ops_storage)
+            | Some owner -> validate_op (owner, Tezos.get_sender(), dst.token_id, ops_storage)
             in
             if dst.amount > 1n
             then (failwith "FA2_INSUFFICIENT_BALANCE" : ledger)
@@ -87,7 +87,7 @@ permissions or constraints are violated.
 
 let fa2_update_operators (updates, storage
     : (update_operator list) * operator_storage) : operator_storage =
-  let updater = Tezos.sender in
+  let updater = Tezos.get_sender() in
   let process_update = (fun (ops, update : operator_storage * update_operator) ->
     let () = validate_update_operators_by_owner (update, updater) in
     update_operators (update, ops)

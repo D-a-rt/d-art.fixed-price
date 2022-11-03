@@ -1,4 +1,4 @@
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 type revoke_minting_param =
 [@layout:comb]
@@ -8,7 +8,7 @@ type revoke_minting_param =
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =
-  if Tezos.sender <> storage.admin
+  if Tezos.get_sender() <> storage.admin
   then failwith "NOT_AN_ADMIN"
   else unit
 
@@ -27,7 +27,7 @@ type admin_entrypoints =
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =
-    if Tezos.sender <> storage.admin
+    if Tezos.get_sender() <> storage.admin
     then failwith "NOT_AN_ADMIN"
     else unit
 
@@ -57,7 +57,7 @@ type admin_entrypoints =
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =
-    if Tezos.sender <> storage.admin
+    if Tezos.get_sender() <> storage.admin
     then failwith "NOT_AN_ADMIN"
     else unit
 
@@ -67,7 +67,7 @@ let fail_if_minting_paused (storage : admin_storage) : unit =
     else unit
 
 let fail_if_not_minter (storage : admin_storage) : unit =
-    match ((Tezos.call_view "is_minter" Tezos.sender storage.minters_manager ): bool option) with
+    match ((Tezos.call_view "is_minter" (Tezos.get_sender()) storage.minters_manager ): bool option) with
         None -> failwith "NOT_A_MINTER"
         | Some is_minter -> 
             if is_minter
@@ -75,7 +75,7 @@ let fail_if_not_minter (storage : admin_storage) : unit =
             else failwith "NOT_A_MINTER"
 
 let fail_if_already_minted (storage : editions_storage) : unit =
-    if Big_map.mem Tezos.sender storage.as_minted
+    if Big_map.mem (Tezos.get_sender()) storage.as_minted
     then failwith "ALREADY_MINTED"
     else unit
 

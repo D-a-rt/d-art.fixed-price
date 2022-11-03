@@ -1,13 +1,11 @@
 // Invite & Revoke admin invitation
 type admin_invitation_param = 
-[@layout:comb]
 {
     new_admin: address
 }
 
 // Accept || Refuse admin invitation
 type admin_response_param = 
-[@layout:comb]
 {
     accept: bool
 }

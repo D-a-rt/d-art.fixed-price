@@ -2,7 +2,7 @@
 #import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 #import "../../d-art.fixed-price/common.mligo" "CM"
 #import "../../d-art.fa2-editions/multi_nft_token_editions.mligo" "E_M"
-#import "../../d-art.serie-factory/serie_factory.mligo" "S_F"
+#import "../../d-art.art-factories/serie_factory.mligo" "S_F"
 
 // This storage is based on the contract fa2_editions
 // you can find it at this link https://github.com/D-a-rt/d-art.fa2-editions
@@ -170,7 +170,7 @@ let get_initial_storage (signature_saved : bool ) =
     let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
     taddr
 
-let get_factory_contract () =
+let get_serie_factory_contract () =
     
     let admin_str = {
         admin = Test.nth_bootstrap_account 0;
@@ -263,7 +263,7 @@ let test_buy_drop_token_signature_already_used =
 let test_buy_drop_token_wrong_price =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
@@ -273,7 +273,7 @@ let test_buy_drop_token_wrong_price =
     
     let contract = Test.to_contract contract_add in
 
-    let now : timestamp = Tezos.now in
+    let now : timestamp = Tezos.get_now() in
     let three_days : int = 253800 in
     let expected_time_result_three = now + three_days in
 
@@ -324,7 +324,7 @@ let test_buy_drop_token_wrong_price =
 let test_buy_drop_token_drop_date_not_met =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
@@ -334,7 +334,7 @@ let test_buy_drop_token_drop_date_not_met =
     
     let contract = Test.to_contract contract_add in
 
-    let now : timestamp = Tezos.now in
+    let now : timestamp = Tezos.get_now() in
     let three_days : int = 253800 in
     let expected_time_result_three = now + three_days in
 
@@ -386,7 +386,7 @@ let test_buy_drop_token_drop_date_not_met =
 let test_buy_drop_token_not_dropped =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let init_str = Test.get_storage contract_add in
     
@@ -423,7 +423,7 @@ let test_buy_drop_token_buyer_is_seller =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     
     let () = Test.set_source init_str.admin.address in

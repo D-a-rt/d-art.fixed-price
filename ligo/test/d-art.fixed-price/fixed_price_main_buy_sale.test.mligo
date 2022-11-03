@@ -2,7 +2,7 @@
 #import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
 #import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
 #import "../../d-art.fixed-price/common.mligo" "CM"
-#import "../../d-art.serie-factory/serie_factory.mligo" "S_F"
+#import "../../d-art.art-factories/serie_factory.mligo" "S_F"
 
 // This storage is based on the contract fa2_editions
 // you can find it at this link https://github.com/D-a-rt/d-art.fa2-editions
@@ -171,7 +171,7 @@ let get_initial_storage (signature_saved : bool ) =
     let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
     taddr
 
-let get_factory_contract () =
+let get_serie_factory_contract () =
     
     let admin_str = {
         admin = Test.nth_bootstrap_account 0;
@@ -297,7 +297,7 @@ let test_buy_fixed_price_token_wrong_price =
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
     let init_str = Test.get_storage contract_add in
     
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     
     let admin_addr = Test.nth_bootstrap_account 0 in
@@ -352,7 +352,7 @@ let test_buy_fixed_price_token_wrong_price =
 let test_buy_fixed_price_token_not_buyer =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
 
     let init_str = Test.get_storage contract_add in
@@ -410,7 +410,7 @@ let test_buy_fixed_price_token_not_buyer =
 let test_buy_fixed_price_token_success =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let contract_edition_add : (E_M.editions_entrypoints, editions_storage) typed_address = Test.cast_address edition_contract in
@@ -549,7 +549,7 @@ let test_buy_fixed_price_token_success =
 let test_buy_fixed_price_token_success_secondary = 
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
     let contract_edition_add : (E_M.editions_entrypoints, editions_storage) typed_address = Test.cast_address edition_contract in
@@ -725,7 +725,7 @@ let test_buy_fixed_price_token_success_secondary =
 let test_buy_fixed_price_token_fail_if_wrong_seller =
     let contract_address = get_initial_storage (false) in
     let contract_add : (FP_M.fixed_price_entrypoints, FP_I.storage) typed_address = Test.cast_address contract_address in
-    let factory_contract_address = get_factory_contract () in
+    let factory_contract_address = get_serie_factory_contract () in
     
     let edition_contract = get_edition_fa2_contract(factory_contract_address, contract_address) in
 

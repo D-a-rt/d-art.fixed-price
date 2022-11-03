@@ -5,7 +5,7 @@
 
 let test_is_minter =
     let minter = Test.nth_bootstrap_account 1 in
-    let contract_add = PM_STR.get_initial_str(Some (minter)) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract(Some (minter)) in
     let strg = Test.get_storage contract_add in
 
     let not_minter = Test.nth_bootstrap_account 2 in
@@ -21,7 +21,7 @@ let test_is_minter =
 // -- Is gallery --
 
 let test_is_gallery =
-    let contract_add = PM_STR.get_initial_str(None : address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract(None : address option) in
     let contract = Test.to_contract contract_add  in
 
     let gallery = Test.nth_bootstrap_account 1 in

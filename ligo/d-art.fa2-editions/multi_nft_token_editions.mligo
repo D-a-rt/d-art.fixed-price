@@ -24,7 +24,7 @@ type pre_mint_edition_param =
 type update_pre_mint_edition_param =
 [@layout:comb]
 {
-    edition_id: nat;
+    proposal_id: nat;
     minter: address;
     edition_info : bytes;
     total_edition_number : nat;
@@ -61,7 +61,7 @@ type mint_edition_param =
   splits: split list;
 }
 
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 type editions_entrypoints =
     |   Revoke_minting of revoke_minting_param
@@ -117,7 +117,7 @@ let mint_edition_to_addresses ( edition_id, receiver, edition_metadata, storage 
 
 let verify_split (c, spt : nat * split) : nat = c + spt.pct
 
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 let mint_editions ( edition_run_list , storage : mint_edition_param list * editions_storage) : operation list * editions_storage =
 
@@ -142,12 +142,12 @@ let mint_editions ( edition_run_list , storage : mint_edition_param list * editi
                 editions_metadata = Big_map.add storage.next_edition_id edition_metadata storage.editions_metadata;
             } in
 
-            mint_edition_to_addresses (storage.next_edition_id, Tezos.sender, edition_metadata, edition_storage)
+            mint_edition_to_addresses (storage.next_edition_id, Tezos.get_sender(), edition_metadata, edition_storage)
         in
     ([] : operation list), List.fold mint_single_edition_run edition_run_list storage
 
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
-    let () : unit = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
+    let () : unit = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     match param with
         | Revoke_minting revoke_param ->
             let () = fail_if_not_admin editions_storage.admin in 
@@ -172,8 +172,8 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             res
 
         | Burn_token burn_param ->
-            let () = assert_msg (burn_param.owner = Tezos.sender, "NOT_OWNER") in
-            let () : unit = fail_if_not_owner (Tezos.sender, burn_param.token_id, editions_storage) in
+            let () = assert_msg (burn_param.owner = Tezos.get_sender(), "NOT_OWNER") in
+            let () : unit = fail_if_not_owner (Tezos.get_sender(), burn_param.token_id, editions_storage) in
             ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }
 
 #else
@@ -218,7 +218,6 @@ let update_proposal (edition_update, storage : update_pre_mint_edition_param * e
         let () : unit = assert_msg(edition_update.royalty >= 50n, "ROYALTIES_MINIMUM_5_PERCENT") in
         let () : unit = assert_msg(edition_update.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
         let () : unit = assert_msg(edition_update.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
-        let () : unit = assert_msg(Big_map.mem edition_update.edition_id storage.mint_proposals, "EDITION_NOT_FOUND") in
         let () : unit = fail_if_not_minter (edition_update.minter, storage.admin) in
 
         let split_count : nat = List.fold_left verify_split 0n edition_update.splits  in
@@ -237,7 +236,9 @@ let update_proposal (edition_update, storage : update_pre_mint_edition_param * e
             total_edition_number = edition_update.total_edition_number;
         } in
 
-        { storage with next_edition_id = storage.next_edition_id + 1n; mint_proposals = Big_map.add storage.next_edition_id edition_metadata storage.mint_proposals; }        
+        match Big_map.find_opt edition_update.proposal_id storage.mint_proposals with
+                None -> failwith (failwith "FA2_PROPOSAL_UNDEFINED"  : editions_storage)
+            |   Some _ -> ([] : operation list), { storage with mint_proposals = Big_map.update edition_update.proposal_id (Some edition_metadata) storage.mint_proposals; }        
 
 let remove_proposals (remove_list, storage : proposal_param list * editions_storage ) : operation list * editions_storage =
     let remove_single_proposal : (editions_storage * proposal_param) -> editions_storage =
@@ -254,7 +255,7 @@ let mint_editions (edition_run_list, storage : proposal_param list * editions_st
             match Big_map.find_opt param.proposal_id storage.mint_proposals with
                 |   None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : editions_storage)
                 |   Some proposal -> (
-                    let () = assert_msg (proposal.minter = Tezos.sender, "MINTER_MUST_BE_SENDER") in
+                    let () = assert_msg (proposal.minter = Tezos.get_sender(), "MINTER_MUST_BE_SENDER") in
                     let edition_storage = { storage with 
                         editions_metadata = Big_map.add param.proposal_id proposal storage.editions_metadata;
                         mint_proposals = Big_map.remove param.proposal_id storage.mint_proposals;
@@ -265,7 +266,7 @@ let mint_editions (edition_run_list, storage : proposal_param list * editions_st
     ([]: operation list), List.fold mint_single_edition_run edition_run_list storage
 
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
-    let () : unit = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
+    let () : unit = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     match param with
         | Admin a ->
             let ops, admin = admin_main (a, editions_storage.admin) in
@@ -289,7 +290,7 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             remove_proposals (remove_param, editions_storage)
 
         | Mint_editions mint_param -> 
-            let () = fail_if_not_minter (Tezos.sender, editions_storage.admin) in
+            let () = fail_if_not_minter (Tezos.get_sender(), editions_storage.admin) in
             mint_editions (mint_param, editions_storage)
 
         | Update_metadata metadata_param -> 
@@ -302,8 +303,8 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             res
 
         | Burn_token burn_param ->
-            let () = assert_msg (burn_param.owner = Tezos.sender, "NOT_OWNER") in
-            let () : unit = fail_if_not_owner (Tezos.sender, burn_param.token_id, editions_storage) in
+            let () = assert_msg (burn_param.owner = Tezos.get_sender(), "NOT_OWNER") in
+            let () : unit = fail_if_not_owner (Tezos.get_sender(), burn_param.token_id, editions_storage) in
             ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }
 
 #else
@@ -317,7 +318,7 @@ let mint_editions ( edition_run , storage : mint_edition_param * editions_storag
     let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
     
     let edition_metadata : edition_metadata = {
-        minter = Tezos.sender;
+        minter = Tezos.get_sender();
         edition_info = Map.literal [("", edition_run.edition_info)];
         royalty = edition_run.royalty;
         splits = edition_run.splits;
@@ -327,14 +328,14 @@ let mint_editions ( edition_run , storage : mint_edition_param * editions_storag
     let edition_storage = { storage with
         next_token_id = storage.next_token_id + 1n;
         editions_metadata = Big_map.add storage.next_token_id edition_metadata storage.editions_metadata;
-        as_minted = Big_map.add Tezos.sender unit storage.as_minted;
+        as_minted = Big_map.add (Tezos.get_sender()) unit storage.as_minted;
     } in
 
-    ([] : operation list), mint_edition_to_addresses (storage.next_token_id, Tezos.sender, edition_metadata, edition_storage)
+    ([] : operation list), mint_edition_to_addresses (storage.next_token_id, Tezos.get_sender(), edition_metadata, edition_storage)
 
 
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
-    let () : unit = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
+    let () : unit = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     match param with
         | Admin a ->
             let ops, admin = admin_main (a, editions_storage.admin) in
@@ -360,8 +361,8 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             res
 
         | Burn_token burn_param ->
-            let () = assert_msg (burn_param.owner = Tezos.sender, "NOT_OWNER") in
-            let () : unit = fail_if_not_owner (Tezos.sender, burn_param.token_id, editions_storage) in
+            let () = assert_msg (burn_param.owner = Tezos.get_sender(), "NOT_OWNER") in
+            let () : unit = fail_if_not_owner (Tezos.get_sender(), burn_param.token_id, editions_storage) in
             ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }
 
 #endif

@@ -27,11 +27,11 @@ This contract has been extended using the TQTezos Editions variant of the FA2 ht
 
 - Added royalties & split as well as views corresponding to it 
 
-- Added `WILL_ORIGINATE_FROM_FACTORY` variable in the ligo code in order to change the structure of the contract in case it's originated from the serie-factory one or originated as is.
+- Added `SERIE_CONTRACT` variable in the ligo code in order to change the structure of the contract in case it's originated from the serie-factory one or originated as is.
 
 # FA2 editions - Original D a:rt serie
 
-WILL_ORIGINATE_FROM_FACTORY is NOT defined here
+SERIE_CONTRACT is NOT defined here
 
 ## Storage definition
 
@@ -114,7 +114,7 @@ type split =
 
 ``editions_metadata`` : The big_map containing the list of edition metadata in the contract
 
-``minter`` : Minter of the edition (Tezos.sender)
+``minter`` : Minter of the edition (Tezos.get_sender())
 
 ``edition_info`` : Same semantic as the token_info in a classic fa2
 
@@ -237,7 +237,7 @@ The `Burn_token` entrypoint will remove token from the ledger big_map. and is on
 
 # FA2 editions - Originated from factory
 
-WILL_ORIGINATE_FROM_FACTORY is defined here
+SERIE_CONTRACT is defined here
 
 ## Storage definition
 
@@ -319,7 +319,7 @@ type split =
 
 ``editions_metadata`` : The big_map containing the list of edition metadata in the contract
 
-``minter`` : Minter of the edition (Tezos.sender)
+``minter`` : Minter of the edition (Tezos.get_sender())
 
 ``edition_info`` : Same semantic as the token_info in a classic fa2
 

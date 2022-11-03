@@ -4,10 +4,10 @@
 
 // No amount
 let test_accept_admin_invitation_no_amount =
-    let contract_add = PM_STR.get_initial_str(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
     let contract = Test.to_contract contract_add  in
 
-    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({accept = true})) 1tez in
+    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({accept = True})) 1tez in
 
     match result with
             Success _gas -> failwith "Accept_admin_invitation - No amount : This test should fail"
@@ -20,13 +20,13 @@ let test_accept_admin_invitation_no_amount =
 
 // Not a pending admin (no pending admin in storage)
 let test_accept_admin_invitation_no_pending_admin = 
-    let contract_add = PM_STR.get_initial_str(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({accept = true})) 0tez in
+    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({accept = True})) 0tez in
 
     match result with
             Success _gas -> failwith "Accept_admin_invitation - No pending admin : This test should fail"
@@ -39,7 +39,7 @@ let test_accept_admin_invitation_no_pending_admin =
 
 // Not a pending admin (pending admin in storage)
 let test_accept_admin_invitation_wrong_pending_admin = 
-    let contract_add = PM_STR.get_initial_str(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -64,7 +64,7 @@ let test_accept_admin_invitation_wrong_pending_admin =
 
 // Accept success
 let test_accept_admin_invitation_accept_success = 
-    let contract_add = PM_STR.get_initial_str(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -84,13 +84,13 @@ let test_accept_admin_invitation_accept_success =
                 else failwith "Accept_admin_invitation - Accept success : Wrong admin saved"
                 
             )
-        |   Fail (Rejected (err, _)) -> failwith "Accept_admin_invitation - Accept success : This test should fail"
+        |   Fail (Rejected (_err, _)) -> failwith "Accept_admin_invitation - Accept success : This test should fail"
         |   Fail _ -> failwith "Internal test failure"
 
 
 // Refuse success
 let test_accept_admin_invitation_refuse_success = 
-    let contract_add = PM_STR.get_initial_str(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -110,5 +110,5 @@ let test_accept_admin_invitation_refuse_success =
                 else failwith "Accept_admin_invitation - Refuse success : Pending admin should be None and admin should be the same"
                 
             )
-        |   Fail (Rejected (err, _)) -> failwith "Accept_admin_invitation - Refuse success : This test should fail"
+        |   Fail (Rejected (_err, _)) -> failwith "Accept_admin_invitation - Refuse success : This test should fail"
         |   Fail _ -> failwith "Internal test failure"

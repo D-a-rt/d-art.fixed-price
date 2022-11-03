@@ -1,21 +1,16 @@
+// -- FA2 editions version originated from Serie factory contract
 
-#import "../d-art.permission-manager/storage.test.mligo" "PM_S"
-#import "../../d-art.fa2-editions/views.mligo" "FA2_E"
+#include "../../d-art.fa2-editions/compile_fa2_editions_serie.mligo"
 
-// Create initial storage
-let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_E.editions_storage) typed_address) * address * address * address ) = 
+let get_fa2_editions_serie_contract (mr: bool) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
     let () = Test.reset_state 8n ([]: tez list) in
     
     // Admin storage
-    let admin = Test.nth_bootstrap_account 0 in
- 
     let minter = Test.nth_bootstrap_account 7 in
-    let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (minter)) in
 
-    let admin_str : FA2_E.admin_storage = {
-        admin = admin;
-        paused_minting = pm;
-        minters_manager = pm_contract_addr;
+    let admin_str : admin_storage = {
+        admin = minter;
+        minting_revoked = mr;
     } in
 
     // Assets storage
@@ -39,25 +34,22 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
         ((owner1, (operator1, 4n)), ());
     ]) in
 
-    let token_metadata = (Big_map.empty : (FA2_E.token_id, FA2_E.token_metadata) big_map) in
-    
     let asset_str = {
         ledger = ledger;
         operators = operators;
-        token_metadata = token_metadata;
+        token_metadata = (Big_map.empty : (token_id, token_metadata) big_map);
     } in
 
     // Editions storage
     let edition1 = ({
-        minter = minter;
         edition_info = (Map.empty : (string, bytes) map);
         total_edition_number = 5n;
         royalty = 150n;
         splits = [({
             address = minter;
             pct = 1000n;
-        } : FA2_E.split )];
-    } : FA2_E.edition_metadata) in
+        } : split )];
+    } : edition_metadata) in
 
     let editions_metadata = Big_map.literal([
         (0n, edition1);
@@ -65,14 +57,13 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
 
     // Contract storage
     let str = {
-        next_token_id = 0n;
-        max_editions_per_run = 50n;
-        as_minted = (Big_map.empty : (address, unit) big_map); 
+        next_edition_id = 0n;
+        max_editions_per_run = 50n ;
         editions_metadata = editions_metadata;
         assets = asset_str;
         admin = admin_str;
         metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
-    let taddr, _, _ = Test.originate FA2_E.editions_main str 0tez in
-    taddr, admin, owner1, minter
+    let taddr, _, _ = Test.originate editions_main str 0tez in
+    taddr, minter, owner1, minter

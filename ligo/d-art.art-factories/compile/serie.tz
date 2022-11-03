@@ -293,14 +293,13 @@
                              EXEC } }
                        { DIG 3 ;
                          DROP ;
-                         SWAP ;
-                         DUP ;
-                         DUG 2 ;
+                         SENDER ;
+                         DUP 3 ;
                          CAR ;
                          CDR ;
-                         SWAP ;
+                         DIG 2 ;
                          ITER { SWAP ;
-                                SENDER ;
+                                DUP 3 ;
                                 DUP 3 ;
                                 IF_LEFT {} {} ;
                                 CAR ;
@@ -333,6 +332,8 @@
                                     NONE unit ;
                                     SWAP ;
                                     UPDATE } } ;
+                         SWAP ;
+                         DROP ;
                          SWAP ;
                          DUP ;
                          DUG 2 ;

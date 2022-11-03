@@ -10,7 +10,7 @@ type admin_entrypoints =
 
 let admin_main (param, storage : admin_entrypoints * storage) : (operation list) * storage =
   let () = fail_if_not_admin (storage.admin) in
-  let () = assert_msg (Tezos.amount = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
+  let () = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
   match param with
     | UpdatePrimaryFee new_fee_data ->
         let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in

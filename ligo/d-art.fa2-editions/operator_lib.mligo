@@ -13,7 +13,7 @@ let update_operators (update, storage : update_operator * operator_storage)
 
 (**
 Validate if operator update is performed by the token owner.
-@param updater an address that initiated the operation; usually `Tezos.sender`.
+@param updater an address that initiated the operation; usually `Tezos.get_sender()`.
 *)
 let validate_update_operators_by_owner (update, updater : update_operator * address)
     : unit =
