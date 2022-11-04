@@ -194,18 +194,48 @@ let test_serie_factory_originated_royalty_distribution_view =
     "Passed"
 
 let test_gallery_factory_originated_commission_splits = 
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
-    let strg = Test.get_storage contract_add in
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
 
-    let commission_distribution = FA2_GALLERY_STR.comission_splits (1n, strg) in
-
-    let commission_distri = ({
-        commission_pct = 500n;
-        splits = [({
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 150n;
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : FA2_I.split list);
+        gallery_comission = 300n;
+        gallery_comission_splits = ([{
             address = gallery;
             pct = 1000n;
-        } : FA2_I.split )]
-    } : FA2_V.commissions) in
+        };] : FA2_I.split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
-    let () = assert_with_error (commission_distribution = commission_distri) "Views Gallery - Commissions Splits : This test should pass " in
-    "Passed"
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    
+    let () = Test.set_source minter in
+    let result = Test.transfer_to_contract contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> (
+            let new_str = Test.get_storage contract_add in
+            let commission_distribution = FA2_GALLERY_STR.comission_splits (0n, new_str) in
+
+            let commission_distri = ({
+                commission_pct = 500n;
+                splits = [({
+                    address = gallery;
+                    pct = 1000n;
+                } : FA2_I.split )]
+            } : FA2_V.commissions) in
+
+            let () = assert_with_error (commission_distribution = commission_distri) "Views Gallery - Commissions Splits : This test should pass " in
+            "Passed"
+        )
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_PROPOSAL_UNDEFINED") ) "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Should not work if minter is not sender" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"

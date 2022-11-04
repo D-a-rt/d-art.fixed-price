@@ -34,7 +34,6 @@ type split =
   pct: nat;
 }
 
-
 type edition_metadata =
 [@layout:comb]
 {
@@ -212,25 +211,6 @@ let get_initial_storage (will_update, isDropped, isInDrops, drop_date : bool * b
 
         )
     )
-
-let get_serie_factory_contract () =
-    
-    let admin_str = {
-        admin = Test.nth_bootstrap_account 0;
-        pending_admin = (None: address option);
-    } in
-
-    let str = {
-        admin = admin_str;
-        origination_paused = false;
-        minters = (Big_map.empty : (address, unit) big_map);
-        series = (Big_map.empty : (nat, S_F.serie) big_map);
-        metadata = (Big_map.empty : (string, bytes) big_map);
-        next_serie_id = 1n;
-    } in
-
-    let taddr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.serie-factory/serie_factory.mligo" "art_serie_factory_main" ([] : string list) (Test.compile_value str) 0tez in
-    taddr
 
 // -- CREATE DROPS --
 
@@ -972,10 +952,7 @@ let test_revoke_drops_after_drope_date =
             in
             "Passed"
         )
-    |   Fail (Rejected (err, _)) -> (
-        let () = Test.log("err: ", err) in
-        "Revoke_drops - Success : This test should pass"
-    )
+    |   Fail (Rejected (err, _)) -> failwith "Revoke_drops - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if amount specified

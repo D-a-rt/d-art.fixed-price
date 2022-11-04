@@ -1,4 +1,4 @@
-#import "../../d-art.permission-manager/permission_manager.mligo" "P_M"
+#include "../../d-art.permission-manager/permission_manager.mligo"
 
 let get_permission_manager_contract (new_minter : address option) =
     let () = Test.reset_state 8n ([]: tez list) in
@@ -18,7 +18,7 @@ let get_permission_manager_contract (new_minter : address option) =
             } in
 
             let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.permission-manager/views.mligo" "permission_manager_main" ([] : string list) (Test.compile_value str) 0tez in
-            let taddr : (P_M.art_permission_manager, P_M.storage) typed_address = Test.cast_address addr in
+            let taddr : (art_permission_manager, storage) typed_address = Test.cast_address addr in
             taddr, addr
         )
         | None ->  (
@@ -30,6 +30,6 @@ let get_permission_manager_contract (new_minter : address option) =
             } in
 
             let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.permission-manager/views.mligo" "permission_manager_main" ([] : string list) (Test.compile_value str) 0tez in
-            let taddr : (P_M.art_permission_manager, P_M.storage) typed_address = Test.cast_address addr in
+            let taddr : (art_permission_manager, storage) typed_address = Test.cast_address addr in
             taddr, addr
         )

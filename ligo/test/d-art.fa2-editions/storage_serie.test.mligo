@@ -57,7 +57,7 @@ let get_fa2_editions_serie_contract (mr: bool) : ( ((editions_entrypoints, editi
 
     // Contract storage
     let str = {
-        next_edition_id = 0n;
+        next_edition_id = 1n;
         max_editions_per_run = 50n ;
         editions_metadata = editions_metadata;
         assets = asset_str;

@@ -78,7 +78,7 @@ let handle_royalties (token, price : fa2_base * tez) : tez * (operation list) =
                 fees, ops
 
 let handle_comissions (token, price , operation_list : fa2_base * tez * (operation list)) : tez * (operation list) =
-    match ((Tezos.call_view "comission_splits" token.id token.address ): royalties option) with
+    match ((Tezos.call_view "comission_splits" token.id token.address ): commissions option) with
             None -> 0mutez, operation_list
             |   Some param ->
                 let commissions_fee : tez = calculate_fee ( Some (param.commission_pct), price) in

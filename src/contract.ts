@@ -778,10 +778,46 @@ async function testEditionContract(): Promise<void> {
     })
 
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints...`))
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/multi_nft_token_editions.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_serie...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_serie.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_gallery...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_gallery.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));

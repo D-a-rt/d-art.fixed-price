@@ -1,58 +1,10 @@
-#import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
-#import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
-
-// TEST FILE FOR ADMIN ENTRYPOINTS
-
-// Create initial storage
-let get_initial_storage () = 
-    let () = Test.reset_state 8n ([]: tez list) in
-    
-    let admin = Test.nth_bootstrap_account 0 in
-    let admin_2 = Test.nth_bootstrap_account 2 in
-
-    let account : (string * key) = Test.new_account () in
-    let signed_ms = (Big_map.empty : FP_I.signed_message_used) in
-    
-    let admin_str : FP_I.admin_storage = {
-        address = admin;
-        pb_key = account.1;
-        signed_message_used = signed_ms;
-        contract_will_update = false;
-    } in
-
-    let empty_sales = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_sale) big_map ) in
-    let empty_sellers = (Big_map.empty : (address, unit) big_map ) in
-    let empty_drops = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
-    let empty_dropped = (Big_map.empty : (FP_I.fa2_base, unit) big_map) in
-    let empty_offers = (Big_map.empty : (FP_I.fa2_base * address, tez) big_map) in
-
-    let str = {
-        admin = admin_str;
-        for_sale = empty_sales ;
-        drops = empty_drops;
-        fa2_sold = empty_dropped;
-        fa2_dropped = empty_dropped;
-        offers = empty_offers;
-        fee_primary = {
-            address = admin;
-            percent = 10n;
-        };
-        fee_secondary = {
-            address = admin_2;
-            percent = 3n;
-        };
-        metadata = (Big_map.empty : (string, bytes) big_map);
-    } in
-
-    let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
-    taddr
+#include "storage.test.mligo" 
 
 // -- UPDATE FEE --
 
-
 // Success update fee
 let test_primary_update_fee =
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -66,7 +18,7 @@ let test_primary_update_fee =
             (UpdatePrimaryFee ({
                 address = init_str.admin.address;
                 percent = 4n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
     
     let new_fee_percent_str = Test.get_storage contract_add in
     let () = assert_with_error (new_fee_percent_str.fee_primary.percent = 4n) "Admin -> UpdatePrimaryFee - Success (percentage): Wrong fee percent after update" in
@@ -78,7 +30,7 @@ let test_primary_update_fee =
             (UpdatePrimaryFee ({
                 address = new_fee_addr;
                 percent = 4n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
 
     let new_fee_addr_str = Test.get_storage contract_add in
     let () = assert_with_error (new_fee_addr_str.fee_primary.address = new_fee_addr) "Admin -> UpdatePrimaryFee - Success (address) : Wrong fee address after update" in
@@ -89,7 +41,7 @@ let test_primary_update_fee =
             (UpdatePrimaryFee ({
                 address = current_fee_addr;
                 percent = 5n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
 
     let second_new_fee_addr_str = Test.get_storage contract_add in
     let () = assert_with_error (second_new_fee_addr_str.fee_primary.address = current_fee_addr) "Admin -> UpdatePrimaryFee - Success (address & percentage) : Wrong fee address after update" in
@@ -98,7 +50,7 @@ let test_primary_update_fee =
 
 // Should fail if percentage is greater than 50
 let test_primary_update_fee_negative_value =
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -112,7 +64,7 @@ let test_primary_update_fee_negative_value =
             (UpdatePrimaryFee ({
                 address = init_str.admin.address;
                 percent = 251n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
     
     match result with
         Success _gas -> failwith "Admin -> UpdatePrimaryFee - Greater than 25 : This test should fail"
@@ -124,7 +76,7 @@ let test_primary_update_fee_negative_value =
 
 // Should fail if not admin
 let test_primary_update_fee_no_admin = 
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let contract = Test.to_contract contract_add in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -136,7 +88,7 @@ let test_primary_update_fee_no_admin =
             (UpdatePrimaryFee ({
                 address = no_admin_addr;
                 percent = 4n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
     
     match result with
         Success _gas -> failwith "Admin -> UpdatePrimaryFee - Wrong admin : This test should fail"
@@ -148,7 +100,7 @@ let test_primary_update_fee_no_admin =
     
 // Should fail if amount passed as parameter
 let test_primary_update_fee_with_amount = 
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let () = Test.set_source init_str.admin.address in
@@ -159,7 +111,7 @@ let test_primary_update_fee_with_amount =
             (UpdatePrimaryFee ({
                 address = init_str.admin.address;
                 percent = 4n;
-            } : FP_I.fee_data ))) 1tez in
+            } : fee_data ))) 1tez in
     
     match result with
         Success _gas -> failwith "Admin -> UpdatePrimaryFee - No amount : This test should fail"
@@ -169,11 +121,9 @@ let test_primary_update_fee_with_amount =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
-
-
 // Success update fee
 let test_secondary_update_fee =
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -187,7 +137,7 @@ let test_secondary_update_fee =
             (UpdateSecondaryFee ({
                 address = init_str.admin.address;
                 percent = 4n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
     
     let new_fee_percent_str = Test.get_storage contract_add in
     let () = assert_with_error (new_fee_percent_str.fee_secondary.percent = 4n) "Admin -> UpdateSecondaryFee - Success (percentage): Wrong fee percent after update" in
@@ -199,7 +149,7 @@ let test_secondary_update_fee =
             (UpdateSecondaryFee ({
                 address = new_fee_addr;
                 percent = 4n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
 
     let new_fee_addr_str = Test.get_storage contract_add in
     let () = assert_with_error (new_fee_addr_str.fee_secondary.address = new_fee_addr) "Admin -> UpdateSecondaryFee - Success (address) : Wrong fee address after update" in
@@ -210,7 +160,7 @@ let test_secondary_update_fee =
             (UpdateSecondaryFee ({
                 address = current_fee_addr;
                 percent = 5n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
 
     let second_new_fee_addr_str = Test.get_storage contract_add in
     let () = assert_with_error (second_new_fee_addr_str.fee_secondary.address = current_fee_addr) "Admin -> UpdateSecondaryFee - Success (address & percentage) : Wrong fee address after update" in
@@ -219,7 +169,7 @@ let test_secondary_update_fee =
 
 // Should fail if percentage is greater than 50
 let test_secondary_update_fee_negative_value =
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -233,7 +183,7 @@ let test_secondary_update_fee_negative_value =
             (UpdateSecondaryFee ({
                 address = init_str.admin.address;
                 percent = 251n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
     
     match result with
         Success _gas -> failwith "Admin -> UpdateSecondaryFee - Greater than 25 : This test should fail"
@@ -245,7 +195,7 @@ let test_secondary_update_fee_negative_value =
 
 // Should fail if not admin
 let test_secondary_update_fee_no_admin = 
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let contract = Test.to_contract contract_add in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -257,7 +207,7 @@ let test_secondary_update_fee_no_admin =
             (UpdateSecondaryFee ({
                 address = no_admin_addr;
                 percent = 4n;
-            } : FP_I.fee_data ))) 0tez in
+            } : fee_data ))) 0tez in
     
     match result with
         Success _gas -> failwith "Admin -> UpdateSecondaryFee - Wrong admin : This test should fail"
@@ -269,7 +219,7 @@ let test_secondary_update_fee_no_admin =
     
 // Should fail if amount passed as parameter
 let test_secondary_update_fee_with_amount = 
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let () = Test.set_source init_str.admin.address in
@@ -280,7 +230,7 @@ let test_secondary_update_fee_with_amount =
             (UpdateSecondaryFee ({
                 address = init_str.admin.address;
                 percent = 4n;
-            } : FP_I.fee_data ))) 1tez in
+            } : fee_data ))) 1tez in
     
     match result with
         Success _gas -> failwith "Admin -> UpdateSecondaryFee - No amount : This test should fail"
@@ -295,7 +245,7 @@ let test_secondary_update_fee_with_amount =
 
 // Success update public_key
 let test_update_public_key = 
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let new_account : (string * key) = Test.new_account () in
@@ -311,8 +261,7 @@ let test_update_public_key =
 
 // Should fail if not admin
 let test_update_public_key_not_admin = 
-    let contract_add = get_initial_storage () in
-    let init_str = Test.get_storage contract_add in
+    let _, contract_add = get_fixed_price_contract (false) in
     
     let new_account : (string * key) = Test.new_account () in
     
@@ -333,7 +282,7 @@ let test_update_public_key_not_admin =
 
 // Should fail if amount passed as parameter
 let test_update_public_key_with_amount =
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let new_account : (string * key) = Test.new_account () in
@@ -356,7 +305,7 @@ let test_update_public_key_with_amount =
 
 // Success
 let test_contract_will_update =
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let () = Test.set_source init_str.admin.address in
@@ -374,8 +323,7 @@ let test_contract_will_update =
 
 // Should fail if not admin
 let test_contract_will_update_not_admin =
-    let contract_add = get_initial_storage () in
-    let init_str = Test.get_storage contract_add in
+    let _, contract_add = get_fixed_price_contract (false) in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
     let () = Test.set_source no_admin_addr in
@@ -393,7 +341,7 @@ let test_contract_will_update_not_admin =
 
 // Should fail if amount passed as parameter
 let test_contract_will_update_with_amount =
-    let contract_add = get_initial_storage () in
+    let _, contract_add = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     

@@ -537,14 +537,9 @@ let test_buy_fixed_price_token_success =
             in
             "Passed"
         )   
-    |   Fail (Rejected (err, _)) -> (
-            let () = Test.log("errL:", err) in
-           failwith "Buy_fixed_price_token - Success : This test should pass"    
-        )
-    |   Fail err -> (
-        let () = Test.log ("err: ", err) in
-        failwith "Internal test failure"    
-    )
+    |   Fail (Rejected (err, _)) -> failwith "Buy_fixed_price_token - Success : This test should pass"    
+    |   Fail err -> failwith "Internal test failure"    
+    
 
 let test_buy_fixed_price_token_success_secondary = 
     let contract_address = get_initial_storage (false) in
@@ -712,14 +707,9 @@ let test_buy_fixed_price_token_success_secondary =
             in
             "Passed"
         )   
-    |   Fail (Rejected (err, _)) -> (
-            let () = Test.log("errL:", err) in
-           failwith "Buy_fixed_price_token - Success : This test should pass"    
-        )
-    |   Fail err -> (
-        let () = Test.log ("err: ", err) in
-        failwith "Internal test failure"    
-    )
+    |   Fail (Rejected (err, _)) -> failwith "Buy_fixed_price_token - Success : This test should pass"
+    |   Fail err -> failwith "Internal test failure"    
+
 
 // Fail if seller not owner of token or token not in sale (same case)
 let test_buy_fixed_price_token_fail_if_wrong_seller =

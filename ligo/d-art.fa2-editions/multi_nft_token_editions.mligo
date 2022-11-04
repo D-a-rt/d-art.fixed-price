@@ -52,6 +52,8 @@ type editions_entrypoints =
 
 #else
 
+#if SERIE_CONTRACT
+
 type mint_edition_param =
 [@layout:comb]
 {
@@ -61,8 +63,6 @@ type mint_edition_param =
   splits: split list;
 }
 
-#if SERIE_CONTRACT
-
 type editions_entrypoints =
     |   Revoke_minting of revoke_minting_param
     |   FA2 of fa2_entry_points
@@ -71,6 +71,14 @@ type editions_entrypoints =
     |   Burn_token of burn_param
 
 #else 
+
+type mint_edition_param =
+[@layout:comb]
+{
+  edition_info : bytes;
+  royalty: nat;
+  splits: split list;
+}
 
 type editions_entrypoints =
     |   Admin of admin_entrypoints
@@ -312,7 +320,6 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
 let mint_editions ( edition_run , storage : mint_edition_param * editions_storage) : operation list * editions_storage =
 
     let () : unit = assert_msg(edition_run.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
-    let () : unit = assert_msg(edition_run.total_edition_number = 1n, "ONLY_ONE_OFF" ) in
 
     let split_count : nat = List.fold_left verify_split 0n edition_run.splits  in
     let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
@@ -332,7 +339,6 @@ let mint_editions ( edition_run , storage : mint_edition_param * editions_storag
     } in
 
     ([] : operation list), mint_edition_to_addresses (storage.next_token_id, Tezos.get_sender(), edition_metadata, edition_storage)
-
 
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
     let () : unit = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
