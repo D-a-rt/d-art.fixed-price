@@ -1086,10 +1086,11 @@ let test_gallery_factory_originated_mint_editions_minter_is_not_sender =
     let new_minter = Test.nth_bootstrap_account 9 in
     let () = Test.set_source gallery in
 
-    let _gas = Test.transfer_to_contract_exn contract ((Admin (Add_minter (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
 
     let () = Test.set_source new_minter in
 
+    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({accept = True}) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
     let result = Test.transfer_to_contract contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
 
     match result with
