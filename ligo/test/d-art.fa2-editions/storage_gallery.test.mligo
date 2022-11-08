@@ -53,3 +53,69 @@ let get_fa2_editions_gallery_contract () : ( ((editions_entrypoints, editions_st
 
     let taddr, _, _ = Test.originate editions_main str 0tez in
     taddr, gallery, owner1, minter, gallery
+
+
+let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : address) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
+    let token_minter = Test.nth_bootstrap_account 3 in
+    let _token_seller = Test.nth_bootstrap_account 9 in
+    let token_split = Test.nth_bootstrap_account 5 in
+
+    let gallery = Test.nth_bootstrap_account 8 in
+
+    let admin_str : admin_storage = {
+        admin = gallery;
+        minters = Big_map.literal([
+            (token_minter, ());
+        ]);
+    } in
+    
+    let asset_strg : nft_token_storage = {
+        ledger = Big_map.literal([
+                (0n), (token_minter)        
+            ]);
+        operators = Big_map.literal([
+                ((token_minter, (fixed_price_contract, 0n)), ())  ;      
+            ]);
+        token_metadata = (Big_map.empty : (token_id, token_metadata) big_map);
+    } in
+
+    let edition_meta : edition_metadata = ({
+            minter = token_minter;
+            edition_info = (Map.empty : (string, bytes) map);
+            total_edition_number = 2n;
+            royalty = 150n;
+            splits = [({
+                address = token_minter;
+                pct = 500n;
+            } : split );
+            ({
+                address = token_split;
+                pct = 500n;
+            } : split )];
+            gallery_commission = 500n;
+            gallery_commission_splits = [({
+                address = gallery;
+                pct = 1000n;
+            } : split )];
+        } : edition_metadata ) in
+
+    let edition_meta_strg : editions_metadata = Big_map.literal([
+        (0n), (edition_meta);
+    ]) in
+
+    // Contract storage
+    let str = {
+        next_edition_id = 1n;
+        max_editions_per_run = 50n ;
+        editions_metadata = edition_meta_strg;
+        mint_proposals = (Big_map.empty : (nat, edition_metadata) big_map);
+        assets = asset_strg;
+        admin = admin_str;
+        metadata = (Big_map.empty : (string, bytes) big_map);
+    } in
+
+    let michelson_str = Test.compile_value str in
+    let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fa2-editions/compile_fa2_editions_gallery.mligo" "editions_main" ([] : string list) michelson_str 0tez in
+    let t_addr : (editions_entrypoints, editions_storage) typed_address = Test.cast_address addr in
+
+    t_addr, gallery, addr, token_minter

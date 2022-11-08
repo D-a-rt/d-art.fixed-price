@@ -17,12 +17,12 @@ type commissions =
 #if GALLERY_CONTRACT
 
 [@view]
-let comission_splits (token_id, storage : token_id * editions_storage) : commissions =
+let commission_splits (token_id, storage : token_id * editions_storage) : commissions =
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
             Some edition_metadata -> ({
-                commission_pct = edition_metadata.gallery_comission;
-                splits = edition_metadata.gallery_comission_splits;
+                commission_pct = edition_metadata.gallery_commission;
+                splits = edition_metadata.gallery_commission_splits;
             } : commissions)
 
         |   None -> (failwith "FA2_TOKEN_UNDEFINED" : commissions)

@@ -81,7 +81,7 @@ export async function contracts (param: any, type: ContractAction): Promise<void
             contractAction("Fa2 editions serie", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
             break;
         case "fa2-editions-gallery":
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factories/compile/gallery.tz")
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
             break;
         case "serie-factory":
             contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
@@ -96,7 +96,7 @@ export async function contracts (param: any, type: ContractAction): Promise<void
             contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, comission_splits'", "d-art.art-factories/compile/gallery.tz")
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
             contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
             contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
             contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")

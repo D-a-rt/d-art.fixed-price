@@ -16,8 +16,8 @@ let test_gallery_factory_originated_create_proposal_no_amount =
         total_edition_number = 3n;
         royalty = 150n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
@@ -43,8 +43,8 @@ let test_gallery_factory_originated_create_proposal_not_admin =
         total_edition_number = 3n;
         royalty = 150n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -70,8 +70,8 @@ let test_gallery_factory_originated_create_proposal_max_royalties =
         total_edition_number = 3n;
         royalty = 260n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -97,8 +97,8 @@ let test_gallery_factory_originated_create_proposal_min_royalties =
         total_edition_number = 3n;
         royalty = 40n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -124,8 +124,8 @@ let test_gallery_factory_originated_create_proposal_max_commissions =
         total_edition_number = 3n;
         royalty = 240n;
         splits = ([] : split list);
-        gallery_comission = 510n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 510n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -133,7 +133,7 @@ let test_gallery_factory_originated_create_proposal_max_commissions =
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Create_proposals - commissions more than 50% : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "COMISSIONS_CANNOT_EXCEED_50_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Create_proposals - commissions more than 50% : Should not work if commissions more than 50%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "COMMISSIONS_CANNOT_EXCEED_50_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Create_proposals - commissions more than 50% : Should not work if commissions more than 50%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -151,8 +151,8 @@ let test_gallery_factory_originated_create_proposal_min_edition_number =
         total_edition_number = 0n;
         royalty = 240n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -178,8 +178,8 @@ let test_gallery_factory_originated_create_proposal_max_edition_number =
         total_edition_number = 51n;
         royalty = 240n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -208,8 +208,8 @@ let test_gallery_factory_originated_create_proposal_total_split_smaller =
             address = minter;
             pct = 500n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -241,8 +241,8 @@ let test_gallery_factory_originated_create_proposal_total_split_bigger =
             address = gallery;
             pct = 600n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -255,7 +255,7 @@ let test_gallery_factory_originated_create_proposal_total_split_bigger =
         )
     |   Fail _ -> failwith "Internal test failure" 
 
-// total comission split
+// total commission split
 let test_gallery_factory_originated_create_proposal_total_commission_split_smaller =
     let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
     let contract = Test.to_contract contract_add in
@@ -271,8 +271,8 @@ let test_gallery_factory_originated_create_proposal_total_commission_split_small
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([{
+        gallery_commission = 500n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 600n;
         }] : split list);
@@ -283,7 +283,7 @@ let test_gallery_factory_originated_create_proposal_total_commission_split_small
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Create_proposals - Total commission split smaller: This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Create_proposals - Total commission split smaller : Should not work if total commission split not equal to 100%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Create_proposals - Total commission split smaller : Should not work if total commission split not equal to 100%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -304,8 +304,8 @@ let test_gallery_factory_originated_create_proposal_total_commission_split_bigge
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([{
+        gallery_commission = 500n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 600n;
         }; {
@@ -319,7 +319,7 @@ let test_gallery_factory_originated_create_proposal_total_commission_split_bigge
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Create_proposals - Total commission split bigger: This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Create_proposals - Total commission split bigger : Should not work if total commission split not equal to 100%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Create_proposals - Total commission split bigger : Should not work if total commission split not equal to 100%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -340,8 +340,8 @@ let test_gallery_factory_originated_create_proposal_total_commission_success =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -376,8 +376,8 @@ let test_gallery_factory_originated_update_proposal_no_amount =
         total_edition_number = 3n;
         royalty = 150n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
@@ -404,8 +404,8 @@ let test_gallery_factory_originated_update_proposal_not_admin =
         total_edition_number = 3n;
         royalty = 150n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -434,8 +434,8 @@ let test_gallery_factory_originated_update_proposal_max_royalties =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -450,8 +450,8 @@ let test_gallery_factory_originated_update_proposal_max_royalties =
         total_edition_number = 3n;
         royalty = 260n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -480,8 +480,8 @@ let test_gallery_factory_originated_update_proposal_min_royalties =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -496,8 +496,8 @@ let test_gallery_factory_originated_update_proposal_min_royalties =
         total_edition_number = 3n;
         royalty = 40n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -526,8 +526,8 @@ let test_gallery_factory_originated_update_proposal_max_commissions =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -542,8 +542,8 @@ let test_gallery_factory_originated_update_proposal_max_commissions =
         total_edition_number = 3n;
         royalty = 60n;
         splits = ([] : split list);
-        gallery_comission = 600n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 600n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -551,7 +551,7 @@ let test_gallery_factory_originated_update_proposal_max_commissions =
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Update_proposals - commissions more than 50% : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "COMISSIONS_CANNOT_EXCEED_50_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Update_proposals - commissions more than 50% : Should not work if commissions more than 50%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "COMMISSIONS_CANNOT_EXCEED_50_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Update_proposals - commissions more than 50% : Should not work if commissions more than 50%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -572,8 +572,8 @@ let test_gallery_factory_originated_update_proposal_min_edition_number =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -588,8 +588,8 @@ let test_gallery_factory_originated_update_proposal_min_edition_number =
         total_edition_number = 0n;
         royalty = 60n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -618,8 +618,8 @@ let test_gallery_factory_originated_update_proposal_max_edition_number =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -634,8 +634,8 @@ let test_gallery_factory_originated_update_proposal_max_edition_number =
         total_edition_number = 65n;
         royalty = 60n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -664,8 +664,8 @@ let test_gallery_factory_originated_update_proposal_total_split_smaller =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -683,8 +683,8 @@ let test_gallery_factory_originated_update_proposal_total_split_smaller =
             address = minter;
             pct = 500n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -713,8 +713,8 @@ let test_gallery_factory_originated_update_proposal_total_split_bigger =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -735,8 +735,8 @@ let test_gallery_factory_originated_update_proposal_total_split_bigger =
             address = gallery;
             pct = 600n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.update_pre_mint_edition_param ) in
 
     let result = Test.transfer_to_contract contract ((Update_proposal (update_proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -749,7 +749,7 @@ let test_gallery_factory_originated_update_proposal_total_split_bigger =
         )
     |   Fail _ -> failwith "Internal test failure" 
 
-// total comission split
+// total commission split
 let test_gallery_factory_originated_update_proposal_total_commission_split_smaller =
     let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
     let contract = Test.to_contract contract_add in
@@ -765,8 +765,8 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_small
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -784,8 +784,8 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_small
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([{
+        gallery_commission = 500n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 600n;
         }] : split list);
@@ -796,7 +796,7 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_small
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Update_proposals - Total commission split smaller: This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Update_proposals - Total commission split smaller : Should not work if total commission split not equal to 100%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Update_proposals - Total commission split smaller : Should not work if total commission split not equal to 100%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -817,8 +817,8 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_bigge
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -836,8 +836,8 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_bigge
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([{
+        gallery_commission = 500n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 600n;
         }; {
@@ -851,7 +851,7 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_bigge
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Update_proposals - Total commission split bigger: This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Update_proposals - Total commission split bigger : Should not work if total commission split not equal to 100%" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") ) "Admin (Gallery factory originated fa2 contract) -> Update_proposals - Total commission split bigger : Should not work if total commission split not equal to 100%" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -872,8 +872,8 @@ let test_gallery_factory_originated_update_proposal_total_commission_success =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -891,8 +891,8 @@ let test_gallery_factory_originated_update_proposal_total_commission_success =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -963,8 +963,8 @@ let test_gallery_factory_originated_remove_proposal_success =
         total_edition_number = 3n;
         royalty = 150n;
         splits = ([] : split list);
-        gallery_comission = 500n;
-        gallery_comission_splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
     let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -999,8 +999,8 @@ let test_gallery_factory_originated_mint_editions_no_amount =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -1035,8 +1035,8 @@ let test_gallery_factory_originated_mint_editions_not_minter =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -1074,8 +1074,8 @@ let test_gallery_factory_originated_mint_editions_minter_is_not_sender =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -1116,8 +1116,8 @@ let test_gallery_factory_originated_mint_editions_proposal_undefined =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);
@@ -1152,8 +1152,8 @@ let test_gallery_factory_originated_mint_editions_success =
             address = minter;
             pct = 1000n;
         }] : split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : split list);

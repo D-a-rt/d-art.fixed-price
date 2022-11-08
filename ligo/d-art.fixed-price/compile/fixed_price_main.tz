@@ -256,7 +256,7 @@
              CDR ;
              DUP 7 ;
              CAR ;
-             VIEW "comission_splits"
+             VIEW "commission_splits"
                   (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))) ;
              IF_NONE
                { DIG 9 ; DROP ; SWAP ; PUSH mutez 0 ; PAIR }

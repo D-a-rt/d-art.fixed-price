@@ -1,63 +1,21 @@
-#import "../../d-art.fixed-price/fixed_price_interface.mligo" "FP_I"
-#import "../../d-art.fixed-price/fixed_price_main.mligo" "FP_M"
-
-// Create initial storage
-let get_initial_storage (will_update : bool) = 
-    let () = Test.reset_state 8n ([]: tez list) in
-    let admin = Test.nth_bootstrap_account 0 in
-    let admin_2 = Test.nth_bootstrap_account 2 in
-    let signed_ms = (Big_map.empty : FP_I.signed_message_used) in
-    
-    let admin_str : FP_I.admin_storage = {
-        address = admin;
-        pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
-        signed_message_used = signed_ms;
-        contract_will_update = will_update;
-    } in
-
-    let empty_sales = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_sale) big_map ) in
-    let empty_sellers = (Big_map.empty : (address, unit) big_map ) in
-    let empty_drops = (Big_map.empty : (FP_I.fa2_base * address, FP_I.fixed_price_drop) big_map) in
-    let empty_dropped = (Big_map.empty : (FP_I.fa2_base, unit) big_map) in
-    let empty_offers = (Big_map.empty : (FP_I.fa2_base * address, tez) big_map) in
-    
-    let str = {
-        admin = admin_str;
-        for_sale = empty_sales ;
-        drops = empty_drops;
-        fa2_sold = empty_dropped;
-        fa2_dropped = empty_dropped;
-        offers = empty_offers;
-        fee_primary = {
-            address = admin;
-            percent = 10n;
-        };
-        fee_secondary = {
-            address = admin_2;
-            percent = 3n;
-        };
-        metadata = (Big_map.empty : (string, bytes) big_map);
-    } in
-
-    let taddr, _, _ = Test.originate FP_M.fixed_price_tez_main str 0tez in
-    taddr
+#include "storage.test.mligo" 
 
 // -- CREATE SALES --
 
 // Success
 let test_create_sales =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -65,18 +23,18 @@ let test_create_sales =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
-    let new_str = Test.get_storage contract_add in
+    let new_str = Test.get_storage t_add in
     match result with
           Success _gas -> (
               // Check message is well saved
@@ -85,7 +43,7 @@ let test_create_sales =
                         |   None -> (failwith "CreateSale - Success : This test should pass (err: Signed message not saved)" : unit)
                 in
                 // Check first sale if well saved
-                let first_sale_key : FP_I.fa2_base * address = (
+                let first_sale_key : fa2_base * address = (
                     {
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 0n
@@ -102,7 +60,7 @@ let test_create_sales =
                     |   None -> (failwith "CreateSale - Success : This test should pass (err: First sale not saved)" : unit)
                 in
                 // Check second sale if well saved
-                let second_sale_key : FP_I.fa2_base * address = (
+                let second_sale_key : fa2_base * address = (
                     {
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 1n
@@ -120,24 +78,24 @@ let test_create_sales =
                 in
                 "Passed"
           )
-        |   Fail (Rejected (err, _)) -> "CreateSale - Success : This test should pass"
+        |   Fail (Rejected (_err, _)) -> "CreateSale - Success : This test should pass"
         |   Fail _ -> failwith "Internal test failure"    
     
 
 // Should fail if amount specified
 let test_create_sales_with_amount =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -145,15 +103,15 @@ let test_create_sales_with_amount =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 1tez
+            } : sale_info)]
+        } : sale_configuration)) 1tez
     in
 
     match result with
@@ -166,18 +124,20 @@ let test_create_sales_with_amount =
 
 // Should fail if contract will be deprecated
 let test_create_sales_deprecated = 
-    let contract_add = get_initial_storage (true) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
+    
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (ContractWillUpdate (true))) 0tez in    
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -185,15 +145,15 @@ let test_create_sales_deprecated =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -206,18 +166,18 @@ let test_create_sales_deprecated =
 
 // Should fail if price not met minimum price
 let test_create_sales_price_to_small_first_el =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 10mutez;
                 buyer = None;
@@ -225,15 +185,15 @@ let test_create_sales_price_to_small_first_el =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -246,18 +206,18 @@ let test_create_sales_price_to_small_first_el =
 
 // Should fail if price not met minimum price
 let test_create_sales_price_to_small_third_el =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 100000mutez;
                 buyer = None;
@@ -265,22 +225,22 @@ let test_create_sales_price_to_small_third_el =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info); ({
+            } : sale_info); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 10mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 2n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -293,11 +253,11 @@ let test_create_sales_price_to_small_third_el =
 
 // Should fail if already on sale
 let test_create_sales_already_on_sale_one_call =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     // One call verifying that bulk operation fail
     let result = Test.transfer_to_contract contract
@@ -305,7 +265,7 @@ let test_create_sales_already_on_sale_one_call =
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 100000mutez;
                 buyer = None;
@@ -313,15 +273,15 @@ let test_create_sales_already_on_sale_one_call =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n
                 }
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -335,18 +295,18 @@ let test_create_sales_already_on_sale_one_call =
 
 // Should fail if already on sale
 let test_create_sales_already_on_sale_second_call =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 100000mutez;
                 buyer = None;
@@ -354,8 +314,8 @@ let test_create_sales_already_on_sale_second_call =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 }
-            } : FP_I.sale_info )]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info )]
+        } : sale_configuration)) 0tez
     in
 
     // Second call to verify that if fails
@@ -364,7 +324,7 @@ let test_create_sales_already_on_sale_second_call =
             authorization_signature = ({
                 signed = ("edsigtruMgRd6FbVWg5pbfFabZC7DS7gr88xT1x4DPxkuGxvUG4S7ttXoAsqy3QfyK62Woj7CmjzCgFW2igdhAhgUuBHfjrLeUv" : signature);
                 message = ("54657374206d6573736167652074657374" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 100000mutez;
                 buyer = None;
@@ -372,8 +332,8 @@ let test_create_sales_already_on_sale_second_call =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 }
-            } : FP_I.sale_info )]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info )]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -386,18 +346,18 @@ let test_create_sales_already_on_sale_second_call =
     
 // Should fail if specified buyer is seller
 let test_create_sales_buyer_is_seller =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -405,15 +365,15 @@ let test_create_sales_buyer_is_seller =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some (init_str.admin.address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -426,18 +386,18 @@ let test_create_sales_buyer_is_seller =
 
 // Should fail if wrong signature
 let test_create_sales_wrong_signature = 
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -445,15 +405,15 @@ let test_create_sales_wrong_signature =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -466,18 +426,18 @@ let test_create_sales_wrong_signature =
 
 // Should fail if signature already used
 let test_create_sales_already_used_signature = 
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -485,15 +445,15 @@ let test_create_sales_already_used_signature =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     let result = Test.transfer_to_contract contract
@@ -501,7 +461,7 @@ let test_create_sales_already_used_signature =
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -509,15 +469,15 @@ let test_create_sales_already_used_signature =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 2n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 3n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     match result with
@@ -532,18 +492,18 @@ let test_create_sales_already_used_signature =
 
 // Success
 let test_update_sales = 
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -551,15 +511,15 @@ let test_update_sales =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     // Changing sale infos (switching buyer option and prices) - Changing two times the same sale and verify last result is taken
@@ -571,14 +531,14 @@ let test_update_sales =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 130000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info);
+            } : sale_info);
             ({
                 buyer = None;
                 price = 170000mutez;
@@ -586,15 +546,15 @@ let test_update_sales =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)])
+            } : sale_info)])
         ) 0tez
     in
 
-    let new_str = Test.get_storage contract_add in
+    let new_str = Test.get_storage t_add in
     match result with
           Success _gas -> (
                 // Check first sale if well saved
-                let first_update_sale_key : FP_I.fa2_base * address = (
+                let first_update_sale_key : fa2_base * address = (
                     {
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 0n
@@ -611,7 +571,7 @@ let test_update_sales =
                     |   None -> (failwith "UpdateSale - Success : This test should pass (err: First sale should not be deleted)" : unit)
                 in
                 // Check second sale if well saved
-                let second_sale_update_key : FP_I.fa2_base * address = (
+                let second_sale_update_key : fa2_base * address = (
                     {
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 1n
@@ -629,16 +589,16 @@ let test_update_sales =
                 in
                 "Passed"
           )
-        |   Fail (Rejected (err, _)) -> "UpdateSale - Success : This test should pass"
+        |   Fail (Rejected (_err, _)) -> "UpdateSale - Success : This test should pass"
         |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if amount specified
 let test_update_sales_amount_specified =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Update_sales ([({
@@ -648,14 +608,14 @@ let test_update_sales_amount_specified =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 130000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)])
+            } : sale_info)])
         ) 1tez
     in
 
@@ -669,11 +629,11 @@ let test_update_sales_amount_specified =
 
 // Should fail if price does not meet minimum price
 let test_update_sales_to_small_first_el =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
@@ -683,14 +643,14 @@ let test_update_sales_to_small_first_el =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 130000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)])
+            } : sale_info)])
         ) 0tez
     in
 
@@ -705,18 +665,18 @@ let test_update_sales_to_small_first_el =
 
 // Should fail if price does not meet minimum price
 let test_update_sales_to_small_second_el =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -724,15 +684,15 @@ let test_update_sales_to_small_second_el =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     let result = Test.transfer_to_contract contract
@@ -743,14 +703,14 @@ let test_update_sales_to_small_second_el =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 100mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)])
+            } : sale_info)])
         ) 0tez
     in
 
@@ -764,18 +724,18 @@ let test_update_sales_to_small_second_el =
 
 // Should fail if updated buyer is seller
 let test_update_sales_buyer_is_sender = 
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -783,15 +743,15 @@ let test_update_sales_buyer_is_sender =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     let result = Test.transfer_to_contract contract
@@ -802,14 +762,14 @@ let test_update_sales_buyer_is_sender =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 100mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)])
+            } : sale_info)])
         ) 0tez
     in
 
@@ -823,18 +783,18 @@ let test_update_sales_buyer_is_sender =
 
 // Should fail if sender is not owner of the sale
 let test_update_sales_not_owner =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -842,15 +802,15 @@ let test_update_sales_not_owner =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -865,14 +825,14 @@ let test_update_sales_not_owner =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some (no_admin_addr : address);
                 price = 1000000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)])
+            } : sale_info)])
         ) 0tez
     in
 
@@ -887,11 +847,11 @@ let test_update_sales_not_owner =
 
 // Should fail if sale is not created
 let test_update_sales_not_created =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
@@ -901,14 +861,14 @@ let test_update_sales_not_created =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = None;
                 price = 100mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)])
+            } : sale_info)])
         ) 0tez
     in
 
@@ -924,18 +884,18 @@ let test_update_sales_not_created =
 
 // Success
 let test_revoke_sales = 
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -943,15 +903,15 @@ let test_revoke_sales =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     // Changing sale infos (switching buyer option and prices) - Changing two times the same sale and verify last result is taken
@@ -961,19 +921,19 @@ let test_revoke_sales =
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 0n 
-            } : FP_I.fa2_base ); 
+            } : fa2_base ); 
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
-            }: FP_I.fa2_base)
-        ]} : FP_I.revoke_param)) 0tez
+            }: fa2_base)
+        ]} : revoke_param)) 0tez
     in
 
-    let new_str = Test.get_storage contract_add in
+    let new_str = Test.get_storage t_add in
     match result with
           Success _gas -> (
                 // Check first sale if well saved
-                let first_deleted_sale_key : FP_I.fa2_base * address = (
+                let first_deleted_sale_key : fa2_base * address = (
                     {
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 0n
@@ -981,11 +941,11 @@ let test_revoke_sales =
                     init_str.admin.address
                  ) in
                 let () = match Big_map.find_opt first_deleted_sale_key new_str.for_sale with
-                        Some fixed_price_saved -> (failwith "RevokeSale - Success : This test should pass (err: First sale should be deleted)" : unit)
+                        Some _ -> (failwith "RevokeSale - Success : This test should pass (err: First sale should be deleted)" : unit)
                     |   None -> unit
                 in
                 // Check second sale if well saved
-                let second_deleted_sale_key : FP_I.fa2_base * address = (
+                let second_deleted_sale_key : fa2_base * address = (
                     {
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 1n
@@ -993,21 +953,21 @@ let test_revoke_sales =
                     init_str.admin.address
                  ) in
                 let () = match Big_map.find_opt second_deleted_sale_key new_str.for_sale with
-                        Some fixed_price_saved -> (failwith "RevokeSale - Success : This test should pass (err: Second sale should be deleted)" : unit)
+                        Some _ -> (failwith "RevokeSale - Success : This test should pass (err: Second sale should be deleted)" : unit)
                     |   None -> unit
                 in
                 "Passed"
           )
-        |   Fail (Rejected (err, _)) -> "RevokeSale - Success : This test should pass"
+        |   Fail (Rejected (_err, _)) -> "RevokeSale - Success : This test should pass"
         |   Fail _ -> failwith "Internal test failure"    
 
 // Should fail if amount specified
 let test_revoke_sales_with_amount = 
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
         (Revoke_sales ({
@@ -1015,12 +975,12 @@ let test_revoke_sales_with_amount =
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 0n 
-            } : FP_I.fa2_base ); 
+            } : fa2_base ); 
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
-            }: FP_I.fa2_base)
-        ]} : FP_I.revoke_param)) 1tez
+            }: fa2_base)
+        ]} : revoke_param)) 1tez
     in
 
     match result with
@@ -1033,11 +993,11 @@ let test_revoke_sales_with_amount =
 
 // Should fail if sale is not created
 let test_revoke_sales_not_created =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
    let result = Test.transfer_to_contract contract
         (Revoke_sales ({
@@ -1045,12 +1005,12 @@ let test_revoke_sales_not_created =
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 0n 
-            } : FP_I.fa2_base ); 
+            } : fa2_base ); 
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
-            }: FP_I.fa2_base)
-        ]} : FP_I.revoke_param)) 0tez
+            }: fa2_base)
+        ]} : revoke_param)) 0tez
     in
 
     match result with
@@ -1063,18 +1023,18 @@ let test_revoke_sales_not_created =
 
 // Should fail if sender not owner
 let test_revoke_sales_not_owner =
-    let contract_add = get_initial_storage (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, t_add, _, _ = get_fixed_price_contract (false) in
+    let init_str = Test.get_storage t_add in
 
     let () = Test.set_source init_str.admin.address in
-    let contract = Test.to_contract contract_add in
+    let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP_I.authorization_signature);
+            }: authorization_signature);
             sale_infos = [({
                 price = 150000mutez;
                 buyer = None;
@@ -1082,15 +1042,15 @@ let test_revoke_sales_not_owner =
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
-            } : FP_I.sale_info ); ({
+            } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
-            } : FP_I.sale_info)]
-        } : FP_I.sale_configuration)) 0tez
+            } : sale_info)]
+        } : sale_configuration)) 0tez
     in
 
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -1102,12 +1062,12 @@ let test_revoke_sales_not_owner =
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 0n 
-            } : FP_I.fa2_base ); 
+            } : fa2_base ); 
             ({
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
-            }: FP_I.fa2_base)
-        ]} : FP_I.revoke_param)) 0tez
+            }: fa2_base)
+        ]} : revoke_param)) 0tez
     in
 
     match result with

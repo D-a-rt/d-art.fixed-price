@@ -120,8 +120,8 @@ type edition_metadata =
     total_edition_number: nat;
     royalty: nat;
     splits: split list;
-    gallery_comission: nat;
-    gallery_comission_splits: split list;
+    gallery_commission: nat;
+    gallery_commission_splits: split list;
 }
 
 #else

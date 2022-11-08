@@ -1,13 +1,9 @@
-#import "../d-art.fa2-editions/storage.test.mligo" "FA2_STR"
-#import "../d-art.fa2-editions/storage_gallery.test.mligo" "FA2_GALLERY_STR"
-#import "../../d-art.fixed-price/fixed_price_main.mligo" "FP"
-
 #include "storage.test.mligo"
 
     
 // Fail if wrong signature
 let test_buy_drop_token_wrong_signature = 
-    let _, contract_add, _ = get_fixed_price_contract (false) in
+    let _, contract_add, _, _ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -20,14 +16,14 @@ let test_buy_drop_token_wrong_signature =
             fa2_token = ({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-            } : FP.fa2_base);
+            } : fa2_base);
             seller = init_str.admin.address;
             buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
-            }: FP.authorization_signature);
-        } : FP.buy_token)) 0tez
+            }: authorization_signature);
+        } : buy_token)) 0tez
     in
 
     match result with
@@ -40,7 +36,7 @@ let test_buy_drop_token_wrong_signature =
 
 // Fail if signature already used
 let test_buy_drop_token_signature_already_used =
-    let _, contract_add, _ = get_fixed_price_contract (true) in
+    let _, contract_add, _, _ = get_fixed_price_contract (true) in
     let init_str = Test.get_storage contract_add in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -53,13 +49,13 @@ let test_buy_drop_token_signature_already_used =
             fa2_token = ({
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-            } : FP.fa2_base);
+            } : fa2_base);
             seller = init_str.admin.address;
             buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
-            }: FP.authorization_signature);
+            }: authorization_signature);
         })) 0tez
     in
 
@@ -73,8 +69,7 @@ let test_buy_drop_token_signature_already_used =
 
 // Fail if wrong price
 let test_buy_drop_token_wrong_price =
-    let contract_add, contract_tadd, edition_contract_add = get_fixed_price_contract (false) in
-       
+    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_tadd in
     let contract = Test.to_contract contract_tadd in
     
@@ -91,7 +86,7 @@ let test_buy_drop_token_wrong_price =
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP.authorization_signature);
+            }: authorization_signature);
             drop_infos = [({
                 price = 150000mutez;
                 drop_date = expected_time_result_three;
@@ -99,8 +94,8 @@ let test_buy_drop_token_wrong_price =
                     address = (edition_contract_add : address);
                     id = 0n 
                 };
-            } : FP.drop_info );]
-        } : FP.drop_configuration)) 0tez
+            } : drop_info );]
+        } : drop_configuration)) 0tez
     in
 
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -111,13 +106,13 @@ let test_buy_drop_token_wrong_price =
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract_add: address);
-            } : FP.fa2_base);
+            } : fa2_base);
             seller = init_str.admin.address;
             buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: FP.authorization_signature);
+            }: authorization_signature);
         })) 100mutez
     in
 
@@ -131,7 +126,7 @@ let test_buy_drop_token_wrong_price =
 
 // Fail if drop date not met
 let test_buy_drop_token_drop_date_not_met =
-    let contract_add, contract_tadd, edition_contract_add = get_fixed_price_contract (false) in
+    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
        
     let init_str = Test.get_storage contract_tadd in
     
@@ -148,7 +143,7 @@ let test_buy_drop_token_drop_date_not_met =
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: FP.authorization_signature);
+            }: authorization_signature);
             drop_infos = [({
                 price = 150000mutez;
                 drop_date = expected_time_result_three;
@@ -156,8 +151,8 @@ let test_buy_drop_token_drop_date_not_met =
                     address = (edition_contract_add : address);
                     id = 0n 
                 };
-            } : FP.drop_info );]
-        } : FP.drop_configuration)) 0tez
+            } : drop_info );]
+        } : drop_configuration)) 0tez
     in
 
 
@@ -169,13 +164,13 @@ let test_buy_drop_token_drop_date_not_met =
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract_add: address);
-            } : FP.fa2_base);
+            } : fa2_base);
             seller = init_str.admin.address;
             buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: FP.authorization_signature);
+            }: authorization_signature);
         })) 150000mutez
     in
 
@@ -189,7 +184,7 @@ let test_buy_drop_token_drop_date_not_met =
 
 // Fail if token not in drop
 let test_buy_drop_token_not_dropped =
-    let contract_add, contract_tadd, edition_contract_add = get_fixed_price_contract (false) in
+    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
        
     let init_str = Test.get_storage contract_tadd in
         
@@ -203,13 +198,13 @@ let test_buy_drop_token_not_dropped =
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract_add: address);
-            } : FP.fa2_base);
+            } : fa2_base);
             seller = init_str.admin.address;
             buyer = no_admin_addr;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: FP.authorization_signature);
+            }: authorization_signature);
         })) 150000mutez
     in
 
@@ -223,7 +218,7 @@ let test_buy_drop_token_not_dropped =
 
 // Should fail if buyer is seller
 let test_buy_drop_token_buyer_is_seller =
-    let contract_add, contract_tadd, edition_contract_add = get_fixed_price_contract (false) in
+    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
        
     let init_str = Test.get_storage contract_tadd in
     
@@ -235,13 +230,13 @@ let test_buy_drop_token_buyer_is_seller =
             fa2_token = ({
                 id = 0n;
                 address = (edition_contract_add: address);
-            } : FP.fa2_base);
+            } : fa2_base);
             seller = init_str.admin.address;
             buyer = init_str.admin.address;
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: FP.authorization_signature);
+            }: authorization_signature);
         })) 150000mutez
     in
 

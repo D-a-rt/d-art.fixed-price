@@ -80,6 +80,7 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
 let get_edition_fa2_contract_fixed_price (fixed_price_contract : address) = 
 
     let admin = Test.nth_bootstrap_account 0 in
+    let buyer = Test.nth_bootstrap_account 1 in
     let token_seller = Test.nth_bootstrap_account 3 in
     let token_minter = Test.nth_bootstrap_account 4 in
     let token_split = Test.nth_bootstrap_account 5 in
@@ -98,6 +99,7 @@ let get_edition_fa2_contract_fixed_price (fixed_price_contract : address) =
             ]);
         operators = Big_map.literal([
                 ((token_seller, (fixed_price_contract, 0n)), ())  ;      
+                ((buyer, (fixed_price_contract, 0n)), ())  ;      
             ]);
         token_metadata = (Big_map.empty : (FA2_E.token_id, FA2_E.token_metadata) big_map);
     } in

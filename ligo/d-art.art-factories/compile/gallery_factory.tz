@@ -75,8 +75,8 @@
                                         (nat %total_edition_number)
                                         (nat %royalty)
                                         (list %splits (pair (address %address) (nat %pct)))
-                                        (nat %gallery_comission)
-                                        (list %gallery_comission_splits (pair (address %address) (nat %pct)))))
+                                        (nat %gallery_commission)
+                                        (list %gallery_commission_splits (pair (address %address) (nat %pct)))))
                                (or %fA2
                                   (or (pair %balance_of
                                          (list %requests (pair (address %owner) (nat %token_id)))
@@ -102,8 +102,8 @@
                                               (nat %total_edition_number)
                                               (nat %royalty)
                                               (list %splits (pair (address %address) (nat %pct)))
-                                              (nat %gallery_comission)
-                                              (list %gallery_comission_splits (pair (address %address) (nat %pct)))))
+                                              (nat %gallery_commission)
+                                              (list %gallery_commission_splits (pair (address %address) (nat %pct)))))
                                      (nat %max_editions_per_run)))
                          (pair (pair (big_map %metadata string bytes)
                                      (big_map %mint_proposals
@@ -113,8 +113,8 @@
                                               (nat %total_edition_number)
                                               (nat %royalty)
                                               (list %splits (pair (address %address) (nat %pct)))
-                                              (nat %gallery_comission)
-                                              (list %gallery_comission_splits (pair (address %address) (nat %pct))))))
+                                              (nat %gallery_commission)
+                                              (list %gallery_commission_splits (pair (address %address) (nat %pct))))))
                                (nat %next_edition_id))) ;
                  code { LAMBDA
                           (pair (pair (list (pair (option address) (list (pair (option address) nat nat))))
@@ -410,7 +410,7 @@
                                            COMPARE ;
                                            LE ;
                                            NOT ;
-                                           IF { PUSH string "COMISSIONS_CANNOT_EXCEED_50_PERCENT" ; FAILWITH } {} ;
+                                           IF { PUSH string "COMMISSIONS_CANNOT_EXCEED_50_PERCENT" ; FAILWITH } {} ;
                                            PUSH nat 50 ;
                                            DUP 3 ;
                                            GET 7 ;
@@ -465,7 +465,7 @@
                                            COMPARE ;
                                            EQ ;
                                            NOT ;
-                                           IF { PUSH string "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT" ; FAILWITH } {} ;
+                                           IF { PUSH string "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT" ; FAILWITH } {} ;
                                            PUSH nat 1 ;
                                            SWAP ;
                                            DUP ;
@@ -1238,7 +1238,7 @@
                             COMPARE ;
                             GT ;
                             IF { PUSH bool False } { PUSH bool True } } } ;
-                 view "comission_splits"
+                 view "commission_splits"
                       nat
                       (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
                       { UNPAIR ;

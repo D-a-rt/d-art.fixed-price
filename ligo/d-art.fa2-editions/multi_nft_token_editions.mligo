@@ -16,8 +16,8 @@ type pre_mint_edition_param =
     total_edition_number : nat;
     royalty: nat;
     splits: split list;
-    gallery_comission: nat;
-    gallery_comission_splits: split list;
+    gallery_commission: nat;
+    gallery_commission_splits: split list;
 }
 
 
@@ -30,8 +30,8 @@ type update_pre_mint_edition_param =
     total_edition_number : nat;
     royalty: nat;
     splits: split list;
-    gallery_comission: nat;
-    gallery_comission_splits: split list;
+    gallery_commission: nat;
+    gallery_commission_splits: split list;
 }
 
 type proposal_param = 
@@ -193,7 +193,7 @@ let create_proposal (edition_run_list , storage : pre_mint_edition_param list * 
         fun (storage, param : editions_storage * pre_mint_edition_param) ->
 
             let () : unit = assert_msg(param.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
-            let () : unit = assert_msg(param.gallery_comission <= 500n, "COMISSIONS_CANNOT_EXCEED_50_PERCENT") in
+            let () : unit = assert_msg(param.gallery_commission <= 500n, "COMMISSIONS_CANNOT_EXCEED_50_PERCENT") in
             let () : unit = assert_msg(param.royalty >= 50n, "ROYALTIES_MINIMUM_5_PERCENT") in
             let () : unit = assert_msg(param.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
             let () : unit = assert_msg(param.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
@@ -202,16 +202,16 @@ let create_proposal (edition_run_list , storage : pre_mint_edition_param list * 
             let split_count : nat = List.fold_left verify_split 0n param.splits  in
             let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
 
-            let commission_count : nat = List.fold_left verify_split 0n param.gallery_comission_splits  in
-            let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") in
+            let commission_count : nat = List.fold_left verify_split 0n param.gallery_commission_splits  in
+            let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") in
             
             let edition_metadata : edition_metadata = {
                 minter = param.minter;
                 edition_info = Map.literal [("", param.edition_info)];
                 royalty = param.royalty;
                 splits = param.splits;
-                gallery_comission = param.gallery_comission;
-                gallery_comission_splits = param.gallery_comission_splits;
+                gallery_commission = param.gallery_commission;
+                gallery_commission_splits = param.gallery_commission_splits;
                 total_edition_number = param.total_edition_number;
             } in
             
@@ -222,7 +222,7 @@ let create_proposal (edition_run_list , storage : pre_mint_edition_param list * 
 
 let update_proposal (edition_update, storage : update_pre_mint_edition_param * editions_storage) : operation list * editions_storage =
         let () : unit = assert_msg(edition_update.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
-        let () : unit = assert_msg(edition_update.gallery_comission <= 500n, "COMISSIONS_CANNOT_EXCEED_50_PERCENT") in
+        let () : unit = assert_msg(edition_update.gallery_commission <= 500n, "COMMISSIONS_CANNOT_EXCEED_50_PERCENT") in
         let () : unit = assert_msg(edition_update.royalty >= 50n, "ROYALTIES_MINIMUM_5_PERCENT") in
         let () : unit = assert_msg(edition_update.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
         let () : unit = assert_msg(edition_update.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
@@ -231,16 +231,16 @@ let update_proposal (edition_update, storage : update_pre_mint_edition_param * e
         let split_count : nat = List.fold_left verify_split 0n edition_update.splits  in
         let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
 
-        let commission_count : nat = List.fold_left verify_split 0n edition_update.gallery_comission_splits  in
-        let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMISSION_SPLIT_MUST_BE_100_PERCENT") in
+        let commission_count : nat = List.fold_left verify_split 0n edition_update.gallery_commission_splits  in
+        let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") in
 
         let edition_metadata : edition_metadata = {
             minter = edition_update.minter;
             edition_info = Map.literal [("", edition_update.edition_info)];
             royalty = edition_update.royalty;
             splits = edition_update.splits;
-            gallery_comission = edition_update.gallery_comission;
-            gallery_comission_splits = edition_update.gallery_comission_splits;
+            gallery_commission = edition_update.gallery_commission;
+            gallery_commission_splits = edition_update.gallery_commission_splits;
             total_edition_number = edition_update.total_edition_number;
         } in
 

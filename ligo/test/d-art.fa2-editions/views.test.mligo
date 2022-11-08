@@ -206,8 +206,8 @@ let test_gallery_factory_originated_commission_splits =
             address = minter;
             pct = 1000n;
         }] : FA2_I.split list);
-        gallery_comission = 300n;
-        gallery_comission_splits = ([{
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
             address = gallery;
             pct = 1000n;
         };] : FA2_I.split list);
@@ -221,7 +221,7 @@ let test_gallery_factory_originated_commission_splits =
     match result with
         Success _gas -> (
             let new_str = Test.get_storage contract_add in
-            let commission_distribution = FA2_GALLERY_STR.comission_splits (0n, new_str) in
+            let commission_distribution = FA2_GALLERY_STR.commission_splits (0n, new_str) in
 
             let commission_distri = ({
                 commission_pct = 500n;

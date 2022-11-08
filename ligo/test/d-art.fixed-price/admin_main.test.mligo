@@ -4,7 +4,7 @@
 
 // Success update fee
 let test_primary_update_fee =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -50,7 +50,7 @@ let test_primary_update_fee =
 
 // Should fail if percentage is greater than 50
 let test_primary_update_fee_negative_value =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -76,7 +76,7 @@ let test_primary_update_fee_negative_value =
 
 // Should fail if not admin
 let test_primary_update_fee_no_admin = 
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let contract = Test.to_contract contract_add in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -100,7 +100,7 @@ let test_primary_update_fee_no_admin =
     
 // Should fail if amount passed as parameter
 let test_primary_update_fee_with_amount = 
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let () = Test.set_source init_str.admin.address in
@@ -123,7 +123,7 @@ let test_primary_update_fee_with_amount =
 
 // Success update fee
 let test_secondary_update_fee =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -169,7 +169,7 @@ let test_secondary_update_fee =
 
 // Should fail if percentage is greater than 50
 let test_secondary_update_fee_negative_value =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let current_fee_addr = init_str.admin.address in
@@ -195,7 +195,7 @@ let test_secondary_update_fee_negative_value =
 
 // Should fail if not admin
 let test_secondary_update_fee_no_admin = 
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let contract = Test.to_contract contract_add in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
@@ -219,7 +219,7 @@ let test_secondary_update_fee_no_admin =
     
 // Should fail if amount passed as parameter
 let test_secondary_update_fee_with_amount = 
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let () = Test.set_source init_str.admin.address in
@@ -245,7 +245,7 @@ let test_secondary_update_fee_with_amount =
 
 // Success update public_key
 let test_update_public_key = 
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let new_account : (string * key) = Test.new_account () in
@@ -261,7 +261,7 @@ let test_update_public_key =
 
 // Should fail if not admin
 let test_update_public_key_not_admin = 
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     
     let new_account : (string * key) = Test.new_account () in
     
@@ -282,7 +282,7 @@ let test_update_public_key_not_admin =
 
 // Should fail if amount passed as parameter
 let test_update_public_key_with_amount =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let new_account : (string * key) = Test.new_account () in
@@ -305,7 +305,7 @@ let test_update_public_key_with_amount =
 
 // Success
 let test_contract_will_update =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     let () = Test.set_source init_str.admin.address in
@@ -323,7 +323,7 @@ let test_contract_will_update =
 
 // Should fail if not admin
 let test_contract_will_update_not_admin =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
     let () = Test.set_source no_admin_addr in
@@ -341,7 +341,7 @@ let test_contract_will_update_not_admin =
 
 // Should fail if amount passed as parameter
 let test_contract_will_update_with_amount =
-    let _, contract_add = get_fixed_price_contract (false) in
+    let _, contract_add,_ ,_ = get_fixed_price_contract (false) in
     let init_str = Test.get_storage contract_add in
     
     
