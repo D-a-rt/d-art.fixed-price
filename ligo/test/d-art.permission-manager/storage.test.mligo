@@ -1,6 +1,8 @@
 #include "../../d-art.permission-manager/permission_manager.mligo"
 
-let get_permission_manager_contract (new_minter : address option) =
+let get_permission_manager_contract (new_minter, reset : address option * bool) =
+    let () = if reset then Test.reset_state 10n ([]: tez list) else () in
+
     let admin_str = {
         admin = Test.nth_bootstrap_account 0;
         pending_admin = (None: address option);

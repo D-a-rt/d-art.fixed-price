@@ -5,7 +5,7 @@
 // No amount
 
 let test_add_minter_no_amount =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
     let new_minter = Test.nth_bootstrap_account 1 in
 
@@ -21,7 +21,7 @@ let test_add_minter_no_amount =
 
 // Not an admin
 let test_add_minter_not_admin =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_minter = Test.nth_bootstrap_account 1 in
@@ -40,7 +40,7 @@ let test_add_minter_not_admin =
 // Already minter
 let test_add_minter_already_minter =
     let new_minter = Test.nth_bootstrap_account 1 in
-    let contract_add, _ = PM_STR. get_permission_manager_contract(Some (new_minter)) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((Some (new_minter)), true) in
     let contract = Test.to_contract contract_add  in
 
     let admin = Test.nth_bootstrap_account 0 in
@@ -58,7 +58,7 @@ let test_add_minter_already_minter =
 
 // Success
 let test_add_minter_success =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_minter = Test.nth_bootstrap_account 1 in
@@ -85,7 +85,7 @@ let test_add_minter_success =
 
 // No amount
 let test_remove_minter_no_amount =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let old_minter = Test.nth_bootstrap_account 1 in
@@ -102,7 +102,7 @@ let test_remove_minter_no_amount =
 
 // Not an admin
 let test_remove_minter_not_admin =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_minter = Test.nth_bootstrap_account 1 in
@@ -120,7 +120,7 @@ let test_remove_minter_not_admin =
 
 // Not a minter
 let test_remove_minter_not_found =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_minter = Test.nth_bootstrap_account 1 in
@@ -141,7 +141,7 @@ let test_remove_minter_not_found =
 // Success
 let test_remove_minter_success =
     let new_minter = Test.nth_bootstrap_account 1 in
-    let contract_add, _ = PM_STR. get_permission_manager_contract(Some(new_minter)) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((Some (new_minter)), true) in
     let contract = Test.to_contract contract_add  in
 
     let admin = Test.nth_bootstrap_account 0 in
@@ -165,7 +165,7 @@ let test_remove_minter_success =
 
 // No amount
 let test_add_gallery_no_amount =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_gallery = Test.nth_bootstrap_account 1 in
@@ -182,7 +182,7 @@ let test_add_gallery_no_amount =
 
 // Not an admin
 let test_add_gallery_not_admin =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_gallery = Test.nth_bootstrap_account 1 in
@@ -200,7 +200,7 @@ let test_add_gallery_not_admin =
 
 // Success
 let test_add_gallery_success =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_gallery = Test.nth_bootstrap_account 1 in
@@ -224,7 +224,7 @@ let test_add_gallery_success =
 
 // Already minter
 let test_add_gallery_already_minter =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None : address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None : address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_gallery = Test.nth_bootstrap_account 1 in
@@ -248,7 +248,7 @@ let test_add_gallery_already_minter =
 
 // No amount
 let test_remove_gallery_no_amount =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let old_gallery = Test.nth_bootstrap_account 1 in
@@ -265,7 +265,7 @@ let test_remove_gallery_no_amount =
 
 // Not an admin
 let test_remove_gallery_not_admin =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_gallery = Test.nth_bootstrap_account 1 in
@@ -283,7 +283,7 @@ let test_remove_gallery_not_admin =
 
 // Not a gallery
 let test_remove_gallery_not_found =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_gallery = Test.nth_bootstrap_account 1 in
@@ -303,7 +303,7 @@ let test_remove_gallery_not_found =
 
 // Success
 let test_remove_gallery_success =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None : address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None : address option), true) in
     let contract = Test.to_contract contract_add  in
 
     
@@ -330,7 +330,7 @@ let test_remove_gallery_success =
 
 // No amount 
 let test_send_admin_invitation_no_amount =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -348,7 +348,7 @@ let test_send_admin_invitation_no_amount =
 
 // Not admin
 let test_send_admin_invitation_not_admin =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -366,7 +366,7 @@ let test_send_admin_invitation_not_admin =
 
 // Success
 let test_send_admin_invitation_success =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -392,7 +392,7 @@ let test_send_admin_invitation_success =
 
 // No amount 
 let test_revoke_admin_invitation_no_amount =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let result = Test.transfer_to_contract contract (Admin (Revoke_admin_invitation ())) 1tez in
@@ -408,7 +408,7 @@ let test_revoke_admin_invitation_no_amount =
 
 // Not admin
 let test_revoke_admin_invitation_not_admin =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let no_admin = Test.nth_bootstrap_account 1 in
@@ -426,7 +426,7 @@ let test_revoke_admin_invitation_not_admin =
 
 // Success
 let test_revoke_admin_invitation_success =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in

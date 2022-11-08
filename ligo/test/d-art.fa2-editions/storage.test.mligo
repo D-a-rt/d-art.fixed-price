@@ -10,7 +10,7 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
     let admin = Test.nth_bootstrap_account 0 in
  
     let minter = Test.nth_bootstrap_account 7 in
-    let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (minter)) in
+    let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (minter), false) in
 
     let admin_str : FA2_E.admin_storage = {
         admin = admin;
@@ -85,7 +85,7 @@ let get_edition_fa2_contract_fixed_price (fixed_price_contract : address) =
     let token_minter = Test.nth_bootstrap_account 4 in
     let token_split = Test.nth_bootstrap_account 5 in
 
-    let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (token_minter)) in
+    let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (token_minter), false) in
 
     let admin_strg : FA2_E.admin_storage = {
         admin = admin;

@@ -46,6 +46,8 @@ type editions_entrypoints =
     |   Create_proposals of pre_mint_edition_param list
     |   Update_proposal of update_pre_mint_edition_param
     |   Remove_proposals of proposal_param list
+    |   Accept_minter_invitation of invitation_param
+    |   Remove_minter_self of unit
     |   Mint_editions of proposal_param list
     |   Update_metadata of bytes
     |   Burn_token of burn_param
@@ -296,6 +298,16 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
         | Remove_proposals remove_param ->
             let () = fail_if_not_admin editions_storage.admin in
             remove_proposals (remove_param, editions_storage)
+
+        | Accept_minter_invitation param ->
+            let () : unit = fail_if_sender_not_pending_minter (editions_storage.admin) in
+            if param.accept = true
+            then ([] : operation list), { editions_storage with admin.minters = Big_map.add (Tezos.get_sender()) unit editions_storage.admin.minters; admin.pending_minters = Big_map.remove (Tezos.get_sender()) editions_storage.admin.pending_minters }
+            else ([] : operation list), { editions_storage with admin.pending_minters = Big_map.remove (Tezos.get_sender()) editions_storage.admin.pending_minters }
+
+        | Remove_minter_self _ ->
+            let () : unit = fail_if_not_minter (Tezos.get_sender(), editions_storage.admin ) in
+            ([]: operation list), { editions_storage with admin.minters = Big_map.remove (Tezos.get_sender()) editions_storage.admin.minters }
 
         | Mint_editions mint_param -> 
             let () = fail_if_not_minter (Tezos.get_sender(), editions_storage.admin) in

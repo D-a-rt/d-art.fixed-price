@@ -14,6 +14,7 @@ let get_fa2_editions_gallery_contract () : ( ((editions_entrypoints, editions_st
         minters = Big_map.literal([
             (minter, ());
         ]);
+        pending_minters = (Big_map.empty : (address, unit) big_map);
     } in
 
     // Assets storage
@@ -57,8 +58,8 @@ let get_fa2_editions_gallery_contract () : ( ((editions_entrypoints, editions_st
 
 let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : address) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
     let token_minter = Test.nth_bootstrap_account 3 in
-    let _token_seller = Test.nth_bootstrap_account 9 in
     let token_split = Test.nth_bootstrap_account 5 in
+    let token_buyer = Test.nth_bootstrap_account 1 in
 
     let gallery = Test.nth_bootstrap_account 8 in
 
@@ -67,15 +68,17 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
         minters = Big_map.literal([
             (token_minter, ());
         ]);
+        pending_minters = (Big_map.empty : (address, unit) big_map);
     } in
     
     let asset_strg : nft_token_storage = {
         ledger = Big_map.literal([
-                (0n), (token_minter)        
-            ]);
+            (0n), (token_minter)        
+        ]);
         operators = Big_map.literal([
-                ((token_minter, (fixed_price_contract, 0n)), ())  ;      
-            ]);
+            ((token_minter, (fixed_price_contract, 0n)), ())  ;      
+            ((token_buyer, (fixed_price_contract, 0n)), ())  ;      
+        ]);
         token_metadata = (Big_map.empty : (token_id, token_metadata) big_map);
     } in
 

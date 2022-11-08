@@ -6,7 +6,7 @@ let get_serie_factory_contract () =
     let () = Test.reset_state 8n ([]: tez list) in
     
     let minter = Test.nth_bootstrap_account 2 in
-    let _, contract_add = P_M. get_permission_manager_contract (Some(minter)) in
+    let _, contract_add = P_M. get_permission_manager_contract (Some(minter), false) in
     
     let str : S_F.storage = {
         admin = Test.nth_bootstrap_account 0;
@@ -24,7 +24,7 @@ let get_gallery_factory_contract () =
     let () = Test.reset_state 8n ([]: tez list) in
     
     let minter = Test.nth_bootstrap_account 2 in
-    let _, contract_add = P_M. get_permission_manager_contract (Some(minter)) in
+    let _, contract_add = P_M. get_permission_manager_contract (Some(minter), false) in
     
     let str : G_F.storage = {
         admin = Test.nth_bootstrap_account 0;

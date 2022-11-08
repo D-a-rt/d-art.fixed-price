@@ -124,6 +124,11 @@ type edition_metadata =
     gallery_commission_splits: split list;
 }
 
+type invitation_param = 
+{
+    accept: bool
+}
+
 #else
 
 type edition_metadata =
@@ -157,6 +162,7 @@ type admin_storage = {
 type admin_storage = {
     admin: address;
     minters: (address, unit) big_map;
+    pending_minters: (address, unit) big_map;
 }
 
 #else

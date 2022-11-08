@@ -148,7 +148,7 @@ let perform_sale_operation (fa2_token, seller, buyer, price, storage : fa2_base 
     let admin_fee : (unit contract) * tez = select_fee (fa2_token, price, storage) in
 
     let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (fa2_token, price) in
-    let (commission_fee, commission_royalties_transfer) : tez * (operation list) = handle_commissions (fa2_token, price, royalties_transfer) in
+    let (commission_fee, commission_royalties_transfer) : tez * (operation list) = if Big_map.mem fa2_token storage.fa2_sold then 0mutez, royalties_transfer else handle_commissions (fa2_token, price, royalties_transfer) in
 
     let seller_contract : unit contract = resolve_contract seller in
     let seller_tez_amount : tez = sub_tez(price, (admin_fee.1 + royalties_fee + commission_fee)) in

@@ -4,7 +4,7 @@
 
 // No amount
 let test_accept_admin_invitation_no_amount =
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let result = Test.transfer_to_contract contract (Accept_admin_invitation ({accept = True})) 1tez in
@@ -20,7 +20,7 @@ let test_accept_admin_invitation_no_amount =
 
 // Not a pending admin (no pending admin in storage)
 let test_accept_admin_invitation_no_pending_admin = 
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -39,7 +39,7 @@ let test_accept_admin_invitation_no_pending_admin =
 
 // Not a pending admin (pending admin in storage)
 let test_accept_admin_invitation_wrong_pending_admin = 
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -64,7 +64,7 @@ let test_accept_admin_invitation_wrong_pending_admin =
 
 // Accept success
 let test_accept_admin_invitation_accept_success = 
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
@@ -90,7 +90,7 @@ let test_accept_admin_invitation_accept_success =
 
 // Refuse success
 let test_accept_admin_invitation_refuse_success = 
-    let contract_add, _ = PM_STR. get_permission_manager_contract(None: address option) in
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
     let new_admin = Test.nth_bootstrap_account 1 in
