@@ -49,6 +49,7 @@ type editions_entrypoints =
     |   Accept_minter_invitation of invitation_param
     |   Remove_minter_self of unit
     |   Mint_editions of proposal_param list
+    |   Reject_proposals of proposal_param list
     |   Update_metadata of bytes
     |   Burn_token of burn_param
 
@@ -88,6 +89,16 @@ type editions_entrypoints =
     |   Mint_editions of mint_edition_param
     |   Update_metadata of bytes
     |   Burn_token of burn_param
+
+// Mint_proposal
+// Update_proposal
+// Remove_proposal
+
+// Accept_proposal
+// Reject_proposal
+// if proposal_accepted -> Mint_proposal
+
+// Add multi admin (safety properties)
 
 #endif
 #endif
@@ -258,6 +269,21 @@ let remove_proposals (remove_list, storage : proposal_param list * editions_stor
     let new_storage = List.fold remove_single_proposal remove_list storage in
     ([] : operation list), new_storage
 
+let reject_proposals (reject_list, storage : proposal_param list * editions_storage ) : operation list * editions_storage =
+    let reject_single_proposal : (editions_storage * proposal_param) -> editions_storage =
+        fun (storage, param : editions_storage * proposal_param) -> 
+            
+            match Big_map.find_opt param.proposal_id storage.mint_proposals with
+                |   None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : editions_storage)
+                |   Some proposal -> (
+                    let () = assert_msg (proposal.minter = Tezos.get_sender(), "SENDER_MUST_BE_MINTER") in
+                    { storage with mint_proposals = Big_map.remove param.proposal_id storage.mint_proposals }
+                )
+    in
+
+    let new_storage = List.fold reject_single_proposal reject_list storage in
+    ([] : operation list), new_storage
+
 let mint_editions (edition_run_list, storage : proposal_param list * editions_storage) : operation list * editions_storage =
     let mint_single_edition_run : (editions_storage * proposal_param) -> editions_storage = 
         fun (storage, param : editions_storage * proposal_param) ->
@@ -265,12 +291,12 @@ let mint_editions (edition_run_list, storage : proposal_param list * editions_st
             match Big_map.find_opt param.proposal_id storage.mint_proposals with
                 |   None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : editions_storage)
                 |   Some proposal -> (
-                    let () = assert_msg (proposal.minter = Tezos.get_sender(), "MINTER_MUST_BE_SENDER") in
+                    let () = assert_msg (proposal.minter = Tezos.get_sender(), "SENDER_MUST_BE_MINTER") in
                     let edition_storage = { storage with 
                         editions_metadata = Big_map.add param.proposal_id proposal storage.editions_metadata;
                         mint_proposals = Big_map.remove param.proposal_id storage.mint_proposals;
                     } in
-                    mint_edition_to_addresses (param.proposal_id, storage.admin.admin, proposal, edition_storage)
+                    mint_edition_to_addresses (param.proposal_id, Tezos.get_sender(), proposal, edition_storage)
                 )
     in
     ([]: operation list), List.fold mint_single_edition_run edition_run_list storage
@@ -299,6 +325,8 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let () = fail_if_not_admin editions_storage.admin in
             remove_proposals (remove_param, editions_storage)
 
+        | Reject_proposals reject_param -> reject_proposals (reject_param, editions_storage)
+
         | Accept_minter_invitation param ->
             let () : unit = fail_if_sender_not_pending_minter (editions_storage.admin) in
             if param.accept = true
@@ -309,9 +337,11 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let () : unit = fail_if_not_minter (Tezos.get_sender(), editions_storage.admin ) in
             ([]: operation list), { editions_storage with admin.minters = Big_map.remove (Tezos.get_sender()) editions_storage.admin.minters }
 
-        | Mint_editions mint_param -> 
-            let () = fail_if_not_minter (Tezos.get_sender(), editions_storage.admin) in
-            mint_editions (mint_param, editions_storage)
+        | Mint_editions mint_param -> mint_editions (mint_param, editions_storage)
+
+        // | Reject_proposal reject_param ->
+        //     let () = fail_if_not_minter (Tezos.get_sender(), editions_storage.admin) in
+
 
         | Update_metadata metadata_param -> 
             let () = fail_if_not_admin editions_storage.admin in

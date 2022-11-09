@@ -497,3 +497,146 @@ let test_gallery_factory_originated_remove_minter_self_success =
     |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter_self - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
     
+// -- Add_admin --
+
+// fail no amount
+let test_gallery_factory_originated_add_admin_no_amount = 
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+    
+    let result = Test.transfer_to_contract contract ((Admin (Add_admin (gallery) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 1tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Add_admin - no amount : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Add_admin - no amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+    
+// fail not an admin
+let test_gallery_factory_originated_add_admin_not_admin = 
+    let contract_add, _, _, minter, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+    let result = Test.transfer_to_contract contract ((Admin (Add_admin (minter) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Add_admin - not an admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Add_admin - not an admin : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// Fail already admin
+let test_gallery_factory_originated_add_admin_already_admin = 
+    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+    let result = Test.transfer_to_contract contract ((Admin (Add_admin (gallery) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Add_admin - already admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Add_admin - already admin : Should not work if already an admin" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+    
+// Success
+let test_gallery_factory_originated_add_admin_success = 
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+    
+    let result = Test.transfer_to_contract contract ((Admin (Add_admin (minter) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> (
+            let strg = Test.get_storage contract_add in
+            match Map.find_opt minter strg.admin.admins with
+                    Some _ -> "Passed"
+                |   None -> failwith "Admin (Gallery factory originated fa2 contract) -> Add_admin - Success : This test should pass (new admin should be added to map)"
+               
+        )
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Add_admin - Success : This test should pass"
+    |   Fail _ -> failwith "Internal test failure"
+    
+// -- Remove_admin --
+
+// fail no amount
+let test_gallery_factory_originated_remove_admin_no_amount = 
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+    
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (gallery) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 1tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - no amount : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - no amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// fail not admin
+let test_gallery_factory_originated_remove_admin_not_admin = 
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (gallery) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - not an admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - not an admin : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// fail one admin left
+let test_gallery_factory_originated_remove_admin_one_left = 
+    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (gallery) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - one admin left : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "MINIMUM_1_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - one admin left : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// success
+let test_gallery_factory_originated_remove_admin_success = 
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let _gas = Test.transfer_to_contract_exn contract ((Admin (Add_admin (minter) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (minter) : FA2_GALLERY_STR.admin_entrypoints)): FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> (
+            let strg = Test.get_storage contract_add in
+            match Map.find_opt minter strg.admin.admins with
+                    Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - Success : This test should pass (new admin should be removed from map)"
+                |   None ->  "Passed"
+               
+        )
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - Success : This test should pass"
+    |   Fail _ -> failwith "Internal test failure"
+    

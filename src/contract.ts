@@ -965,15 +965,20 @@ export const testContracts = async (param: any) => {
             await testPermissionManagerContract()
             break;
         default:
-            console.log(kleur.magenta(`Testing editions contracts...`))
+            console.log(kleur.magenta(`Testing editions contracts:`))
+            console.log(kleur.magenta(` `))
             await testEditionContract()
-            console.log(kleur.magenta(`Testing fixed price contracts...`))
+            console.log(kleur.magenta(`Testing fixed price contracts:`))
+            console.log(kleur.magenta(` `))
             await testFixedPriceContract()
-            console.log(kleur.magenta(`Testing serie factory contracts...`))
+            console.log(kleur.magenta(`Testing serie factory contracts:`))
+            console.log(kleur.magenta(` `))
             await testSerieFactoryContract()
-            console.log(kleur.magenta(`Testing gallery factory contracts...`))
+            console.log(kleur.magenta(`Testing gallery factory contracts:`))
+            console.log(kleur.magenta(` `))
             await testGalleryFactoryContract()
-            console.log(kleur.magenta(`Testing permission manager contracts...`))
+            console.log(kleur.magenta(`Testing permission manager contracts:`))
+            console.log(kleur.magenta(` `))
             await testPermissionManagerContract()
             break;
     }

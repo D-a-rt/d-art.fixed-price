@@ -160,7 +160,9 @@ type admin_storage = {
 #if GALLERY_CONTRACT
 
 type admin_storage = {
-    admin: address;
+    // In order for galleries to manage the artists from multiple addresses and 
+    // in case they lose access to any of these addresses
+    admins: (address, unit) map;
     minters: (address, unit) big_map;
     pending_minters: (address, unit) big_map;
 }

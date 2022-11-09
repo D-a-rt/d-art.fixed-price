@@ -10,7 +10,7 @@ let get_fa2_editions_gallery_contract () : ( ((editions_entrypoints, editions_st
     let gallery = Test.nth_bootstrap_account 8 in
 
     let admin_str : admin_storage = {
-        admin = gallery;
+        admins = Map.literal([(gallery, ());]);
         minters = Big_map.literal([
             (minter, ());
         ]);
@@ -64,7 +64,7 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
     let gallery = Test.nth_bootstrap_account 8 in
 
     let admin_str : admin_storage = {
-        admin = gallery;
+        admins = Map.literal([(gallery, ());]);
         minters = Big_map.literal([
             (token_minter, ());
         ]);

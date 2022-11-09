@@ -827,7 +827,7 @@
                                 GET ;
                                 IF_NONE
                                   { DROP 2 ; PUSH string "FA2_PROPOSAL_UNDEFINED" ; FAILWITH }
-                                  { PUSH string "MINTER_MUST_BE_SENDER" ;
+                                  { PUSH string "SENDER_MUST_BE_MINTER" ;
                                     SENDER ;
                                     DUP 3 ;
                                     CAR ;

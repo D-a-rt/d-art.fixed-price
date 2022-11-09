@@ -57,6 +57,35 @@ let test_gallery_factory_originated_create_proposal_not_admin =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
+
+// fail if not minter
+let test_gallery_factory_originated_create_proposal_not_minter =
+    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+    let not_minter = Test.nth_bootstrap_account 6 in
+
+    let proposal_param = ([({
+        minter = not_minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 3n;
+        royalty = 150n;
+        splits = ([] : split list);
+        gallery_commission = 500n;
+        gallery_commission_splits = ([] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let result = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Create_proposals - not a minter : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_A_MINTER") ) "Admin (Gallery factory originated fa2 contract) -> Create_proposals - not a minter : Should not work if not a minter" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
 // royalties more than 25 percent
 let test_gallery_factory_originated_create_proposal_max_royalties =
     let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
@@ -1019,45 +1048,6 @@ let test_gallery_factory_originated_mint_editions_no_amount =
     |   Fail _ -> failwith "Internal test failure"
 
 
-// fail if not minter
-let test_gallery_factory_originated_mint_editions_not_minter =
-    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source gallery in
-
-    let proposal_param = ([({
-        minter = minter;
-        edition_info = ("" : bytes);
-        total_edition_number = 50n;
-        royalty = 150n;
-        splits = ([{
-            address = minter;
-            pct = 1000n;
-        }] : split list);
-        gallery_commission = 300n;
-        gallery_commission_splits = ([{
-            address = gallery;
-            pct = 1000n;
-        };] : split list);
-    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
-
-    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
-        
-    let not_minter = Test.nth_bootstrap_account 5 in
-    let () = Test.set_source not_minter in
-
-    let result = Test.transfer_to_contract contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
-
-    match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - no amount : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_A_MINTER") ) "Admin (Gallery factory originated fa2 contract) -> Mint_editions - no amount : Should not work if amount specified" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"
-
-
 // fail if minter not sender
 let test_gallery_factory_originated_mint_editions_minter_is_not_sender =
     let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
@@ -1090,13 +1080,13 @@ let test_gallery_factory_originated_mint_editions_minter_is_not_sender =
 
     let () = Test.set_source new_minter in
 
-    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({accept = True}) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract (Accept_minter_invitation ({accept = True}) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
     let result = Test.transfer_to_contract contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - minter is not sender : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "MINTER_MUST_BE_SENDER") ) "Admin (Gallery factory originated fa2 contract) -> Mint_editions - minter is not sender : Should not work if minter is not sender" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SENDER_MUST_BE_MINTER") ) "Admin (Gallery factory originated fa2 contract) -> Mint_editions - minter is not sender : Should not work if minter is not sender" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
@@ -1174,14 +1164,191 @@ let test_gallery_factory_originated_mint_editions_success =
                         None -> unit 
                     |   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Proposal should be deleted from mint proposals big_map"
                 in
-                match Big_map.find_opt 0n new_str.editions_metadata with
+                let () = match Big_map.find_opt 0n new_str.editions_metadata with
                         None -> failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Token has not been minted"
-                    |   Some _ -> "Passed"
+                    |   Some meta -> (
+                        if meta.minter = minter
+                        then unit
+                        else failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Wrong minter"
+                    )
+                in
+                match Big_map.find_opt 0n new_str.assets.ledger with
+                        None -> failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Token has not been minted properly"
+                    |   Some owner -> (
+                        if owner = minter
+                        then "Passed"
+                        else failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Wrong owner (minter should be owner)"
+                    )
             )
             else failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : next_token_id should be incremented "
         )
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : This test should pass "
+    |   Fail _ -> failwith "Internal test failure"
+
+// -- Reject proposal --
+
+// fail no amount
+let test_gallery_factory_originated_reject_proposals_no_amount =
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 50n;
+        royalty = 150n;
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : split list);
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
+            address = gallery;
+            pct = 1000n;
+        };] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+        
+    let result = Test.transfer_to_contract contract ((Reject_proposals ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_PROPOSAL_UNDEFINED") ) "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Should not work if minter is not sender" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - no amount : Should not work if amount specified" in
             "Passed"
         )
+    |   Fail _ -> failwith "Internal test failure"
+
+
+// fail proposal undefined
+let test_gallery_factory_originated_reject_proposals_proposal_undefined =
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 50n;
+        royalty = 150n;
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : split list);
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
+            address = gallery;
+            pct = 1000n;
+        };] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+        
+    let () = Test.set_source minter in
+    let result = Test.transfer_to_contract contract ((Reject_proposals ([({proposal_id = 12n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - proposal undefined : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_PROPOSAL_UNDEFINED") ) "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - proposal undefined : Should not work if minter is not sender" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// fail sender must be minter
+let test_gallery_factory_originated_reject_proposals_sender_is_not_minter =
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 50n;
+        royalty = 150n;
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : split list);
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
+            address = gallery;
+            pct = 1000n;
+        };] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let () = Test.set_source gallery in
+    let new_minter = Test.nth_bootstrap_account 9 in
+
+    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    let () = Test.set_source new_minter in
+
+    let _gas = Test.transfer_to_contract_exn contract (Accept_minter_invitation ({accept = True}) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    let () = Test.set_source gallery in
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+        
+    let () = Test.set_source new_minter in
+    let result = Test.transfer_to_contract contract ((Reject_proposals ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - minter is not sender : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SENDER_MUST_BE_MINTER") ) "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - minter is not sender : Should not work if minter is not sender" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// Success
+let test_gallery_factory_originated_reject_proposals_success =
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 150n;
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : split list);
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
+            address = gallery;
+            pct = 1000n;
+        };] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+        
+    let () = Test.set_source minter in
+    let result = Test.transfer_to_contract contract ((Reject_proposals ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    match result with
+        Success _gas -> (
+            let new_str = Test.get_storage contract_add in
+           
+            let () = match Big_map.find_opt 0n new_str.mint_proposals with
+                    None -> unit 
+                |   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - success : Proposal should be deleted from mint proposals big_map"
+            in
+            let () = match Big_map.find_opt 0n new_str.editions_metadata with
+                    None -> unit
+                |   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - success : Token should not be minted"
+            in
+            match Big_map.find_opt 0n new_str.assets.ledger with
+                    None -> "Passed"
+                |   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - success : Token should not be minted"
+        
+        )
+    |   Fail (Rejected (_err, _)) ->  failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
