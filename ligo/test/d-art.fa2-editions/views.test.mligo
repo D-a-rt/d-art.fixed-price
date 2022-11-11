@@ -120,7 +120,7 @@ let test_token_metadata_view =
 
     let token_m = ({
         token_id = 1n;
-        token_info = Map.literal [("edition_number"), Bytes.pack(2n) ]
+        token_info = Map.literal [(("edition_number"), Bytes.pack(2n)); (("license") , ("ff7a7aff" : bytes)) ]
     } : FA2_V.token_metadata) in
 
     let () = assert_with_error (token_metadata = token_m) "Views - Token metadata : This test should pass, wrong token_metadata" in
@@ -202,6 +202,10 @@ let test_gallery_factory_originated_commission_splits =
         edition_info = ("" : bytes);
         total_edition_number = 1n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("ff7a7aff" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;

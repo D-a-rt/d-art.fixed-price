@@ -1,5 +1,5 @@
 #import "storage_gallery.test.mligo" "FA2_GALLERY_STR"
-#include "../../d-art.fa2-editions/multi_nft_token_editions.mligo"
+#include "../../d-art.fa2-editions/compile_fa2_editions_gallery.mligo"
 
 // -- Create proposal --
 
@@ -15,6 +15,10 @@ let test_gallery_factory_originated_create_proposal_no_amount =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -42,6 +46,10 @@ let test_gallery_factory_originated_create_proposal_not_admin =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -71,6 +79,10 @@ let test_gallery_factory_originated_create_proposal_not_minter =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -98,6 +110,10 @@ let test_gallery_factory_originated_create_proposal_max_royalties =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 260n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -125,6 +141,10 @@ let test_gallery_factory_originated_create_proposal_min_royalties =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 40n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -152,6 +172,10 @@ let test_gallery_factory_originated_create_proposal_max_commissions =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 240n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 510n;
         gallery_commission_splits = ([] : split list);
@@ -179,6 +203,10 @@ let test_gallery_factory_originated_create_proposal_min_edition_number =
         edition_info = ("" : bytes);
         total_edition_number = 0n;
         royalty = 240n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -206,6 +234,10 @@ let test_gallery_factory_originated_create_proposal_max_edition_number =
         edition_info = ("" : bytes);
         total_edition_number = 51n;
         royalty = 240n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -233,6 +265,10 @@ let test_gallery_factory_originated_create_proposal_total_split_smaller =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 240n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 500n;
@@ -263,6 +299,10 @@ let test_gallery_factory_originated_create_proposal_total_split_bigger =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 240n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 500n;
@@ -296,6 +336,10 @@ let test_gallery_factory_originated_create_proposal_total_commission_split_small
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 240n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -329,6 +373,10 @@ let test_gallery_factory_originated_create_proposal_total_commission_split_bigge
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 240n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -365,6 +413,10 @@ let test_gallery_factory_originated_create_proposal_total_commission_success =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -404,6 +456,10 @@ let test_gallery_factory_originated_update_proposal_no_amount =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -432,6 +488,10 @@ let test_gallery_factory_originated_update_proposal_not_admin =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -459,6 +519,10 @@ let test_gallery_factory_originated_update_proposal_max_royalties =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -478,6 +542,10 @@ let test_gallery_factory_originated_update_proposal_max_royalties =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 260n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -505,6 +573,10 @@ let test_gallery_factory_originated_update_proposal_min_royalties =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -524,6 +596,10 @@ let test_gallery_factory_originated_update_proposal_min_royalties =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 40n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -551,6 +627,10 @@ let test_gallery_factory_originated_update_proposal_max_commissions =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -570,6 +650,10 @@ let test_gallery_factory_originated_update_proposal_max_commissions =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 60n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 600n;
         gallery_commission_splits = ([] : split list);
@@ -597,6 +681,10 @@ let test_gallery_factory_originated_update_proposal_min_edition_number =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -616,6 +704,10 @@ let test_gallery_factory_originated_update_proposal_min_edition_number =
         edition_info = ("" : bytes);
         total_edition_number = 0n;
         royalty = 60n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -643,6 +735,10 @@ let test_gallery_factory_originated_update_proposal_max_edition_number =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -662,6 +758,10 @@ let test_gallery_factory_originated_update_proposal_max_edition_number =
         edition_info = ("" : bytes);
         total_edition_number = 65n;
         royalty = 60n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -689,6 +789,10 @@ let test_gallery_factory_originated_update_proposal_total_split_smaller =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -708,6 +812,10 @@ let test_gallery_factory_originated_update_proposal_total_split_smaller =
         edition_info = ("" : bytes);
         total_edition_number = 5n;
         royalty = 60n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 500n;
@@ -738,6 +846,10 @@ let test_gallery_factory_originated_update_proposal_total_split_bigger =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -757,6 +869,10 @@ let test_gallery_factory_originated_update_proposal_total_split_bigger =
         edition_info = ("" : bytes);
         total_edition_number = 5n;
         royalty = 60n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 500n;
@@ -790,6 +906,10 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_small
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -809,6 +929,10 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_small
         edition_info = ("" : bytes);
         total_edition_number = 5n;
         royalty = 60n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -842,6 +966,10 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_bigge
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -861,6 +989,10 @@ let test_gallery_factory_originated_update_proposal_total_commission_split_bigge
         edition_info = ("" : bytes);
         total_edition_number = 5n;
         royalty = 60n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -897,6 +1029,10 @@ let test_gallery_factory_originated_update_proposal_total_commission_success =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -916,6 +1052,10 @@ let test_gallery_factory_originated_update_proposal_total_commission_success =
         edition_info = ("" : bytes);
         total_edition_number = 5n;
         royalty = 200n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -991,6 +1131,10 @@ let test_gallery_factory_originated_remove_proposal_success =
         edition_info = ("" : bytes);
         total_edition_number = 3n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([] : split list);
         gallery_commission = 500n;
         gallery_commission_splits = ([] : split list);
@@ -1024,6 +1168,10 @@ let test_gallery_factory_originated_mint_editions_no_amount =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1060,6 +1208,10 @@ let test_gallery_factory_originated_mint_editions_minter_is_not_sender =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1103,6 +1255,10 @@ let test_gallery_factory_originated_mint_editions_proposal_undefined =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1139,6 +1295,10 @@ let test_gallery_factory_originated_mint_editions_success =
         edition_info = ("" : bytes);
         total_edition_number = 1n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1199,6 +1359,10 @@ let test_gallery_factory_originated_reject_proposals_no_amount =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1235,6 +1399,10 @@ let test_gallery_factory_originated_reject_proposals_proposal_undefined =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1271,6 +1439,10 @@ let test_gallery_factory_originated_reject_proposals_sender_is_not_minter =
         edition_info = ("" : bytes);
         total_edition_number = 50n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1317,6 +1489,10 @@ let test_gallery_factory_originated_reject_proposals_success =
         edition_info = ("" : bytes);
         total_edition_number = 1n;
         royalty = 150n;
+        license = {
+            upgradeable = False;
+            hash = ("" : bytes);
+        };
         splits = ([{
             address = minter;
             pct = 1000n;
@@ -1351,4 +1527,177 @@ let test_gallery_factory_originated_reject_proposals_success =
         
         )
     |   Fail (Rejected (_err, _)) ->  failwith "Admin (Gallery factory originated fa2 contract) -> Reject_proposals - success : This test should pass"
+    |   Fail _ -> failwith "Internal test failure"
+
+
+// -- Upgrade License
+
+// no amount
+let test_gallery_factory_originated_upgrade_license_no_amount =
+    let contract_add, _, _, minter, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+
+    let result = Test.transfer_to_contract contract (Upgrade_license (({ edition_id = 0n; license = {upgradeable = True; hash = ("54657374206d65737361676520746574657465746567" : bytes)} } : license_param)) : editions_entrypoints ) 1tez in
+
+    match result with
+        Success _gas -> failwith "Upgrade_license (Gallery originated fa2 contract) - No amount : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Upgrade_license (Gallery originated fa2 contract) - No amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+
+// token undefined
+let test_gallery_factory_originated_upgrade_license_token_undefined =
+    let contract_add, _, _, minter, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source minter in
+
+    let result = Test.transfer_to_contract contract (Upgrade_license (({ edition_id = 10000n; license = {upgradeable = True; hash = ("54657374206d65737361676520746574657465746567" : bytes)} } : license_param)) : editions_entrypoints ) 0tez in
+
+    match result with
+        Success _gas -> failwith "Upgrade_license (Gallery originated fa2 contract) - Token undefined : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_TOKEN_UNDEFINED") ) "Upgrade_license (Gallery originated fa2 contract) - Token undefined : Should not work if token undefined" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// sender must be minter 
+let test_gallery_factory_originated_upgrade_license_sender_must_be_minter =
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 150n;
+        license = {
+            upgradeable = True;
+            hash = ("" : bytes);
+        };
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : split list);
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
+            address = gallery;
+            pct = 1000n;
+        };] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+        
+    let () = Test.set_source minter in
+    let _gas = Test.transfer_to_contract_exn contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    
+    let () = Test.set_source gallery in
+    let result = Test.transfer_to_contract contract (Upgrade_license (({ edition_id = 0n; license = {upgradeable = True; hash = ("54657374206d65737361676520746574657465746567" : bytes)} } : license_param)) : editions_entrypoints ) 0tez in
+
+    match result with
+        Success _gas -> failwith "Upgrade_license (Gallery originated fa2 contract) - Sender must be minter : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SENDER_MUST_BE_MINTER") ) "Upgrade_license (Gallery originated fa2 contract) - Sender must be minter : Should not work if sender is not minter" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// license sealed
+let test_gallery_factory_originated_upgrade_license_sealed =
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 150n;
+        license = {
+            upgradeable = True;
+            hash = ("" : bytes);
+        };
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : split list);
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
+            address = gallery;
+            pct = 1000n;
+        };] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+        
+    let () = Test.set_source minter in
+    let _gas = Test.transfer_to_contract_exn contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+    let _gas = Test.transfer_to_contract_exn contract (Upgrade_license (({ edition_id = 0n; license = {upgradeable = False; hash = ("54657374206d65737361676520746574657465746567" : bytes)} } : license_param)) : editions_entrypoints ) 0tez in
+    let result = Test.transfer_to_contract contract (Upgrade_license (({ edition_id = 0n; license = {upgradeable = True; hash = ("54657374206d65737361676520746574657465746567" : bytes)} } : license_param)) : editions_entrypoints ) 0tez in
+
+    match result with
+        Success _gas -> failwith "Upgrade_license (Gallery originated fa2 contract) - License sealed : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "LICENSE_SEALED") ) "Upgrade_license (Gallery originated fa2 contract) - License sealed : Should not work if the license is sealed" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"
+
+// success
+let test_gallery_factory_originated_upgrade_license_success =
+    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+    let contract = Test.to_contract contract_add in
+
+    let () = Test.set_source gallery in
+
+    let proposal_param = ([({
+        minter = minter;
+        edition_info = ("" : bytes);
+        total_edition_number = 1n;
+        royalty = 150n;
+        license = {
+            upgradeable = True;
+            hash = ("" : bytes);
+        };
+        splits = ([{
+            address = minter;
+            pct = 1000n;
+        }] : split list);
+        gallery_commission = 300n;
+        gallery_commission_splits = ([{
+            address = gallery;
+            pct = 1000n;
+        };] : split list);
+    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+
+    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+        
+    let () = Test.set_source minter in
+    let _gas = Test.transfer_to_contract_exn contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+
+
+    let result = Test.transfer_to_contract contract (Upgrade_license (({ edition_id = 0n; license = {upgradeable = False; hash = ("54657374206d65737361676520746574657465746567" : bytes)} } : license_param)) : editions_entrypoints ) 0tez in
+
+    match result with
+        Success _gas -> (
+            let new_str = Test.get_storage contract_add in
+            
+            let () = match Big_map.find_opt 0n new_str.editions_metadata with 
+                    Some edition_metadata -> assert_with_error (edition_metadata.license = {upgradeable = False; hash = ("54657374206d65737361676520746574657465746567" : bytes)}) "Upgrade_license (Gallery originated fa2 contract) - Success : License should be upgraded"
+                |   None -> failwith "Upgrade_license (Gallery originated fa2 contract) - Success : Token should exist"
+            in
+
+            "Passed"
+        )
+    |   Fail (Rejected (_err, _)) -> failwith "Upgrade_license (Gallery originated fa2 contract) - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"

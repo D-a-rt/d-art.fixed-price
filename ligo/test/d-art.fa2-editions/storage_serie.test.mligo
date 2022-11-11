@@ -44,6 +44,10 @@ let get_fa2_editions_serie_contract (mr: bool) : ( ((editions_entrypoints, editi
     let edition1 = ({
         edition_info = (Map.empty : (string, bytes) map);
         total_edition_number = 5n;
+        license = {
+            upgradeable = True;
+            hash = ("" : bytes);
+        };
         royalty = 150n;
         splits = [({
             address = minter;

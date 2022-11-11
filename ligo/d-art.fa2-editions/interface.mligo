@@ -95,6 +95,13 @@ type burn_param =
   token_id: token_id;
 }
 
+type license =
+[@layout:comb]
+{
+    upgradeable : bool;
+    hash : bytes;
+}
+
 // -- Edition entrypoints
 
 #if SERIE_CONTRACT
@@ -104,6 +111,7 @@ type edition_metadata =
 {
     edition_info: (string, bytes) map;
     total_edition_number: nat;
+    license : license;
     royalty: nat;
     splits: split list;
 }
@@ -119,6 +127,7 @@ type edition_metadata =
     edition_info: (string, bytes) map;
     total_edition_number: nat;
     royalty: nat;
+    license : license;
     splits: split list;
     gallery_commission: nat;
     gallery_commission_splits: split list;
@@ -131,12 +140,25 @@ type invitation_param =
 
 #else
 
+type proposal_metadata =
+[@layout:comb]
+{
+    accepted : bool;
+    minter : address;
+    edition_info: (string, bytes) map;
+    license : license;
+    total_edition_number: nat;
+    royalty: nat;
+    splits: split list;
+}
+
 type edition_metadata =
 [@layout:comb]
 {
     minter : address;
     edition_info: (string, bytes) map;
     total_edition_number: nat;
+    license : license;
     royalty: nat;
     splits: split list;
 }
@@ -170,7 +192,7 @@ type admin_storage = {
 #else
 
 type admin_storage = {
-    admin : address;
+    admins : (address, unit) map;
     paused_minting : bool;
     minters_manager : address;
 }
@@ -223,6 +245,7 @@ type editions_storage =
     next_token_id : nat;
     max_editions_per_run : nat;
     as_minted: (address, unit) big_map;
+    proposals : (nat, proposal_metadata) big_map;
     editions_metadata : editions_metadata;
     assets : nft_token_storage;
     admin : admin_storage;

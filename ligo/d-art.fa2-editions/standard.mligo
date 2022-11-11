@@ -94,7 +94,6 @@ let fa2_update_operators (updates, storage
   ) in
   List.fold process_update updates storage
 
-
 let fa2_main (param, storage : fa2_entry_points * nft_token_storage) : (operation  list) * nft_token_storage =
     match param with
         | Transfer txs ->

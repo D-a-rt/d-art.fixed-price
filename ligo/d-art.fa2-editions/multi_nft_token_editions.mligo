@@ -5,6 +5,12 @@
 
 #include "admin.mligo"
 
+type license_param =
+[@layout:comb]
+{
+    edition_id : nat;
+    license : license
+}
 
 #if GALLERY_CONTRACT
 
@@ -14,12 +20,12 @@ type pre_mint_edition_param =
     minter: address;
     edition_info : bytes;
     total_edition_number : nat;
+    license : license;
     royalty: nat;
     splits: split list;
     gallery_commission: nat;
     gallery_commission_splits: split list;
 }
-
 
 type update_pre_mint_edition_param =
 [@layout:comb]
@@ -27,6 +33,7 @@ type update_pre_mint_edition_param =
     proposal_id: nat;
     minter: address;
     edition_info : bytes;
+    license : license;
     total_edition_number : nat;
     royalty: nat;
     splits: split list;
@@ -49,6 +56,7 @@ type editions_entrypoints =
     |   Accept_minter_invitation of invitation_param
     |   Remove_minter_self of unit
     |   Mint_editions of proposal_param list
+    |   Upgrade_license of license_param
     |   Reject_proposals of proposal_param list
     |   Update_metadata of bytes
     |   Burn_token of burn_param
@@ -61,6 +69,7 @@ type mint_edition_param =
 [@layout:comb]
 {
   edition_info : bytes;
+  license : license;
   total_edition_number : nat;
   royalty: nat;
   splits: split list;
@@ -70,6 +79,7 @@ type editions_entrypoints =
     |   Revoke_minting of revoke_minting_param
     |   FA2 of fa2_entry_points
     |   Mint_editions of mint_edition_param list
+    |   Upgrade_license of license_param
     |   Update_metadata of bytes
     |   Burn_token of burn_param
 
@@ -79,26 +89,33 @@ type mint_edition_param =
 [@layout:comb]
 {
   edition_info : bytes;
+  license : license;
   royalty: nat;
   splits: split list;
+}
+
+type update_mint_edition_param =
+[@layout:comb]
+{
+    proposal_id : nat;
+    edition_info : bytes;
+    license : license;
+    royalty: nat;
+    splits: split list;
 }
 
 type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
-    |   Mint_editions of mint_edition_param
     |   Update_metadata of bytes
     |   Burn_token of burn_param
 
-// Mint_proposal
-// Update_proposal
-// Remove_proposal
-
-// Accept_proposal
-// Reject_proposal
-// if proposal_accepted -> Mint_proposal
-
-// Add multi admin (safety properties)
+    |   Create_proposal of mint_edition_param
+    |   Update_proposal of update_mint_edition_param
+    |   Remove_proposal of proposal_param
+    
+    |   Mint_editions of proposal_param
+    |   Upgrade_license of license_param
 
 #endif
 #endif
@@ -153,6 +170,7 @@ let mint_editions ( edition_run_list , storage : mint_edition_param list * editi
             
             let edition_metadata : edition_metadata = {
                 edition_info = Map.literal [("", param.edition_info)];
+                license = param.license;
                 royalty = param.royalty;
                 splits = param.splits;
                 total_edition_number = param.total_edition_number;
@@ -166,6 +184,15 @@ let mint_editions ( edition_run_list , storage : mint_edition_param list * editi
             mint_edition_to_addresses (storage.next_edition_id, Tezos.get_sender(), edition_metadata, edition_storage)
         in
     ([] : operation list), List.fold mint_single_edition_run edition_run_list storage
+
+let upgrade_license (edition_id, license, storage: nat * license * editions_storage ) : (operation list) * editions_storage =
+    match Big_map.find_opt edition_id storage.editions_metadata with
+            None -> (failwith "FA2_TOKEN_UNDEFINED" : operation list * editions_storage)
+        |   Some edition_metadata -> (
+            let () = assert_msg (storage.admin.admin = Tezos.get_sender(), "SENDER_MUST_BE_MINTER") in
+            let () = assert_msg (edition_metadata.license.upgradeable, "LICENSE_SEALED") in
+            ([] : operation list ), { storage with editions_metadata = Big_map.update edition_id (Some { edition_metadata with license = license }) storage.editions_metadata }
+        )
 
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
     let () : unit = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
@@ -184,6 +211,9 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             let () = fail_if_minting_revoked editions_storage.admin in
             mint_editions (mint_param, editions_storage)
 
+        | Upgrade_license param ->
+            upgrade_license (param.edition_id, param.license, editions_storage)
+
         | Update_metadata metadata_param -> 
             let () = fail_if_not_admin editions_storage.admin in
             let res = match Big_map.find_opt "" editions_storage.metadata with
@@ -198,6 +228,15 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }
 
 #else
+
+let upgrade_license (edition_id, license, storage: nat * license * editions_storage ) : (operation list) * editions_storage =
+    match Big_map.find_opt edition_id storage.editions_metadata with
+            None -> (failwith "FA2_TOKEN_UNDEFINED" : (operation list) * editions_storage)
+        |   Some edition_metadata -> (
+            let () = assert_msg (edition_metadata.minter = Tezos.get_sender(), "SENDER_MUST_BE_MINTER") in
+            let () = assert_msg (edition_metadata.license.upgradeable, "LICENSE_SEALED") in
+            ([] : operation list ), { storage with editions_metadata = Big_map.update edition_id (Some { edition_metadata with license = license }) storage.editions_metadata }
+        )
 
 #if GALLERY_CONTRACT
 
@@ -221,6 +260,7 @@ let create_proposal (edition_run_list , storage : pre_mint_edition_param list * 
             let edition_metadata : edition_metadata = {
                 minter = param.minter;
                 edition_info = Map.literal [("", param.edition_info)];
+                license = param.license;
                 royalty = param.royalty;
                 splits = param.splits;
                 gallery_commission = param.gallery_commission;
@@ -250,6 +290,7 @@ let update_proposal (edition_update, storage : update_pre_mint_edition_param * e
         let edition_metadata : edition_metadata = {
             minter = edition_update.minter;
             edition_info = Map.literal [("", edition_update.edition_info)];
+            license = edition_update.license;
             royalty = edition_update.royalty;
             splits = edition_update.splits;
             gallery_commission = edition_update.gallery_commission;
@@ -258,7 +299,7 @@ let update_proposal (edition_update, storage : update_pre_mint_edition_param * e
         } in
 
         match Big_map.find_opt edition_update.proposal_id storage.mint_proposals with
-                None -> failwith (failwith "FA2_PROPOSAL_UNDEFINED"  : editions_storage)
+                None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : operation list * editions_storage)
             |   Some _ -> ([] : operation list), { storage with mint_proposals = Big_map.update edition_update.proposal_id (Some edition_metadata) storage.mint_proposals; }        
 
 let remove_proposals (remove_list, storage : proposal_param list * editions_storage ) : operation list * editions_storage =
@@ -339,9 +380,8 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
 
         | Mint_editions mint_param -> mint_editions (mint_param, editions_storage)
 
-        // | Reject_proposal reject_param ->
-        //     let () = fail_if_not_minter (Tezos.get_sender(), editions_storage.admin) in
-
+        | Upgrade_license param ->
+            upgrade_license (param.edition_id, param.license, editions_storage)
 
         | Update_metadata metadata_param -> 
             let () = fail_if_not_admin editions_storage.admin in
@@ -359,46 +399,112 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
 
 #else
 
-let mint_editions ( edition_run , storage : mint_edition_param * editions_storage) : operation list * editions_storage =
+let mint_editions ( proposal_param , storage : proposal_param * editions_storage) : operation list * editions_storage =
+    let edition_str = match Big_map.find_opt proposal_param.proposal_id storage.proposals with
+        |   None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : editions_storage)
+        |   Some proposal -> (
+            let () = assert_msg (proposal.accepted, "PROPOSAL_NEED_TO_BE_ACCEPTED") in
+            let () = assert_msg (proposal.minter = (Tezos.get_sender()), "SENDER_MUST_BE_MINTER") in
+            let token = {
+                minter = proposal.minter;
+                edition_info = proposal.edition_info;
+                license = proposal.license;
+                royalty = proposal.royalty;
+                splits = proposal.splits;
+                total_edition_number = 1n;
+            } in
+            let edition_storage = { storage with 
+                editions_metadata = Big_map.add proposal_param.proposal_id token storage.editions_metadata;
+                proposals = Big_map.remove proposal_param.proposal_id storage.proposals;
+                as_minted = Big_map.add (Tezos.get_sender()) unit storage.as_minted;
+            } in
+            mint_edition_to_addresses (proposal_param.proposal_id, Tezos.get_sender(), token, edition_storage)
+        )
+    in
 
-    let () : unit = assert_msg(edition_run.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
+    ([] : operation list), edition_str
 
-    let split_count : nat = List.fold_left verify_split 0n edition_run.splits  in
+let create_proposal (mint_param, storage : mint_edition_param * editions_storage) : operation list * editions_storage =
+    let () : unit = assert_msg(mint_param.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
+
+    let split_count : nat = List.fold_left verify_split 0n mint_param.splits  in
     let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
     
-    let edition_metadata : edition_metadata = {
+    let edition_metadata : proposal_metadata = {
+        accepted = False;
         minter = Tezos.get_sender();
-        edition_info = Map.literal [("", edition_run.edition_info)];
-        royalty = edition_run.royalty;
-        splits = edition_run.splits;
+        edition_info = Map.literal [("", mint_param.edition_info)];
+        license = mint_param.license;
+        royalty = mint_param.royalty;
+        splits = mint_param.splits;
         total_edition_number = 1n;
     } in
     
     let edition_storage = { storage with
         next_token_id = storage.next_token_id + 1n;
-        editions_metadata = Big_map.add storage.next_token_id edition_metadata storage.editions_metadata;
-        as_minted = Big_map.add (Tezos.get_sender()) unit storage.as_minted;
+        proposals = Big_map.add storage.next_token_id edition_metadata storage.proposals;
     } in
+    
+    ([] : operation list), edition_storage
 
-    ([] : operation list), mint_edition_to_addresses (storage.next_token_id, Tezos.get_sender(), edition_metadata, edition_storage)
+let update_proposal (update_mint_param, storage : update_mint_edition_param * editions_storage) : operation list * editions_storage =
+    let () : unit = assert_msg(update_mint_param.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
+
+    let split_count : nat = List.fold_left verify_split 0n update_mint_param.splits  in
+    let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+    
+    let edition_metadata : proposal_metadata = {
+        accepted = False;
+        minter = Tezos.get_sender();
+        edition_info = Map.literal [("", update_mint_param.edition_info)];
+        license = update_mint_param.license;
+        royalty = update_mint_param.royalty;
+        splits = update_mint_param.splits;
+        total_edition_number = 1n;
+    } in
+    
+    match Big_map.find_opt update_mint_param.proposal_id storage.proposals with
+            None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : operation list * editions_storage)
+        |   Some proposal -> ([] : operation list), (
+            let () = assert_msg (proposal.minter = Tezos.get_sender(), "SENDER_MUST_BE_MINTER") in
+            { storage with proposals = Big_map.update update_mint_param.proposal_id (Some edition_metadata) storage.proposals; }
+        )
+
+let remove_proposal (proposal_param, storage : proposal_param * editions_storage ) =
+    match Big_map.find_opt proposal_param.proposal_id storage.proposals with
+            None -> (failwith "FA2_PROPOSAL_UNDEFINED"  : operation list * editions_storage)
+        |   Some proposal -> (
+            let () = assert_msg (proposal.minter = Tezos.get_sender(), "SENDER_MUST_BE_MINTER") in
+            ([] : operation list), { storage with proposals = Big_map.remove proposal_param.proposal_id storage.proposals }
+        )
 
 let editions_main (param, editions_storage : editions_entrypoints * editions_storage) : (operation  list) * editions_storage =
     let () : unit = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     match param with
-        | Admin a ->
-            let ops, admin = admin_main (a, editions_storage.admin) in
-            let new_storage = { editions_storage with admin = admin; } in
-            ops, new_storage
+        | Admin a -> admin_main (a, editions_storage)
 
         | FA2 fa2_entry_points ->
             let ops, new_storage = fa2_main (fa2_entry_points, editions_storage.assets) in
             ops, { editions_storage with assets = new_storage } 
 
-        | Mint_editions mint_param ->
+        | Create_proposal create_param ->
             let () = fail_if_minting_paused editions_storage.admin in
             let () = fail_if_not_minter editions_storage.admin in
             let () = fail_if_already_minted editions_storage in
+            create_proposal (create_param, editions_storage)
+
+        | Update_proposal update_param ->
+            let () = fail_if_not_minter editions_storage.admin in
+            update_proposal (update_param, editions_storage)
+
+        | Remove_proposal remove_param ->
+            remove_proposal (remove_param, editions_storage)
+
+        | Mint_editions mint_param ->
             mint_editions (mint_param, editions_storage)
+        
+        | Upgrade_license param ->
+            upgrade_license (param.edition_id, param.license, editions_storage)
 
         | Update_metadata metadata_param -> 
             let () = fail_if_not_admin editions_storage.admin in

@@ -22,7 +22,7 @@ let create_gallery (param, storage : create_entrypoint * storage) : (operation l
     } in
     
     let admin_str : admin_storage = {
-        admin = Tezos.get_sender();
+        admins = Map.literal ([(Tezos.get_sender(), ())]) ;
         minters = (Big_map.empty : (address, unit) big_map);
         pending_minters = (Big_map.empty : (address, unit) big_map);
     } in

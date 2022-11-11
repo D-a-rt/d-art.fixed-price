@@ -13,7 +13,7 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
     let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (minter), false) in
 
     let admin_str : FA2_E.admin_storage = {
-        admin = admin;
+        admins = Map.literal([(admin, ());]);
         paused_minting = pm;
         minters_manager = pm_contract_addr;
     } in
@@ -52,6 +52,10 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
         minter = minter;
         edition_info = (Map.empty : (string, bytes) map);
         total_edition_number = 5n;
+        license = {
+            upgradeable = False;
+            hash = ("ff7a7aff" : bytes);
+        };
         royalty = 150n;
         splits = [({
             address = minter;
@@ -65,9 +69,10 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
 
     // Contract storage
     let str = {
-        next_token_id = 0n;
+        next_token_id = 1n;
         max_editions_per_run = 50n;
         as_minted = (Big_map.empty : (address, unit) big_map); 
+        proposals = (Big_map.empty : (nat, FA2_E.proposal_metadata) big_map);
         editions_metadata = editions_metadata;
         assets = asset_str;
         admin = admin_str;
@@ -88,7 +93,7 @@ let get_edition_fa2_contract_fixed_price (fixed_price_contract : address) =
     let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (token_minter), false) in
 
     let admin_strg : FA2_E.admin_storage = {
-        admin = admin;
+        admins = Map.literal([(admin, ());]);
         paused_minting = false;
         minters_manager = pm_contract_addr;
     } in
@@ -108,6 +113,10 @@ let get_edition_fa2_contract_fixed_price (fixed_price_contract : address) =
             minter = admin;
             edition_info = (Map.empty : (string, bytes) map);
             total_edition_number = 2n;
+            license = {
+                upgradeable = False;
+                hash = ("" : bytes);
+            };
             royalty = 150n;
             splits = [({
                 address = token_minter;
@@ -127,6 +136,7 @@ let get_edition_fa2_contract_fixed_price (fixed_price_contract : address) =
         next_token_id = 1n;
         max_editions_per_run = 50n;
         as_minted = (Big_map.empty : (address, unit) big_map);
+        proposals = (Big_map.empty : (nat, FA2_E.proposal_metadata) big_map);
         editions_metadata = edition_meta_strg;
         assets = asset_strg;
         admin = admin_strg;

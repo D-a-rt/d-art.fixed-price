@@ -87,6 +87,10 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
             edition_info = (Map.empty : (string, bytes) map);
             total_edition_number = 2n;
             royalty = 150n;
+            license = {
+                upgradeable = False;
+                hash = ("" : bytes);
+            };
             splits = [({
                 address = token_minter;
                 pct = 500n;
