@@ -43,6 +43,27 @@ let test_update_permission_manager_not_admin =
         )
     |   Fail _ -> failwith "Internal test failure"
 
+// Success
+let test_update_permission_manager_success =
+    let contract_add, _ = FA2_STR.get_gallery_factory_contract() in
+    let contract = Test.to_contract contract_add in
+
+    // Obviously it should be a KT.. address using tz.. one for conveniance
+    let admin = Test.nth_bootstrap_account 0 in
+    let new_manager = Test.nth_bootstrap_account 3 in
+    let () = Test.set_source admin in
+
+    let result = Test.transfer_to_contract contract ((Update_permission_manager (new_manager)) : art_factory) 0tez in
+
+    match result with
+        Success _gas -> (
+            let new_str = Test.get_storage contract_add in
+            let () = assert_with_error ( new_str.permission_manager = new_manager) "Update_permission_manager - Success : This test should pass" in
+            "Passed"
+        )
+    |   Fail (Rejected (_err, _)) ->  failwith "Update_permission_manager - Success : This test should pass"
+        
+    |   Fail _ -> failwith "Internal test failure"
 
 // -- Create gallery --
 

@@ -54,7 +54,6 @@ type admin_factory_entrypoints =
 type art_permission_manager = 
     |   Admin of admin_factory_entrypoints
     |   Accept_admin_invitation of admin_response_param
-
 ```
 
 ### Add & Remove minter
