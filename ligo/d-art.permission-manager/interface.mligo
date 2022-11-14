@@ -12,14 +12,9 @@ type admin_response_param =
 
 // Storage
 
-type admin_storage = {
-    admin: address;
-    pending_admin: address option;
-}
-
 type storage =
 {
-    admin: admin_storage;
+    admins: (address, unit) map;
     minters: (address, unit) big_map;
     galleries: (address, unit) big_map;
     metadata: (string, bytes) big_map;
