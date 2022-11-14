@@ -107,6 +107,7 @@ type buy_token =
   seller: address;
   buyer: address;
   authorization_signature: authorization_signature;
+  referrer: address option;
 }
 
 

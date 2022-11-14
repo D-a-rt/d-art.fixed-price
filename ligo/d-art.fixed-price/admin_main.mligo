@@ -14,10 +14,12 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
   match param with
     | UpdatePrimaryFee new_fee_data ->
         let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in
+        let () = assert_msg (new_fee_data.percent >= 10n, "PERCENTAGE_MUST_BE_MINIMUM_1_PERCENT") in
         ([] : operation list), { storage with fee_primary = new_fee_data }
 
     | UpdateSecondaryFee new_fee_data ->
         let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in
+        let () = assert_msg (new_fee_data.percent >= 10n, "PERCENTAGE_MUST_BE_MINIMUM_1_PERCENT") in
         ([] : operation list), { storage with fee_secondary = new_fee_data }
     
     | UpdatePublicKey key ->

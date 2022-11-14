@@ -11,6 +11,8 @@ type lambda_create_contract = (key_hash option * tez * editions_storage) -> (ope
 type art_factory = 
     |   Create_serie of create_entrypoint
     |   Update_permission_manager of update_manager_entrypoint
+    |   Add_admin of address
+    |   Remove_admin of address
 
 let create_serie (param, storage : create_entrypoint * storage) : (operation list) * storage =
     let editions_metadata_str = (Big_map.empty : (nat, edition_metadata) big_map) in
@@ -63,5 +65,18 @@ let serie_factory_main (param, storage : art_factory * storage)  : (operation li
         |   Update_permission_manager update_manager_param ->
                 let () = fail_if_not_admin storage in 
                 (([] : operation list), { storage with permission_manager = update_manager_param.new_manager; })
+
+        |   Add_admin add ->
+            let () = fail_if_not_admin storage in
+            if Map.mem add storage.admins
+            then (failwith "ALREADY_ADMIN" : operation list * admin_storage)
+            else ([] : operation list), { storage with admins = Map.add add unit storage.admins; }
+        
+        |   Remove_admin add ->
+            let () = fail_if_not_admin storage in
+            if Map.size storage.admins > 1n
+            then ([] : operation list), { storage with admins = Map.remove add storage.admins}
+            else (failwith "MINIMUM_1_ADMIN" : operation list * admin_storage)
+
 
 #endif

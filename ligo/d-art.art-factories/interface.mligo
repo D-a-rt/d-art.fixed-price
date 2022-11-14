@@ -25,7 +25,7 @@ type admin = address
 
 type storage =
 {
-    admin: address;
+    admin: (address, unit);
     permission_manager: address;
     galleries : (admin, address) big_map;
     metadata: (string, bytes) big_map;
@@ -35,7 +35,7 @@ type storage =
 
 type storage =
 {
-    admin: address;
+    admin: (address, unit);
     permission_manager: address;
     series : (nat, serie) big_map;
     metadata: (string, bytes) big_map;

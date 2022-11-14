@@ -1,76 +1,50 @@
 
-# Serie factory contract
+# Art factories contract
 
-The contract is in the directory ligo/d-art.serie-factory and is responsible to manage the minters permission and originate new contracts for authorizewd minters that would like to have there own series
+The art factories contracts are both responsible to originate contract for authorized artists and galleries taking part of the D A:RT ecosystem.
+
+The two type of contracts originated are :
+- FA2 serie version [See contract](../d-art.fa2-editions/README.md#fa2-editions---originated-from-factory)
+- FA2 gallery version [See contract](../d-art.fa2-editions/README.md#fa2-editions---originated-from-factory)
+
+The serie_factory.mligo file represent the serie_factory
+The gallery_factory.mligo file represent the gallery_factory
 
 
 ## Storage definition
 
-This section is responsible to list and explain the storage of the fa2-editions contract.
+This section is responsible to list and explain the storage of the two factory contracts.
 
 
 ``` ocaml
 
 type serie_factory_storage =
 {
-    admin: admin_factory_storage;
-    origination_paused: bool;
-    minters: (address, unit) big_map;
+    admin: (address, unit) map;
+    permission_manager: address;
     series : (nat, serie) big_map;
     metadata: (string, bytes) big_map;
     next_serie_id: nat;
 }
 
-```
-
-## admin
-
-The first field is `admin`:
-
-
-``` ocaml
-type admin_factory_storage = {
+type gallery_factory_storage =
+{
     admin: address;
-    pending_admin: address option;
+    permission_manager: address;
+    galleries: (admin, address) big_map;
+    metadata: (string, bytes) big_map;
 }
 
 ```
 
-One admin and pending admin to be able to transfer the minter curation to another address (such as a contract).
+The two storage are very close to each other the main difference take place in the series and gallery big_map.
+Galleries can only originate one contract that will represent their galleries and on which they will be able to curate their own artists. On the other hand artists can originate as many as series as they want.
 
-## origination_paused
+### admin: 
+The administrator map of the contract, these address are only responsible to update the permission_manager contract in case v2 is available. we use a map instead of a single address as we do not want to lose the access.
 
-The second field is `origination_paused` and define if minters are able to originate contract or not, this is a field set by the admin (usefull in case we would like to upgrade to a new version of the contract).
-
-## minters
-
-
-``` ocaml
-type storage =
-{
-    ...
-    minters: (address, unit) big_map;
-    ...
-}
-
-```
-
-The list of authorized minters (can originate new contracts and give access to the A:RT - Original contract)
-
-## series
-
-
-``` ocaml
-type storage =
-[@layout:comb]
-{
-    ...
-    series : (nat, serie) big_map;
-    ...
-}
-```
-
-The list of series that has been originated by the contract with the address of the originator.
+### permission_manager: 
+The address of the contract responsible to manage the permission for the origination of the contracts.
 
 ### metadata
 
@@ -85,73 +59,84 @@ type storage =
 
 The metadata of the contract
 
-### next_serie_id
+
+
+## series big_map
 
 ``` ocaml
+
+type serie = 
+[@layout:comb]
+{
+    address: address;
+    minter: address;
+}
+
+
 type storage =
 {
     ...
+    series : (nat, serie) big_map;
     next_serie_id: nat;
     ...
 }
+
 ```
 
-The next serie identifier.
+The list of originated series by the artists, note next_serie_id in order to auto increment the keys of the big_map. The value is represented by the serie type that define the address of the originated contract and the address of the originator of this contract (here called minter).
+
+
+## galleries big_map
+
+``` ocaml
+
+type admin = address
+
+type storage =
+{
+    ...
+    galleries : (admin, address) big_map;
+    ...
+}
+
+```
+
+The list of originated galleries by the gallerist, the key of the big_map is the admin of the contract and the value represent the address of the contract, using such structure enable us to prevent administrator from originating multiple contracts.
+
 
 ## Entrypoints
 
 The different entrypoints of the contract are define by:
 
 ``` ocaml
-type art_serie_factory = 
-    |   Admin of admin_factory_entrypoints
+#if SERIE_CONTRACT
+
+type art_factory = 
     |   Create_serie of create_entrypoint
-    |   Accept_admin_invitation of admin_response_param 
+    |   Update_permission_manager of admin_response_param 
+    |   Add_admin of address
+    |   Remove_admin of address
 
+
+#else
+
+type art_factory = 
+    |   Create_gallery of create_entrypoint
+    |   Update_permission_manager of admin_response_param 
+    |   Add_admin of address
+    |   Remove_admin of address
+
+#endif
 ```
-
-### Admin
-
-The `Admin` entrypoints are responsible for pausing the contract (only the minting entrypoint) and updating the manager contract responsible to give or revoke access to minters.
-
-#### admin_entrypoints
-
-``` ocaml
-type admin_factory_entrypoints =
-    |   Add_minter of address
-    |   Remove_minter of address
-    |   Pause_serie_creation of bool
-    |   Send_admin_invitation of admin_invitation_param
-    |   Revoke_admin_invitation of unit
-```
-
-
-##### Add_minter
-
-Entrypoints in order to add minter to the list of authorized minters.
-
-##### Remove_minter
-
-Entrypoints in order to remove minter to the list of authorized minters.
-
-##### Pause_serie_creation
-
-Entrypoints in order to block the origination of new series by the minters.
-
-##### Send_admin_invitation
-
-Entrypoints in order to set a pending_admin to transfer the ownership of the contract.
-
-##### Revoke_admin_invitation
-
-Entrypoints in order to delete a pending_admin.
-
 
 ### Create_serie
 
-The `Create_serie` entrypoints is the one responsible to originate new contracts and can only be access by the the addresses present in the minters big_map.
+This entrypoint is the one responsible to originate the FA2 serie contract located [here](../d-art.fa2-editions/README.md#fa2-editions---originated-from-factory). It should fail if the sender is not an authorized minter by the permission_manager contract. it only takes bytes as param that should be the reference to the ipfs link of the contract metadata (Note: this param can be updated later within the FA2 serie contract)
 
+### Update_permission_manager
 
-### Accept_admin_invitation
+This entrypoint is the one responsible to update the address of the permission manager contract in case a new version is deployed. It should fail if the sender of the transaction is not any of the admins present in the admin map in the storage.
 
-The `Accept_admin_invitation` is responsible to set the new pending admin as admin in case the invitation is accepted or remove the pending admin in case it's declined.
+### Add * Remove admin
+
+These two entrypoints are responsible to add and remove address from the admin map. They should fail if not access using an admin address, it should not be possible to add two times the same admin and not possible to remove an admin if there is only one address in the map.

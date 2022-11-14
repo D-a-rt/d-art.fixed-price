@@ -137,25 +137,37 @@ let get_drop (fa2_base, seller, storage : fa2_base * address * storage) : fixed_
         | None ->  (failwith "TOKEN_IS_NOT_DROPPED" : fixed_price_drop)
 
 // -- Manage admin fees
-let select_fee (fa2_token, price, str : fa2_base * tez * storage) : (unit contract) * tez =
+let select_fee (referrer_pct, fa2_token, price, str : nat * fa2_base * tez * storage) : (unit contract) * tez =
   if Big_map.mem fa2_token str.fa2_sold
-  then resolve_contract (str.fee_secondary.address), calculate_fee (Some (str.fee_secondary.percent), price)
-  else resolve_contract (str.fee_primary.address), calculate_fee (Some (str.fee_primary.percent), price)
+  then resolve_contract (str.fee_secondary.address), calculate_fee (Some (abs(str.fee_secondary.percent - referrer_pct)), price)
+  else resolve_contract (str.fee_primary.address), calculate_fee (Some (abs(str.fee_primary.percent - referrer_pct)), price)
 
 // -- Any kind of sale
-let perform_sale_operation (fa2_token, seller, buyer, price, storage : fa2_base * address * address * tez * storage) : operation list =
+let perform_sale_operation (fa2_token, seller, buyer, referrer, price, storage : fa2_base * address * address * (address option) * tez * storage) : operation list =
 
-    let admin_fee : (unit contract) * tez = select_fee (fa2_token, price, storage) in
+    let admin_fee : (unit contract) * tez = match referrer with Some _ -> select_fee (10n, fa2_token, price, storage) | None -> select_fee (0n, fa2_token, price, storage) in
+    let admin_fee_transfer : operation = Tezos.transaction unit admin_fee.1 admin_fee.0 in
 
     let (royalties_fee, royalties_transfer) : tez * (operation list) = handle_royalties (fa2_token, price) in
     let (commission_fee, commission_royalties_transfer) : tez * (operation list) = if Big_map.mem fa2_token storage.fa2_sold then 0mutez, royalties_transfer else handle_commissions (fa2_token, price, royalties_transfer) in
 
     let seller_contract : unit contract = resolve_contract seller in
-    let seller_tez_amount : tez = sub_tez(price, (admin_fee.1 + royalties_fee + commission_fee)) in
-
-    let admin_fee_transfer : operation = Tezos.transaction unit admin_fee.1 admin_fee.0 in
-    let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
+    
     let buyer_transfer : operation = transfer_token ({ from_ = seller; txs = [{ to_ = buyer; token_id = fa2_token.id; amount = 1n}] }, fa2_token.address) in
 
-    // List of all the performed operation
-    (admin_fee_transfer :: buyer_transfer :: seller_transfer :: commission_royalties_transfer )
+    match referrer with
+        Some ref_add -> (
+          let referrer_fee = calculate_fee ( Some (10n), price) in
+          let referrer_transfer : operation = Tezos.transaction unit referrer_fee (resolve_contract(ref_add)) in
+          
+          let seller_tez_amount : tez = sub_tez(price, (admin_fee.1 + royalties_fee + commission_fee + referrer_fee )) in
+          let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
+          
+          (referrer_transfer :: admin_fee_transfer :: buyer_transfer :: seller_transfer :: commission_royalties_transfer )
+        )
+      |   None -> (
+            let seller_tez_amount : tez = sub_tez(price, (admin_fee.1 + royalties_fee + commission_fee )) in
+            let seller_transfer : operation = Tezos.transaction unit seller_tez_amount seller_contract in
+              
+            (admin_fee_transfer :: buyer_transfer :: seller_transfer :: commission_royalties_transfer)
+          )
