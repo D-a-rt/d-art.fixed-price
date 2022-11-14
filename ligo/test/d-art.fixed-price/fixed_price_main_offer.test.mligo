@@ -4,13 +4,12 @@
 
 // Fail if will be deprecated
 let test_create_offer_will_be_deprecated = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (ContractWillUpdate (true))) 0tez in    
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (Contract_will_update (true))) 0tez in    
 
     let result = Test.transfer_to_contract contract
         (Create_offer ({
@@ -32,10 +31,9 @@ let test_create_offer_will_be_deprecated =
 
 // Fail if offer below 0.1 tez
 let test_create_offer_already_placed = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -59,10 +57,10 @@ let test_create_offer_already_placed =
 
 // Fail if offer already placed
 let test_create_offer_already_placed = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -94,10 +92,9 @@ let test_create_offer_already_placed =
 
 // Success
 let test_create_offer_success = 
-    let add, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let add, t_add, _, _, admin = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let token = {
@@ -113,7 +110,7 @@ let test_create_offer_success =
 
     let new_str = Test.get_storage t_add in
 
-    match Big_map.find_opt (token, init_str.admin.address) new_str.offers with
+    match Big_map.find_opt (token, admin) new_str.offers with
         | None -> failwith "CreateOffer - Success : This test should pass (err: Offer should be saved in the big_map)"
         | Some off -> (
             let contract_bal = Test.get_balance add in
@@ -126,13 +123,12 @@ let test_create_offer_success =
 
 // Fail if will be deprecated
 let test_revoke_offer_no_offer_placed = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (ContractWillUpdate (true))) 0tez in    
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (Contract_will_update (true))) 0tez in    
 
     let result = Test.transfer_to_contract contract
         (Revoke_offer ({
@@ -154,10 +150,9 @@ let test_revoke_offer_no_offer_placed =
 
 // Fail if amount
 let test_revoke_offer_no_amount = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -180,10 +175,10 @@ let test_revoke_offer_no_amount =
 
 // Success
 let test_create_offer_success = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let token = {
@@ -205,7 +200,7 @@ let test_create_offer_success =
 
     let new_str = Test.get_storage t_add in
 
-    match Big_map.find_opt (token, init_str.admin.address) new_str.offers with
+    match Big_map.find_opt (token, admin) new_str.offers with
         | None -> "Passed"
         | Some _ -> failwith "RevokeOffer - Success : This test should pass, offer should be removed from big_map"
     
@@ -215,10 +210,10 @@ let test_create_offer_success =
 
 // Fail if amount
 let test_accept_offer_no_amount = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -227,7 +222,7 @@ let test_accept_offer_no_amount =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             };
-            buyer = init_str.admin.address;
+            buyer = admin;
         } : accept_offer)) 10tez
     in
 
@@ -242,10 +237,10 @@ let test_accept_offer_no_amount =
 
 // Fail if buyer is seller
 let test_accept_offer_buyer_is_seller = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let token = {
@@ -265,7 +260,7 @@ let test_accept_offer_buyer_is_seller =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             };
-            buyer = init_str.admin.address
+            buyer = admin
         } : accept_offer)) 0tez
     in
 
@@ -280,10 +275,10 @@ let test_accept_offer_buyer_is_seller =
 
 // Fail if no offer placed
 let test_accept_no_offer_placed = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let buyer = Test.nth_bootstrap_account 1 in
@@ -308,7 +303,7 @@ let test_accept_no_offer_placed =
 
 // Success
 let test_create_offer_success = 
-    let add, t_add, fa2_add, t_fa2_add = get_fixed_price_contract (false) in 
+    let add, t_add, fa2_add, t_fa2_add, _ = get_fixed_price_contract (false) in 
         
     // Get balance of different actors of the sale to verify 
     // that fees and royalties are sent correctly
@@ -401,7 +396,7 @@ let test_create_offer_success =
 
 // Success Gallery contract 
 let test_create_offer_success_commission = 
-    let _, t_add, gallery, fa2_add, t_fa2_add = get_fixed_price_contract_gallery (false) in 
+    let _, t_add, gallery, fa2_add, t_fa2_add, _ = get_fixed_price_contract_gallery (false) in 
         
     // Get balance of different actors of the sale to verify 
     // that fees and royalties are sent correctly

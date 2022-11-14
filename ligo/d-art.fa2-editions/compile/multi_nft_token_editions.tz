@@ -1,5 +1,5 @@
 { parameter
-    (or (or (or (or %admin (bool %pause_minting) (address %update_minter_manager))
+    (or (or (or (or %admin (bool %pause_minting) (address %update_permission_manager))
                 (pair %burn_token (address %owner) (nat %token_id)))
             (or (or %fA2
                    (or (pair %balance_of
@@ -19,7 +19,7 @@
         (bytes %update_metadata)) ;
   storage
     (pair (pair (pair (pair %admin
-                         (pair (address %admin) (address %minters_manager))
+                         (pair (address %admin) (address %permission_manager))
                          (bool %paused_minting))
                       (big_map %as_minted address unit))
                 (pair (pair %assets

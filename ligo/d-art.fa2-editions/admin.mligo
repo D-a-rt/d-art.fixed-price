@@ -77,17 +77,18 @@ type proposal_param =
 
 type admin_entrypoints =
     |   Pause_minting of bool
-    |   Update_minter_manager of address
-    |   Add_admin of address
-    |   Remove_admin of address
+    |   Update_permission_manager of address
     |   Accept_proposals of proposal_param list
     |   Reject_proposals of proposal_param list
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =
-    if Map.mem (Tezos.get_sender()) storage.admins
-    then unit
-    else failwith "NOT_AN_ADMIN"
+  match ((Tezos.call_view "is_admin" (Tezos.get_sender()) storage.permission_manager ): bool option) with
+    None -> failwith "NOT_AN_ADMIN"
+    | Some is_minter -> 
+      if is_minter
+      then unit
+      else failwith "NOT_AN_ADMIN"
 
 let fail_if_minting_paused (storage : admin_storage) : unit =
     if storage.paused_minting
@@ -95,7 +96,7 @@ let fail_if_minting_paused (storage : admin_storage) : unit =
     else unit
 
 let fail_if_not_minter (storage : admin_storage) : unit =
-    match ((Tezos.call_view "is_minter" (Tezos.get_sender()) storage.minters_manager ): bool option) with
+    match ((Tezos.call_view "is_minter" (Tezos.get_sender()) storage.permission_manager ): bool option) with
         None -> failwith "NOT_A_MINTER"
         | Some is_minter -> 
             if is_minter
@@ -146,18 +147,8 @@ let admin_main(param, storage : admin_entrypoints * editions_storage) : (operati
         |   Pause_minting paused ->
                 (([]: operation list), { storage with admin.paused_minting = paused; })
 
-        |   Update_minter_manager add ->
-                (([] : operation list), { storage with admin.minters_manager = add; })
-
-        |   Add_admin add ->
-            if Map.mem add storage.admin.admins
-            then (failwith "ALREADY_ADMIN" : operation list * editions_storage)
-            else ([] : operation list), { storage with admin.admins = Map.add add unit storage.admin.admins; }
-        
-        |   Remove_admin add ->
-            if Map.size storage.admin.admins > 1n
-            then ([] : operation list), { storage with admin.admins = Map.remove add storage.admin.admins}
-            else (failwith "MINIMUM_1_ADMIN" : operation list * editions_storage)
+        |   Update_permission_manager add ->
+                (([] : operation list), { storage with admin.permission_manager = add; })
 
         |   Accept_proposals proposal_param ->
             accept_proposals (proposal_param, storage)

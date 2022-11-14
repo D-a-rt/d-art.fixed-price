@@ -40,4 +40,26 @@ let test_is_gallery =
     let () = assert_with_error (is_gallery_true = true) "Views - Is gallery : This test should pass, correct gallery specified" in
     let () = assert_with_error (is_not_gallery_false = false) "Views - Is gallery : This test should pass, uncorrect gallery specified" in
     "Passed"
+
+
+// -- Is admin --
+
+let test_is_gallery =
+    let contract_add, _ = PM_STR. get_permission_manager_contract((None : address option), true) in
+    let contract = Test.to_contract contract_add  in
+
+    
+    let admin = Test.nth_bootstrap_account 0 in
+    let not_admin = Test.nth_bootstrap_account 1 in
+
+    let () = Test.set_source admin in
+
+    let strg = Test.get_storage contract_add in
+
+    let is_admin_true = is_admin (admin, strg) in
+    let is_not_admin_false = is_admin (not_admin, strg) in
+
+    let () = assert_with_error (is_admin_true = true) "Views - Is admin : This test should pass, correct admin specified" in
+    let () = assert_with_error (is_not_admin_false = false) "Views - Is admin : This test should pass, uncorrect admin specified" in
+    "Passed"
  

@@ -13,7 +13,7 @@ let test_update_permission_manager_no_amount =
     // Obviously it should be a KT.. address using tz.. one for conveniance
     let new_manager = Test.nth_bootstrap_account 3 in
     
-    let result = Test.transfer_to_contract contract ((Update_permission_manager ({ new_manager = new_manager })) : art_factory) 1tez in
+    let result = Test.transfer_to_contract contract ((Update_permission_manager (new_manager)) : art_factory) 1tez in
 
     match result with
         Success _gas -> failwith "Update_permission_manager - No amount : This test should fail"
@@ -33,7 +33,7 @@ let test_update_permission_manager_not_admin =
     let new_manager = Test.nth_bootstrap_account 3 in
     let () = Test.set_source new_manager in
 
-    let result = Test.transfer_to_contract contract ((Update_permission_manager ({ new_manager = new_manager })) : art_factory) 0tez in
+    let result = Test.transfer_to_contract contract ((Update_permission_manager (new_manager)) : art_factory) 0tez in
 
     match result with
         Success _gas -> failwith "Update_permission_manager - Not admin : This test should fail"

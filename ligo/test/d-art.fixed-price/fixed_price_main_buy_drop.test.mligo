@@ -3,8 +3,7 @@
     
 // Fail if wrong signature
 let test_buy_drop_token_wrong_signature = 
-    let _, contract_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage contract_add in
+    let _, contract_add, _, _, admin = get_fixed_price_contract (false) in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
     let () = Test.set_source no_admin_addr in
@@ -17,8 +16,8 @@ let test_buy_drop_token_wrong_signature =
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
-            seller = init_str.admin.address;
-            buyer = no_admin_addr;
+            seller = admin;
+            referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
@@ -36,8 +35,7 @@ let test_buy_drop_token_wrong_signature =
 
 // Fail if signature already used
 let test_buy_drop_token_signature_already_used =
-    let _, contract_add, _, _ = get_fixed_price_contract (true) in
-    let init_str = Test.get_storage contract_add in
+    let _, contract_add, _, _, admin = get_fixed_price_contract (true) in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
     let () = Test.set_source no_admin_addr in
@@ -50,8 +48,8 @@ let test_buy_drop_token_signature_already_used =
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
-            seller = init_str.admin.address;
-            buyer = no_admin_addr;
+            seller = admin;
+            referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
@@ -69,8 +67,7 @@ let test_buy_drop_token_signature_already_used =
 
 // Fail if wrong price
 let test_buy_drop_token_wrong_price =
-    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage contract_tadd in
+    let _, contract_tadd, edition_contract_add, _, admin = get_fixed_price_contract (false) in
     let contract = Test.to_contract contract_tadd in
     
     let admin_addr = Test.nth_bootstrap_account 0 in
@@ -107,8 +104,8 @@ let test_buy_drop_token_wrong_price =
                 id = 0n;
                 address = (edition_contract_add: address);
             } : fa2_base);
-            seller = init_str.admin.address;
-            buyer = no_admin_addr;
+            seller = admin;
+            referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -126,11 +123,9 @@ let test_buy_drop_token_wrong_price =
 
 // Fail if drop date not met
 let test_buy_drop_token_drop_date_not_met =
-    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
-       
-    let init_str = Test.get_storage contract_tadd in
+    let _, contract_tadd, edition_contract_add, _, admin = get_fixed_price_contract (false) in
     
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     
     let contract = Test.to_contract contract_tadd in
 
@@ -165,8 +160,8 @@ let test_buy_drop_token_drop_date_not_met =
                 id = 0n;
                 address = (edition_contract_add: address);
             } : fa2_base);
-            seller = init_str.admin.address;
-            buyer = no_admin_addr;
+            seller = admin;
+            referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -184,9 +179,7 @@ let test_buy_drop_token_drop_date_not_met =
 
 // Fail if token not in drop
 let test_buy_drop_token_not_dropped =
-    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
-       
-    let init_str = Test.get_storage contract_tadd in
+    let _, contract_tadd, edition_contract_add, _, admin = get_fixed_price_contract (false) in
         
     let contract = Test.to_contract contract_tadd in
 
@@ -199,8 +192,8 @@ let test_buy_drop_token_not_dropped =
                 id = 0n;
                 address = (edition_contract_add: address);
             } : fa2_base);
-            seller = init_str.admin.address;
-            buyer = no_admin_addr;
+            seller = admin;
+            referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);
@@ -218,12 +211,10 @@ let test_buy_drop_token_not_dropped =
 
 // Should fail if buyer is seller
 let test_buy_drop_token_buyer_is_seller =
-    let _, contract_tadd, edition_contract_add, _ = get_fixed_price_contract (false) in
-       
-    let init_str = Test.get_storage contract_tadd in
+    let _, contract_tadd, edition_contract_add, _, admin = get_fixed_price_contract (false) in
     
     let contract = Test.to_contract contract_tadd in
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
 
     let result = Test.transfer_to_contract contract
          (Buy_dropped_token ({
@@ -231,8 +222,8 @@ let test_buy_drop_token_buyer_is_seller =
                 id = 0n;
                 address = (edition_contract_add: address);
             } : fa2_base);
-            seller = init_str.admin.address;
-            buyer = init_str.admin.address;
+            seller = admin;
+            referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
                 message = ("54657374206d6573736167652074657374207269676874" : bytes);

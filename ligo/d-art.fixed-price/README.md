@@ -242,22 +242,22 @@ The `Admin` entrypoints are responsible for updating fees and the `pb_key` respo
 
 ``` ocaml
 type admin_entrypoints =
-    | UpdatePrimaryFee of fee_data
+    | Update_primary_fee of fee_data
     | UpdateSecondaryfee of fee_data
-    | UpdatePublicKey of key
-    | ContractWillUpdate of bool
+    | Update_public_key of key
+    | Contract_will_update of bool
 ```
 
 
-##### UpdatePrimaryFee & UpdateSecondaryFee
+##### Update_primary_fee & Update_secondary_fee
 
 Entrypoints in order to update the address and the percentage of the fee for transactions.
 
-##### UpdatePublicKey
+##### Update_public_key
 
 Entrypoints to update public key for the signature verification.
 
-##### ContractWillUpdate
+##### Contract_will_update
 
 Entrypoint responsible to block access to any seller for the entrypoints `Create_sales` and `Create_drops` in order to empty this contract and update the a newer version (in case a new one or new logic is implemented)
 

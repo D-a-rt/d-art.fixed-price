@@ -4,10 +4,10 @@
 
 // Success
 let test_create_sales =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -48,7 +48,7 @@ let test_create_sales =
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 0n
                     },
-                    init_str.admin.address
+                    admin
                  ) in
                 let () = match Big_map.find_opt first_sale_key new_str.for_sale with
                         Some fixed_price_saved -> (
@@ -65,7 +65,7 @@ let test_create_sales =
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 1n
                     },
-                    init_str.admin.address
+                    admin
                  ) in
                 let () = match Big_map.find_opt second_sale_key new_str.for_sale with
                         Some fixed_price_saved -> (
@@ -84,10 +84,10 @@ let test_create_sales =
 
 // Should fail if amount specified
 let test_create_sales_with_amount =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -124,13 +124,13 @@ let test_create_sales_with_amount =
 
 // Should fail if contract will be deprecated
 let test_create_sales_deprecated = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
     
-    let _gas = Test.transfer_to_contract_exn contract (Admin  (ContractWillUpdate (true))) 0tez in    
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (Contract_will_update (true))) 0tez in    
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
@@ -166,10 +166,10 @@ let test_create_sales_deprecated =
 
 // Should fail if price not met minimum price
 let test_create_sales_price_to_small_first_el =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -206,10 +206,10 @@ let test_create_sales_price_to_small_first_el =
 
 // Should fail if price not met minimum price
 let test_create_sales_price_to_small_third_el =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -253,10 +253,10 @@ let test_create_sales_price_to_small_third_el =
 
 // Should fail if already on sale
 let test_create_sales_already_on_sale_one_call =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     // One call verifying that bulk operation fail
@@ -295,10 +295,10 @@ let test_create_sales_already_on_sale_one_call =
 
 // Should fail if already on sale
 let test_create_sales_already_on_sale_second_call =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -346,10 +346,10 @@ let test_create_sales_already_on_sale_second_call =
     
 // Should fail if specified buyer is seller
 let test_create_sales_buyer_is_seller =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -366,7 +366,7 @@ let test_create_sales_buyer_is_seller =
                     id = 0n 
                 };
             } : sale_info ); ({
-                buyer = Some (init_str.admin.address);
+                buyer = Some (admin);
                 price = 100000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -386,10 +386,10 @@ let test_create_sales_buyer_is_seller =
 
 // Should fail if wrong signature
 let test_create_sales_wrong_signature = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -426,10 +426,10 @@ let test_create_sales_wrong_signature =
 
 // Should fail if signature already used
 let test_create_sales_already_used_signature = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -492,10 +492,10 @@ let test_create_sales_already_used_signature =
 
 // Success
 let test_update_sales = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -559,7 +559,7 @@ let test_update_sales =
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 0n
                     },
-                    init_str.admin.address
+                    admin
                  ) in
                 let () = match Big_map.find_opt first_update_sale_key new_str.for_sale with
                         Some fixed_price_saved -> (
@@ -576,7 +576,7 @@ let test_update_sales =
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 1n
                     },
-                    init_str.admin.address
+                    admin
                  ) in
                 let () = match Big_map.find_opt second_sale_update_key new_str.for_sale with
                         Some fixed_price_saved -> (
@@ -594,10 +594,10 @@ let test_update_sales =
 
 // Should fail if amount specified
 let test_update_sales_amount_specified =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -629,10 +629,10 @@ let test_update_sales_amount_specified =
 
 // Should fail if price does not meet minimum price
 let test_update_sales_to_small_first_el =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -665,10 +665,10 @@ let test_update_sales_to_small_first_el =
 
 // Should fail if price does not meet minimum price
 let test_update_sales_to_small_second_el =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -724,10 +724,10 @@ let test_update_sales_to_small_second_el =
 
 // Should fail if updated buyer is seller
 let test_update_sales_buyer_is_sender = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -756,7 +756,7 @@ let test_update_sales_buyer_is_sender =
 
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
-                buyer = Some (init_str.admin.address);
+                buyer = Some (admin);
                 price = 130000mutez;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -783,10 +783,10 @@ let test_update_sales_buyer_is_sender =
 
 // Should fail if sender is not owner of the sale
 let test_update_sales_not_owner =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -847,10 +847,10 @@ let test_update_sales_not_owner =
 
 // Should fail if sale is not created
 let test_update_sales_not_created =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -884,10 +884,10 @@ let test_update_sales_not_created =
 
 // Success
 let test_revoke_sales = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract
@@ -938,7 +938,7 @@ let test_revoke_sales =
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 0n
                     },
-                    init_str.admin.address
+                    admin
                  ) in
                 let () = match Big_map.find_opt first_deleted_sale_key new_str.for_sale with
                         Some _ -> (failwith "RevokeSale - Success : This test should pass (err: First sale should be deleted)" : unit)
@@ -950,7 +950,7 @@ let test_revoke_sales =
                         address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                         id = 1n
                     },
-                    init_str.admin.address
+                    admin
                  ) in
                 let () = match Big_map.find_opt second_deleted_sale_key new_str.for_sale with
                         Some _ -> (failwith "RevokeSale - Success : This test should pass (err: Second sale should be deleted)" : unit)
@@ -963,10 +963,10 @@ let test_revoke_sales =
 
 // Should fail if amount specified
 let test_revoke_sales_with_amount = 
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let result = Test.transfer_to_contract contract
@@ -993,10 +993,10 @@ let test_revoke_sales_with_amount =
 
 // Should fail if sale is not created
 let test_revoke_sales_not_created =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
    let result = Test.transfer_to_contract contract
@@ -1023,10 +1023,10 @@ let test_revoke_sales_not_created =
 
 // Should fail if sender not owner
 let test_revoke_sales_not_owner =
-    let _, t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage t_add in
+    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+
+    let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
     let _gas = Test.transfer_to_contract_exn contract

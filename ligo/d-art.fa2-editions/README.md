@@ -63,9 +63,9 @@ The second field is `max_edition_per_run` and define the max number of NFTs and 
 #### example:
 
 ```
-  if max_edition_per_run = 250
+  if max_edition_per_run = 50
   edition 0 -> the first token_id will be 0,
-  edition 1 -> the first token_id will be 250
+  edition 1 -> the first token_id will be 50
 ```
 
 ## as_minted
@@ -126,6 +126,8 @@ type split =
 
 ``total_edition_number`` : Number of NFts created in this edition
 
+``license`` : Contain the hash of the ipfs link of the license and the upgradeable boolean
+
 ``royalty`` : Percentage of royalties 150 correspond to 15%
 
 ``splits`` : list of split
@@ -172,7 +174,7 @@ type storage =
 type admin_storage = {
     admin : address;
     paused_minting : bool;
-    minters_manager : address;
+    permission_manager : address;
 }
 
 ```
@@ -181,7 +183,7 @@ type admin_storage = {
 
 ``paused_minting`` : Boolean blocking access to the minting entrypoint
 
-``minters_manager`` : Contract holding the list of minters allowed to mint on this contract (permission-manager contract) - the concern contract should have a `is_minter` view taking as param an address.
+``permission_manager`` : Contract holding the list of minters allowed to mint on this contract (permission-manager contract) - the concern contract should have a `is_minter` view taking as param an address.
 
 ## Entrypoints
 
@@ -212,7 +214,7 @@ The `Admin` entrypoints are responsible for pausing the contract (only the minti
 ``` ocaml
 type admin_entrypoints =
     |   Pause_minting of bool
-    |   Update_minter_manager of address
+    |   Update_permission_manager of address
     |   Add_admin of address
     |   Remove_admin of address
     |   Accept_proposals of proposal_param list

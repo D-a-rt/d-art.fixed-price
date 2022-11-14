@@ -189,8 +189,8 @@ export async function deployEditionContract(): Promise<void> {
 
     // TODO : Add missing views
     const editions_contract_metadata = {
-        name: 'A:RT - Original',
-        description: 'The original serie for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create unique pieces.',
+        name: 'A:RT - Legacy',
+        description: 'The lecgacy contract for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create only one unique piece.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -402,6 +402,7 @@ export async function deployEditionContract(): Promise<void> {
         storage: {
             next_token_id: 0,
             as_minted: MichelsonMap.fromLiteral({}),
+            proposals: MichelsonMap.fromLiteral({}),
             editions_metadata: MichelsonMap.fromLiteral({}),
             max_editions_per_run: 1,
             assets: {
@@ -412,7 +413,7 @@ export async function deployEditionContract(): Promise<void> {
             admin: {
                 admin: process.env.ADMIN_PUBLIC_KEY_HASH,
                 pause_minting: false,
-                minters_manager: "KT1XYpZxVxfKyJBvdHbhFo3nbdNVeF15nkFG",
+                permission_manager: "KT1XYpZxVxfKyJBvdHbhFo3nbdNVeF15nkFG",
             },
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),

@@ -3,7 +3,7 @@
 
 // Success
 let test_create_drops =
-    let _, contract_t_add, fa2_add, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
 
     let token_minter = Test.nth_bootstrap_account 0 in
     let () = Test.set_source token_minter in
@@ -85,11 +85,9 @@ let test_create_drops =
     
 // Should fail if amount specified
 let test_create_drops_with_amount = 
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
-    
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let now : timestamp = Tezos.get_now() in
@@ -133,10 +131,10 @@ let test_create_drops_with_amount =
 
 // Should fail if contract will be deprecated
 let test_create_drops_deprecated = 
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (true, false, false, Tezos.get_now() + 28800) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (true, false, false, Tezos.get_now() + 28800) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let now : timestamp = Tezos.get_now() in
@@ -180,10 +178,10 @@ let test_create_drops_deprecated =
     
 // Should fail if price do not meet minimum price
 let test_create_drops_price_to_small_first_el =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let now : timestamp = Tezos.get_now() in
@@ -227,7 +225,7 @@ let test_create_drops_price_to_small_first_el =
 
 // Should fail if price do not meet minimum price
 let test_create_drops_price_to_small_second_el = 
-    let _, contract_t_add, fa2_add, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
     
     let token_minter = Test.nth_bootstrap_account 0 in
     
@@ -276,7 +274,7 @@ let test_create_drops_price_to_small_second_el =
 
 // Should fail if already in drop
 let test_create_drops_already_in_drop = 
-    let _, contract_t_add, fa2_add, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
     
     let token_minter = Test.nth_bootstrap_account 0 in
     let () = Test.set_source token_minter in
@@ -323,7 +321,7 @@ let test_create_drops_already_in_drop =
 
 // Should fail if already dropped
 let test_create_drops_already_dropped =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, true, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, _, _ , _ = get_fixed_price_contract_drop (false, true, false, Tezos.get_now() + 28800) in
     let token_minter = Test.nth_bootstrap_account 4 in
     let () = Test.set_source token_minter in
     let contract = Test.to_contract contract_t_add in
@@ -360,7 +358,7 @@ let test_create_drops_already_dropped =
 
 // Should fail if wrong signature
 let test_create_drops_wrong_signature = 
-    let _, contract_t_add, fa2_add, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
     
     let token_minter = Test.nth_bootstrap_account 4 in
     let () = Test.set_source token_minter in
@@ -398,7 +396,7 @@ let test_create_drops_wrong_signature =
 
 // Should fail if signature already used
 let test_create_drops_already_used_signature = 
-    let _, contract_t_add, fa2_add, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
     
     let token_minter = Test.nth_bootstrap_account 0 in
     let () = Test.set_source token_minter in
@@ -455,7 +453,7 @@ let test_create_drops_already_used_signature =
 
 // Should fail if wrong drop date
 let test_create_drops_wrong_drop_date = 
-    let _, contract_t_add, fa2_add, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
     
     let token_minter = Test.nth_bootstrap_account 4 in
     let () = Test.set_source token_minter in
@@ -518,7 +516,7 @@ let test_create_drops_wrong_drop_date =
 
 // Should fail if not an authorized drop seller
 let test_create_drops_not_authorized_drop_seller = 
-    let _, contract_t_add, fa2_add, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
+    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
     
     let token_minter = Test.nth_bootstrap_account 4 in
     let () = Test.set_source token_minter in
@@ -559,10 +557,10 @@ let test_create_drops_not_authorized_drop_seller =
 
 // Success before drop date and token removed from dropped big_map
 let test_revoke_drops_before_drop_date =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 28800) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 28800) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let result = Test.transfer_to_contract contract
@@ -588,7 +586,7 @@ let test_revoke_drops_before_drop_date =
                     address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n
                 },
-                init_str.admin.address
+                admin
                 ) in
                 let () = match Big_map.find_opt first_revoke_sale_key new_str.drops with
                         Some _ -> (failwith "Revoke_drops - Success : This test should pass (err: First drop should be deleted)" : unit)
@@ -609,7 +607,7 @@ let test_revoke_drops_before_drop_date =
                     address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 },
-                init_str.admin.address
+                admin
                 ) in
             let () = match Big_map.find_opt second_revoke_sale_key new_str.drops with
                     Some _ -> (failwith "Revoke_drops - Success : This test should pass (err: Second drop should be deleted)" : unit)
@@ -631,10 +629,10 @@ let test_revoke_drops_before_drop_date =
 
 // Success after drop date + 1 day and token stay in dropped big_map
 let test_revoke_drops_after_drope_date =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() - 87800) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() - 87800) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let result = Test.transfer_to_contract contract
@@ -660,7 +658,7 @@ let test_revoke_drops_after_drope_date =
                     address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n
                 },
-                init_str.admin.address
+                admin
                 ) in
                 let () = match Big_map.find_opt first_revoke_sale_key new_str.drops with
                         Some _ -> (failwith "Revoke_drops - Success : This test should pass (err: First drop should be deleted)" : unit)
@@ -681,7 +679,7 @@ let test_revoke_drops_after_drope_date =
                     address = ( "KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 },
-                init_str.admin.address
+                admin
                 ) in
             let () = match Big_map.find_opt second_revoke_sale_key new_str.drops with
                     Some _ -> (failwith "Revoke_drops - Success : This test should pass (err: Second drop should be deleted)" : unit)
@@ -703,10 +701,10 @@ let test_revoke_drops_after_drope_date =
 
 // Should fail if amount specified
 let test_revoke_drops_with_amount =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 22800) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 22800) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let result = Test.transfer_to_contract contract
@@ -733,10 +731,10 @@ let test_revoke_drops_with_amount =
 
 // Should fail if drops not created
 let test_revoke_drops_not_created =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 22800) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 22800) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let result = Test.transfer_to_contract contract
@@ -763,7 +761,7 @@ let test_revoke_drops_not_created =
 
 // Should fail if sender not owner
 let test_revoke_drops_sender_not_owner =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 22800) in
+    let _, contract_t_add, _, _ , _ = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 22800) in
 
     let no_admin_addr = Test.nth_bootstrap_account 1 in
     let () = Test.set_source no_admin_addr in
@@ -793,10 +791,10 @@ let test_revoke_drops_sender_not_owner =
 
 // Should fail if drop_date in less than 6 hours
 let test_revoke_drops_less_than_6_hours_before_drop_date =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 20800) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() + 20800) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let result = Test.transfer_to_contract contract
@@ -823,10 +821,10 @@ let test_revoke_drops_less_than_6_hours_before_drop_date =
 
 // Should fail if drop_date < now < 1 day 
 let test_revoke_drops_between_drop_date_and_one_day =
-    let _, contract_t_add, _, _ = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() - 84400) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _ , admin = get_fixed_price_contract_drop (false, true, true, Tezos.get_now() - 84400) in
+    
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let result = Test.transfer_to_contract contract

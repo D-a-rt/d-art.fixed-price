@@ -1,16 +1,18 @@
 #import "../d-art.fa2-editions/storage.test.mligo" "FA2_STR"
 #import "../d-art.fa2-editions/storage_gallery.test.mligo" "FA2_GALLERY_STR"
+#import "../d-art.permission-manager/storage.test.mligo" "PM_STR"
 
 #include "../../d-art.fixed-price/fixed_price_main.mligo"
 
 let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date : bool * bool * bool * timestamp) = 
- let () = Test.reset_state 10n ([233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez] : tez list) in
+    let () = Test.reset_state 10n ([233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez] : tez list) in
     
     let admin = Test.nth_bootstrap_account 0 in
     let fee_account = Test.nth_bootstrap_account 2 in
-
+    let _, permission_m_add = PM_STR. get_permission_manager_contract((None : address option), false) in
+    
     let admin_str : admin_storage = {
-        address = admin;
+        permission_manager = permission_m_add;
         pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
         signed_message_used = (Big_map.empty : signed_message_used) ;
         contract_will_update = will_update;
@@ -84,7 +86,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
             let t_fa2_add : (FA2_STR.FA2_E.editions_entrypoints, FA2_STR.FA2_E.editions_storage) typed_address = Test.cast_address fa2_add in
 
-            addr, taddr, fa2_add, t_fa2_add
+            addr, taddr, fa2_add, t_fa2_add, admin
 
         )
         else (
@@ -95,7 +97,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
             let t_fa2_add : (FA2_STR.FA2_E.editions_entrypoints, FA2_STR.FA2_E.editions_storage) typed_address = Test.cast_address fa2_add in
 
-            addr, taddr, fa2_add, t_fa2_add
+            addr, taddr, fa2_add, t_fa2_add, admin
 
         )
     )
@@ -109,7 +111,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
             let t_fa2_add : (FA2_STR.FA2_E.editions_entrypoints, FA2_STR.FA2_E.editions_storage) typed_address = Test.cast_address fa2_add in
 
-            addr, taddr, fa2_add, t_fa2_add
+            addr, taddr, fa2_add, t_fa2_add, admin
 
         )
         else (
@@ -119,7 +121,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
             let t_fa2_add : (FA2_STR.FA2_E.editions_entrypoints, FA2_STR.FA2_E.editions_storage) typed_address = Test.cast_address fa2_add in
 
-            addr, taddr, fa2_add, t_fa2_add
+            addr, taddr, fa2_add, t_fa2_add, admin
         )
     )
 
@@ -136,8 +138,10 @@ let get_fixed_price_contract (signature_saved : bool) =
         else  (Big_map.empty : signed_message_used) 
     in
 
+    let _, permission_m_add = PM_STR. get_permission_manager_contract((None : address option), false) in
+    
     let admin_str : admin_storage = {
-        address = admin;
+        permission_manager = permission_m_add;
         pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
         signed_message_used = signed_ms;
         contract_will_update = false;
@@ -172,7 +176,7 @@ let get_fixed_price_contract (signature_saved : bool) =
     let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
     let t_fa2_add : (FA2_STR.FA2_E.editions_entrypoints, FA2_STR.FA2_E.editions_storage) typed_address = Test.cast_address fa2_add in
 
-    addr, taddr, fa2_add, t_fa2_add
+    addr, taddr, fa2_add, t_fa2_add, admin
     
 
 let get_fixed_price_contract_gallery (signature_saved : bool ) =
@@ -188,8 +192,10 @@ let get_fixed_price_contract_gallery (signature_saved : bool ) =
         else  (Big_map.empty : signed_message_used) 
     in
 
+    let _, permission_m_add = PM_STR. get_permission_manager_contract((None : address option), false) in
+
     let admin_str : admin_storage = {
-        address = admin;
+        permission_manager = permission_m_add;
         pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
         signed_message_used = signed_ms;
         contract_will_update = false;
@@ -222,5 +228,5 @@ let get_fixed_price_contract_gallery (signature_saved : bool ) =
     let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
 
     let t_fa2_gallery_add, gallery, fa2_gallery_add, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract_fixed_price (addr) in
-    addr, taddr, gallery, fa2_gallery_add, t_fa2_gallery_add
+    addr, taddr, gallery, fa2_gallery_add, t_fa2_gallery_add, admin
     

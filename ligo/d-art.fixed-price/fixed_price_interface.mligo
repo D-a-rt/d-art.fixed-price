@@ -42,7 +42,7 @@ type signed_message_used = (bytes, unit) big_map
 
 type admin_storage =
 {
-  address : address;
+  permission_manager : address;
   pb_key : key;
   signed_message_used : signed_message_used;
   contract_will_update: bool;

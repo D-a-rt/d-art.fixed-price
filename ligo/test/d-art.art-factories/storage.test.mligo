@@ -9,7 +9,6 @@ let get_serie_factory_contract () =
     let _, contract_add = P_M. get_permission_manager_contract (Some(minter), false) in
     
     let str : S_F.storage = {
-        admin = Test.nth_bootstrap_account 0;
         permission_manager = contract_add;
         series = (Big_map.empty : (nat, S_F.serie) big_map);
         metadata = (Big_map.empty : (string, bytes) big_map);
@@ -27,7 +26,6 @@ let get_gallery_factory_contract () =
     let _, contract_add = P_M. get_permission_manager_contract (Some(minter), false) in
     
     let str : G_F.storage = {
-        admin = Test.nth_bootstrap_account 0;
         permission_manager = contract_add;
         galleries = (Big_map.empty : (G_F.admin, address) big_map);
         metadata = (Big_map.empty : (string, bytes) big_map);

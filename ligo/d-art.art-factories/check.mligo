@@ -32,6 +32,9 @@ let fail_if_not_minter (storage : storage) : unit =
 #endif
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : storage) : unit =
-  if Map.mem (Tezos.get_sender()) storage.admins
-  then failwith "NOT_AN_ADMIN"
-  else unit
+  match ((Tezos.call_view "is_admin" (Tezos.get_sender()) storage.permission_manager ): bool option) with
+    None -> failwith "NOT_AN_ADMIN"
+    | Some is_minter -> 
+      if is_minter
+      then unit
+      else failwith "NOT_AN_ADMIN"

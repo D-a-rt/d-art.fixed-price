@@ -57,50 +57,50 @@ let test_pause_minting =
 // -- Update minter manager -
 
 // Fail not admin
-let test_update_minter_manager_not_admin =
+let test_update_permission_manager_not_admin =
     let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
 
-    let result = Test.transfer_to_contract contract ((Admin ((Update_minter_manager ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address) : FA2_STR.FA2_E.admin_entrypoints))) : editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin ((Update_permission_manager ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address) : FA2_STR.FA2_E.admin_entrypoints))) : editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin -> Update_minter_manager - Not admin : This test should fail"
+        Success _gas -> failwith "Admin -> Update_permission_manager - Not admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Update_minter_manager - Not admin : Should not work if sender not admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Update_permission_manager - Not admin : Should not work if sender not admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // Fail no amount
-let test_update_minter_manager_not_admin =
+let test_update_permission_manager_no_amount =
     let contract_add, _, owner1, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source owner1 in
 
-    let result = Test.transfer_to_contract contract ((Admin ((Update_minter_manager ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address) : FA2_STR.FA2_E.admin_entrypoints))) : editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract ((Admin ((Update_permission_manager ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address) : FA2_STR.FA2_E.admin_entrypoints))) : editions_entrypoints) 1tez in
 
     match result with
         Success _gas -> failwith "Admin -> Pause_minting - No amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Update_minter_manager - No amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Update_permission_manager - No amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // Success
-let test_update_minter_manager =
+let test_update_permission_manager =
     let contract_add, admin, _, _ = FA2_STR.get_fa2_editions_contract(false) in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source admin in
 
-    let _gas = Test.transfer_to_contract_exn contract ((Admin ((Update_minter_manager ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address) : FA2_STR.FA2_E.admin_entrypoints))) : editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract ((Admin ((Update_permission_manager ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address) : FA2_STR.FA2_E.admin_entrypoints))) : editions_entrypoints) 0tez in
 
     let new_str = Test.get_storage contract_add in
-    let () = assert_with_error (new_str.admin.minters_manager = ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address)) "Admin -> Update_minter_manager - Success : This test should pass :  Wrong minters_manager" in
+    let () = assert_with_error (new_str.admin.permission_manager = ("KT1FxpxCvERyYhhwisypGgfUSU3EkGf8XVen" : address)) "Admin -> Update_permission_manager - Success : This test should pass :  Wrong permission_manager" in
     "Passed"
 
 // -- FA2 editions version originated from Serie factory contract
@@ -125,7 +125,7 @@ let test_serie_factory_originated_revoke_minting_not_admin =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Fail no amount
-let test_serie_factory_originated_revoke_minting_not_admin =
+let test_serie_factory_originated_revoke_minting_no_amount =
     let contract_add, _, owner1, _ = FA2_SERIE_STR.get_fa2_editions_serie_contract(false) in
     let contract = Test.to_contract contract_add in
 
@@ -640,150 +640,6 @@ let test_gallery_factory_originated_remove_admin_success =
     |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
     
-
-// -- Add_admin --
-
-// fail no amount
-let test_edition_add_admin_no_amount = 
-    let contract_add, _, owner1, minter = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source minter in
-    
-    let result = Test.transfer_to_contract contract ((Admin (Add_admin (owner1) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 1tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> Add_admin - no amount : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Add_admin - no amount : Should not work if amount specified" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"
-    
-// fail not an admin
-let test_edition_add_admin_not_admin = 
-    let contract_add, _, _, minter = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source minter in
-    let result = Test.transfer_to_contract contract ((Admin (Add_admin (minter) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 0tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> Add_admin - not an admin : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Add_admin - not an admin : Should not work if amount specified" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"
-
-// Fail already admin
-let test_edition_add_admin_already_admin = 
-    let contract_add, admin, _, _ = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source admin in
-    let result = Test.transfer_to_contract contract ((Admin (Add_admin (admin) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 0tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> Add_admin - already admin : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ADMIN") ) "Admin -> Add_admin - already admin : Should not work if already an admin" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"
-    
-// Success
-let test_edition_add_admin_success = 
-    let contract_add, admin, _, minter = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source admin in
-    
-    let result = Test.transfer_to_contract contract ((Admin (Add_admin (minter) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 0tez in
-
-    match result with
-        Success _gas -> (
-            let strg = Test.get_storage contract_add in
-            match Map.find_opt minter strg.admin.admins with
-                    Some _ -> "Passed"
-                |   None -> failwith "Admin -> Add_admin - Success : This test should pass (new admin should be added to map)"
-               
-        )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin -> Add_admin - Success : This test should pass"
-    |   Fail _ -> failwith "Internal test failure"
-    
-// -- Remove_admin --
-
-// fail no amount
-let test_edition_remove_admin_no_amount = 
-    let contract_add, admin, _, minter = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source admin in
-    
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (minter) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 1tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> Remove_admin - no amount : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Remove_admin - no amount : Should not work if amount specified" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"
-
-// fail not admin
-let test_edition_remove_admin_not_admin = 
-    let contract_add, admin, _, minter = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source minter in
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (admin) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 0tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> Remove_admin - not an admin : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Remove_admin - not an admin : Should not work if amount specified" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"
-
-// fail one admin left
-let test_edition_remove_admin_one_left = 
-    let contract_add, admin, _, _ = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source admin in
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (admin) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 0tez in
-
-    match result with
-        Success _gas -> failwith "Admin -> Remove_admin - one admin left : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "MINIMUM_1_ADMIN") ) "Admin -> Remove_admin - one admin left : Should not work if amount specified" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"
-
-// success
-let test_edition_remove_admin_success = 
-    let contract_add, admin, _, minter = FA2_STR.get_fa2_editions_contract(false) in
-    let contract = Test.to_contract contract_add in
-
-    let () = Test.set_source admin in
-
-    let _gas = Test.transfer_to_contract_exn contract ((Admin (Add_admin (minter) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 0tez in
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (minter) : FA2_STR.FA2_E.admin_entrypoints)): editions_entrypoints) 0tez in
-
-    match result with
-        Success _gas -> (
-            let strg = Test.get_storage contract_add in
-            match Map.find_opt minter strg.admin.admins with
-                    Some _ -> failwith "Admin -> Remove_admin - Success : This test should pass (new admin should be removed from map)"
-                |   None ->  "Passed"
-               
-        )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin -> Remove_admin - Success : This test should pass"
-    |   Fail _ -> failwith "Internal test failure"
-
 // -- Accept proposal --
 
 // no amount

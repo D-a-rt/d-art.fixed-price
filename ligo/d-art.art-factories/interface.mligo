@@ -5,12 +5,6 @@ type create_entrypoint =
     metadata: bytes;
 }
 
-type update_manager_entrypoint =
-[@layout:comb]
-{
-    new_manager: address;
-}
-
 // Storage
 type serie = 
 [@layout:comb]
@@ -25,7 +19,6 @@ type admin = address
 
 type storage =
 {
-    admin: (address, unit);
     permission_manager: address;
     galleries : (admin, address) big_map;
     metadata: (string, bytes) big_map;
@@ -35,7 +28,6 @@ type storage =
 
 type storage =
 {
-    admin: (address, unit);
     permission_manager: address;
     series : (nat, serie) big_map;
     metadata: (string, bytes) big_map;

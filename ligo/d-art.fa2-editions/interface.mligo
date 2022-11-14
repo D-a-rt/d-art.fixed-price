@@ -192,9 +192,8 @@ type admin_storage = {
 #else
 
 type admin_storage = {
-    admins : (address, unit) map;
     paused_minting : bool;
-    minters_manager : address;
+    permission_manager : address;
 }
 
 #endif

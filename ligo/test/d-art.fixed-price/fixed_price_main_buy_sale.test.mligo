@@ -6,10 +6,9 @@
 
 // Fail if buyer is seller
 let test_buy_fixed_price_token_seller_buyer =
-    let _, contract_t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _, admin = get_fixed_price_contract (false) in
 
-    let () = Test.set_source init_str.admin.address in
+    let () = Test.set_source admin in
     let contract = Test.to_contract contract_t_add in
 
     let result = Test.transfer_to_contract contract
@@ -18,7 +17,7 @@ let test_buy_fixed_price_token_seller_buyer =
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
-            seller = init_str.admin.address;
+            seller = admin;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -37,8 +36,7 @@ let test_buy_fixed_price_token_seller_buyer =
 
 // Fail if wrong signature
 let test_buy_fixed_price_token_wrong_signature =
-    let _, contract_t_add, _, _ = get_fixed_price_contract (false) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _, admin = get_fixed_price_contract (false) in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
     let () = Test.set_source no_admin_addr in
@@ -51,7 +49,7 @@ let test_buy_fixed_price_token_wrong_signature =
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
-            seller = init_str.admin.address;
+            seller = admin;
             
             referrer = (None : address option);
             authorization_signature = ({
@@ -71,8 +69,7 @@ let test_buy_fixed_price_token_wrong_signature =
 
 // Fail if signature already used
 let test_buy_fixed_price_token_signature_already_used =
-    let _, contract_t_add, _, _ = get_fixed_price_contract (true) in
-    let init_str = Test.get_storage contract_t_add in
+    let _, contract_t_add, _, _, admin = get_fixed_price_contract (true) in
     
     let no_admin_addr = Test.nth_bootstrap_account 1 in
     let () = Test.set_source no_admin_addr in
@@ -85,7 +82,7 @@ let test_buy_fixed_price_token_signature_already_used =
                 id = 0n;
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
-            seller = init_str.admin.address;
+            seller = admin;
             
             referrer = (None : address option);
             authorization_signature = ({
@@ -105,8 +102,7 @@ let test_buy_fixed_price_token_signature_already_used =
 
 // Fail if wrong price specified
 let test_buy_fixed_price_token_wrong_price = 
-    let _, t_add,  fa2_add, _ = get_fixed_price_contract (false) in 
-    let init_str = Test.get_storage t_add in
+    let _, t_add,  fa2_add, _, admin = get_fixed_price_contract (false) in 
     
     let admin_addr = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin_addr in
@@ -139,8 +135,7 @@ let test_buy_fixed_price_token_wrong_price =
                 id = 0n;
                 address = (fa2_add: address);
             } : fa2_base);
-            seller = init_str.admin.address;
-            
+            seller = admin;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -159,9 +154,7 @@ let test_buy_fixed_price_token_wrong_price =
 
 // Fail if not buyer
 let test_buy_fixed_price_token_not_buyer =
-    let _, t_add,  fa2_add, _ = get_fixed_price_contract (false) in 
-
-    let init_str = Test.get_storage t_add in
+    let _, t_add,  fa2_add, _, admin = get_fixed_price_contract (false) in 
 
     let admin_addr = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin_addr in
@@ -194,7 +187,7 @@ let test_buy_fixed_price_token_not_buyer =
                 id = 0n;
                 address = (fa2_add : address);
             } : fa2_base);
-            seller = init_str.admin.address;
+            seller = admin;
             
             referrer = (None : address option);
             authorization_signature = ({
@@ -216,9 +209,7 @@ let test_buy_fixed_price_token_not_buyer =
 
 // Success - verify fa2 transfer, fee & royalties
 let test_buy_fixed_price_token_success =
-    let _, t_add,  fa2_add, t_fa2_add = get_fixed_price_contract (false) in 
-    
-    let init_str = Test.get_storage t_add in
+    let _, t_add,  fa2_add, t_fa2_add, admin = get_fixed_price_contract (false) in 
     
     let token_seller = Test.nth_bootstrap_account 3 in
     let () = Test.set_source token_seller in
@@ -265,7 +256,6 @@ let test_buy_fixed_price_token_success =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = token_seller;
-            
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -293,7 +283,7 @@ let test_buy_fixed_price_token_success =
                     address = (fa2_add : address);
                     id = 0n
                 },
-                init_str.admin.address
+                admin
             ) in
             let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
                     Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
@@ -345,9 +335,7 @@ let test_buy_fixed_price_token_success =
 
 // Success - verify fa2 gallery transfer, fee & royalties
 let test_buy_fixed_price_token_success_commission =
-    let _, t_add, gallery, fa2_add, t_fa2_add = get_fixed_price_contract_gallery (false) in 
-    
-    let init_str = Test.get_storage t_add in
+    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false) in 
     
     let contract = Test.to_contract t_add in
 
@@ -422,7 +410,7 @@ let test_buy_fixed_price_token_success_commission =
                     address = (fa2_add : address);
                     id = 0n
                 },
-                init_str.admin.address
+                admin
             ) in
             let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
                     Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
@@ -471,9 +459,7 @@ let test_buy_fixed_price_token_success_commission =
     |   Fail _err -> failwith "Internal test failure"        
 
 let test_buy_fixed_price_token_success_secondary = 
-    let _, t_add,  fa2_add, t_fa2_add = get_fixed_price_contract (false) in 
-    
-    let init_str = Test.get_storage t_add in
+    let _, t_add,  fa2_add, t_fa2_add, admin = get_fixed_price_contract (false) in 
     
     let token_seller = Test.nth_bootstrap_account 3 in
     let () = Test.set_source token_seller in
@@ -584,7 +570,7 @@ let test_buy_fixed_price_token_success_secondary =
                     address = (fa2_add : address);
                     id = 0n
                 },
-                init_str.admin.address
+                admin
             ) in
             let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
                     Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
@@ -637,9 +623,7 @@ let test_buy_fixed_price_token_success_secondary =
 
 // Fail if seller not owner of token or token not in sale (same case)
 let test_buy_fixed_price_token_fail_if_wrong_seller =
-    let _, t_add,  fa2_add, _ = get_fixed_price_contract (false) in 
-
-    let init_str = Test.get_storage t_add in
+    let _, t_add,  fa2_add, _, admin = get_fixed_price_contract (false) in 
     
     let token_seller = Test.nth_bootstrap_account 3 in
     let () = Test.set_source token_seller in
@@ -655,7 +639,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
                 id = 0n;
                 address = (fa2_add : address);
             } : fa2_base);
-            seller = init_str.admin.address;
+            seller = admin;
             
             referrer = (None : address option);
             authorization_signature = ({
@@ -675,9 +659,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
 
 
 let test_buy_fixed_price_token_success_secondary_commission = 
-    let _, t_add, gallery, fa2_add, t_fa2_add = get_fixed_price_contract_gallery (false) in 
-    
-    let init_str = Test.get_storage t_add in
+    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false) in 
     
     let token_minter = Test.nth_bootstrap_account 3 in
     let () = Test.set_source token_minter in
@@ -791,7 +773,7 @@ let test_buy_fixed_price_token_success_secondary_commission =
                     address = (fa2_add : address);
                     id = 0n
                 },
-                init_str.admin.address
+                admin
             ) in
             let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
                     Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
@@ -850,9 +832,7 @@ let test_buy_fixed_price_token_success_secondary_commission =
 
 // Fail if seller not owner of token or token not in sale (same case)
 let test_buy_fixed_price_token_fail_if_wrong_seller =
-    let _, t_add,  fa2_add, _ = get_fixed_price_contract (false) in 
-
-    let init_str = Test.get_storage t_add in
+    let _, t_add,  fa2_add, _, admin = get_fixed_price_contract (false) in 
     
     let token_seller = Test.nth_bootstrap_account 3 in
     let () = Test.set_source token_seller in
@@ -868,7 +848,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
                 id = 0n;
                 address = (fa2_add : address);
             } : fa2_base);
-            seller = init_str.admin.address;
+            seller = admin;
             
             referrer = (None : address option);
             authorization_signature = ({
@@ -889,9 +869,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
 
 // Success - verify fa2 gallery transfer, fee & royalties, and referrer
 let test_buy_fixed_price_token_success_commission_referrer =
-    let _, t_add, gallery, fa2_add, t_fa2_add = get_fixed_price_contract_gallery (false) in 
-    
-    let init_str = Test.get_storage t_add in
+    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false) in 
     
     let contract = Test.to_contract t_add in
 
@@ -969,7 +947,7 @@ let test_buy_fixed_price_token_success_commission_referrer =
                     address = (fa2_add : address);
                     id = 0n
                 },
-                init_str.admin.address
+                admin
             ) in
             let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
                     Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)

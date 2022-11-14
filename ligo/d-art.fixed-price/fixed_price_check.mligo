@@ -2,9 +2,12 @@
 // -- Admin check
 
 let fail_if_not_admin (storage : admin_storage) : unit =
-  if Tezos.get_sender() <> storage.address
-  then failwith "NOT_AN_ADMIN"
-  else unit
+  match ((Tezos.call_view "is_admin" (Tezos.get_sender()) storage.permission_manager ): bool option) with
+    None -> failwith "NOT_AN_ADMIN"
+    | Some is_minter -> 
+      if is_minter
+      then unit
+      else failwith "NOT_AN_ADMIN"
 
 // -- Fixed price drops checks
 

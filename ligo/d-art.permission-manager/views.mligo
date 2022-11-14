@@ -11,3 +11,9 @@ let is_gallery (add, storage : address * storage) : bool =
     match (Big_map.find_opt add storage.galleries ) with
             Some _ -> True
         |   None -> False
+
+[@view]
+let is_admin (add, storage : address * storage) : bool =
+    if add = storage.admin_str.admin
+    then True
+    else False

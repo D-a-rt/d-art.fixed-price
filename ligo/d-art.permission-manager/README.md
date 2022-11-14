@@ -7,18 +7,24 @@ The permission manager is responsible to hold the addresses that will have acces
 This section is responsible to list and explain the storage of the contract.
 
 ```ocaml
+type admin_storage = 
+{
+    admin: address;
+    pending_admin: address option;
+}
+
 type storage =
 {
-    admins: (address, unit) map;
+    admin: admin_storage;
     minters: (address, unit) big_map;
     galleries: (address, unit) big_map;
     metadata: (string, bytes) big_map;
 }
 ```
 
-### admins 
+### admin
 
-The map containing all the admin of the contract, each address of this map has the same rights over the contract.
+admin storage containing current admin and pending one in case we will change
 
 ### minters
 
@@ -37,13 +43,18 @@ The metadata of the deployed contract.
 The different entrypoint of the contract are defined by:
 
 ```ocaml
-type art_permission_manager = 
+type admin_factory_entrypoints =
     |   Add_minter of address
     |   Remove_minter of address
     |   Add_gallery of address
     |   Remove_gallery of address
-    |   Add_admin of address
-    |   Remove_admin of address
+    |   Send_admin_invitation of admin_invitation_param
+    |   Revoke_admin_invitation of unit
+
+type art_permission_manager = 
+    |   Admin of admin_factory_entrypoints
+    |   Accept_admin_invitation of admin_response_param
+
 ```
 
 ### Add & Remove minter
@@ -54,9 +65,17 @@ These two entrypoints are responsible to manage the minters, they should fail if
 
 These two entrypoints are responsible to manage the galleries, they should fail if amount is sent to the contract, if it sis called by a non admin address or if gallery already registered in the big_map, otherwise should pass.
 
-### Add & Remove admin
+### Send_admin_invitation
 
-These two entrypoints are responsible to add and remove address from the admin map. They should fail if not access using an admin address, it should not be possible to add two times the same admin and not possible to remove an admin if there is only one address in the map.
+Entrypoints in order to replace the pending_admin in the admin storage
+
+### Revoke_admin_invitation
+
+Entrypoints in order to remove the pending_admin in the admin storage
+
+### Accept_admin_invitation
+
+Entrypoints only accessible to the pending admin in order to accept invitation
 
 ## Views
 

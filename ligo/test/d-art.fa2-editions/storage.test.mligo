@@ -7,15 +7,15 @@ let get_fa2_editions_contract (pm : bool) : ( ((FA2_E.editions_entrypoints, FA2_
     let () = Test.reset_state 8n ([]: tez list) in
     
     // Admin storage
-    let admin = Test.nth_bootstrap_account 0 in
  
     let minter = Test.nth_bootstrap_account 7 in
     let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (minter), false) in
+    // Admin from permission manager
+    let admin = Test.nth_bootstrap_account 0 in
 
     let admin_str : FA2_E.admin_storage = {
-        admins = Map.literal([(admin, ());]);
         paused_minting = pm;
-        minters_manager = pm_contract_addr;
+        permission_manager = pm_contract_addr;
     } in
 
     // Assets storage
@@ -93,9 +93,8 @@ let get_edition_fa2_contract_fixed_price (fixed_price_contract : address) =
     let _, pm_contract_addr = PM_S.get_permission_manager_contract (Some (token_minter), false) in
 
     let admin_strg : FA2_E.admin_storage = {
-        admins = Map.literal([(admin, ());]);
         paused_minting = false;
-        minters_manager = pm_contract_addr;
+        permission_manager = pm_contract_addr;
     } in
 
     let asset_strg : FA2_E.nft_token_storage = {
