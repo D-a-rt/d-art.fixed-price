@@ -80,8 +80,8 @@ type admin_entrypoints =
     |   Update_minter_manager of address
     |   Add_admin of address
     |   Remove_admin of address
-    |   Accept_proposals of proposal_param list // done (need test function)
-    |   Reject_proposals of proposal_param list // done (need test function)
+    |   Accept_proposals of proposal_param list
+    |   Reject_proposals of proposal_param list
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =

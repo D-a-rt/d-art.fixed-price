@@ -1,41 +1,29 @@
 
 # FA2 Editions contract 
 
-The contract is in the directory ligo/d-art.fa2-editions and the corresponding test in ligo/test/d-art.fa2-editions.
+The contracts are in the directory ligo/d-art.fa2-editions and the corresponding test in ligo/test/d-art.fa2-editions.
 
-The Editions variant of FA2 allows for the minting and distribution of many editions of an NFT that share the same metadata, but with unique identifiers (token_ids). The design of this contract also allows for the minting of many editions runs in O(n) (where n is the number of editions runs minted) and concurrent distribution of editions across multiple creators. 
+The Editions variant of FA2 allows for the minting and distribution of many editions of an NFT that share the same metadata, but with unique identifiers (token_ids). The design of these contracts also allows for the minting of many editions runs in O(n) (where n is the number of editions runs minted) and concurrent distribution of editions across multiple creators. 
 
-This contract has been extended using the TQTezos Editions variant of the FA2 https://github.com/tqtezos/minter-sdk/tree/main/packages/minter-contracts/ligo/src/minter_collection/editions
+This contract has been extended, using the TQTezos Editions variant of the FA2 https://github.com/tqtezos/minter-sdk/tree/main/packages/minter-contracts/ligo/src/minter_collection/editions
 
-### Modification brought to the contract:
 
-- Remove pause entrypoint 
 
-`We removed this entrypoint to prevent admin from being able to freeze transfering tokens within the contract`
+### This repo holds three variants of the fa2-editions contract:
+```
+-   Legacy D a:rt contract (where authorized minter of the system will be able to mint only one token as a one-off)
+-   Serie contract (the fa2-editions version that minters will be able to originate using the serie-factory contract and be admin on)
+-   Gallery contract (the variant enabling administrators to manage their own artists and perform pre-minting for them)
+```
 
-- Add Pause minting entrypoint
 
-`The addition of this feature is to be able to terminate the minting on this contract after a period of time (As it will be our original contract we would like to have a limited number of editions on it)`
-
-- Add Update minters manager
-
-`This is an additional feature in order to update the contract responsible to hold the permissions for who can mint or not on the fa2 contract`
-
-- Removed Create and distribute editions (replaced with a mint)
-
-- Added Burn token entrypoint
-
-- Added royalties & split as well as views corresponding to it 
-
-- Added `SERIE_CONTRACT` variable in the ligo code in order to change the structure of the contract in case it's originated from the serie-factory one or originated as is.
-
-# FA2 editions - Original D a:rt serie
+# FA2 editions - Legacy D a:rt gallery
 
 SERIE_CONTRACT is NOT defined here
 
 ## Storage definition
 
-This section is responsible to list and explain the storage of the fa2-editions contract.
+This section is responsible to list and explain the storage of the legacy version of the fa2-editions contract.
 
 
 ``` ocaml
@@ -44,6 +32,8 @@ type editions_storage =
 {
     next_edition_id : nat;
     max_editions_per_run : nat;
+    as_minted: (address, unit) big_map;
+    proposals: (nat, proposal_metadata) big_map;
     editions_metadata : editions_metadata;
     assets : nft_token_storage;
     admin : admin_storage;
@@ -78,6 +68,14 @@ The second field is `max_edition_per_run` and define the max number of NFTs and 
   edition 1 -> the first token_id will be 250
 ```
 
+## as_minted
+
+Big_map referencing the minter that already minted on the contract in order to prevent them to mint again.
+
+## proposals
+
+Big_map referencing the proposals of the artworks from the artists (The goal here is to make sure that token are well parametrized as it won't be possible to burn and remint token in case of problems, we want to make sure that the process is smooth )
+
 ## editions_metadata
 
 
@@ -92,12 +90,20 @@ type storage =
 
 type editions_metadata = (nat, edition_metadata) big_map
 
+type license =
+[@layout:comb]
+{
+    upgradeable : bool;
+    hash : bytes;
+}
+
 type edition_metadata =
 [@layout:comb]
 {
     minter : address;
     edition_info: (string, bytes) map;
     total_edition_number: nat;
+    license : license;
     royalty: nat;
     splits: split list;
 }
@@ -175,7 +181,7 @@ type admin_storage = {
 
 ``paused_minting`` : Boolean blocking access to the minting entrypoint
 
-``minters_manager`` : Contract holding the list of minters allowed to mint on this contract (serie-factory contract) - the concern contract should have a `is_minter` view taking as param an address.
+``minters_manager`` : Contract holding the list of minters allowed to mint on this contract (permission-manager contract) - the concern contract should have a `is_minter` view taking as param an address.
 
 ## Entrypoints
 
@@ -185,8 +191,15 @@ The different entrypoints of the contract are define by:
 type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
-    |   Mint_editions of mint_edition_param list
-    |   Burn_token of token_id
+    |   Update_metadata of bytes
+    |   Burn_token of burn_param
+
+    |   Create_proposal of mint_edition_param
+    |   Update_proposal of update_mint_edition_param
+    |   Remove_proposal of proposal_param
+    
+    |   Mint_editions of proposal_param
+    |   Upgrade_license of license_param
 
 ```
 
@@ -200,17 +213,28 @@ The `Admin` entrypoints are responsible for pausing the contract (only the minti
 type admin_entrypoints =
     |   Pause_minting of bool
     |   Update_minter_manager of address
+    |   Add_admin of address
+    |   Remove_admin of address
+    |   Accept_proposals of proposal_param list
+    |   Reject_proposals of proposal_param list
 ```
 
 
-##### Pause_minting
+#### Pause_minting
 
 Entrypoints in order to pause minting for everyone.
 
-##### Update_minter_manage
+#### Update_minter_manage
 
 Entrypoints in order to update the contract holding the minters permission (made it updatable as this contract my be changed over time).
 
+#### Add & Remove admin
+
+Entrypoints in order to add admin to the admins map
+
+#### Accept & Reject proposals
+
+entrypoint that will add a accepted flag to true of the proposal in order to let the minter mint the so called proposal.
 
 ### FA2
 
@@ -227,7 +251,11 @@ type fa2_entry_points =
 
 ### Mint_editions
 
-The `Mint_editions` entrypoint is responsible to mint several editions at the time.
+The `Mint_editions` entrypoint is responsible to mint an accepted proposal.
+
+### Upgrade_license
+
+The `Upgrade_license` entrypoint is responsible to update the license attached to the nft at anytime by the minter of the token (the person holding the copyright for it).
 
 ### Burn_token
 
@@ -235,7 +263,7 @@ The `Burn_token` entrypoint will remove token from the ledger big_map. and is on
 
 
 
-# FA2 editions - Originated from factory
+# FA2 editions - Originated from serie factory
 
 SERIE_CONTRACT is defined here
 
@@ -279,9 +307,9 @@ The second field is `max_edition_per_run` and define the max number of NFTs and 
 #### example:
 
 ```
-  if max_edition_per_run = 250
+  if max_edition_per_run = 50
   edition 0 -> the first token_id will be 0,
-  edition 1 -> the first token_id will be 250
+  edition 1 -> the first token_id will be 50
 ```
 
 ## editions_metadata
@@ -298,15 +326,22 @@ type storage =
 
 type editions_metadata = (nat, edition_metadata) big_map
 
+type license =
+[@layout:comb]
+{
+    upgradeable : bool;
+    hash : bytes;
+}
+
 type edition_metadata =
 [@layout:comb]
 {
     edition_info: (string, bytes) map;
     total_edition_number: nat;
+    license : license;
     royalty: nat;
     splits: split list;
 }
-
 
 type split =
 [@layout:comb]
@@ -377,7 +412,7 @@ type admin_storage = {
 
 ``admin`` : The admin address
 
-``revoke_minting`` : If set to true the contract will be blocked for ever and the serie will be terminated
+``revoke_minting`` : If set to true the contract will be blocked for ever and the serie will be sealed
 
 
 
@@ -390,6 +425,8 @@ type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
     |   Mint_editions of mint_edition_param list
+    |   Upgrade_license of license_param
+    |   Update_metadata of bytes
     |   Burn_token of token_id
 
 ```
@@ -427,6 +464,12 @@ type fa2_entry_points =
 ### Mint_editions
 
 The `Mint_editions` entrypoint is responsible to mint several editions at the time and only accessible by the admin of the contract if the minting is not revoked.
+
+
+### Upgrade_license
+
+The `Upgrade_license` entrypoint is responsible to update the license attached to the nft at anytime by the minter of the token (the person holding the copyright for it).
+
 
 ### Burn_token
 

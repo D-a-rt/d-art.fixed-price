@@ -8,12 +8,18 @@ The purpose of this contract is to handle the sale of FA2 NFTs (not multi-asset 
 - Create private fix price sales (sell to a specfic address)
 - Updates fixed price sales (either price or buyer - address to sell the nft to)
 - Revoke fixed price sales
-- Create drops similat to a fixed price sale (Except that drop date will be specified - and the token won't be able to purchased before this drop date. A drop can be revoked only 6 hours before the drop date or 24h after it has been dropped)
+
+- Create drops similar to a fixed price sale (Except that drop date will be specified - and the token won't be able to be purchased before this drop date. A drop can be revoked only 6 hours before the drop date or 24h after it has been dropped)
 - Revoke drop (Restricition specified above)
+
+- Create offer
+- Revoke offer
+- Accept offer
+
 - Buy a fixed price token (Royalties automatically handled on chain)
 - Buy a fixed price drop (Royalties automatically handled on chain)
 
-Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform)
+Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform, on top of it will help with the referrer system)
 
 ## Storage definition
 
@@ -32,6 +38,7 @@ type storage =
     fa2_dropped: (fa2_base, unit) big_map;
     fee_primary: fee_data;
     fee_secondary: fee_data;
+    metadata : (string, bytes) big_map;
 }
 ```
 
@@ -68,7 +75,7 @@ type authorization_signature = {
 
 ``pb_key`` : Public key responsible to check the authorization_signature sent in order to protect the entrypoint.
 
-``signed_message_used`` : Big_map of all the signed messages already used by users to prevent the smart kids from using used one. ^^
+``signed_message_used`` : Big_map of all the signed messages already used by users to prevent the smart kids from using used one.
 
 ``contract_will_update`` : Boolean that will block access to the creates entrypoints. The idea behind it is to leave the ability to empty contract storage and slowly move sales to a new version of the contract.
 
@@ -347,6 +354,7 @@ type revoke_drops_param =
 ```
 
 All the needed field to configure a `drop`. The entrypoints only contains record already defined previously.
+
 
 ### Buy_fixed_price_token && Buy_dropped_token
 

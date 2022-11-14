@@ -23,7 +23,9 @@ $ npm install -g
 
 The different available commands are:
 
-Available contract title: ***fixed-price | fa2-editions | fa2-editions-factory | serie-factory*** 
+`contract-title`: ***fixed-price | fa2-editions | fa2-editions-serie | fa2-editions-gallery | serie-factory | gallery-factory | permission-manager*** 
+
+`contract-deploy-title` : ***fixed-price | fa2-editions | serie-factory | gallery-factory | permission-manager*** 
 
 Note: these commands has been tested with the version 0.43 of ligo.
 ```
@@ -34,7 +36,7 @@ $ d-art.contracts test-contract -t <contract-title>
 $ d-art.contracts compile-contract -t <contract-title>
     (Compile the contract corresponding to the title - if no title specified compile the two contracts)
 
-$ d-art.contracts deploy-contract -t <contract-title>
+$ d-art.contracts deploy-contract -t <contract-deploy-title> 
     (Deploy the contract corresponding to the title - if no title specified deploy the two contracts)
 
 $ d-art.contracts contract-size -t <contract-title>
@@ -67,28 +69,16 @@ $ ligo run test ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo
 
 - [Fixed Price](./ligo/d-art.fixed-price)
 - [FA2 Editions](./ligo/d-art.fa2-editions)
-- [Serie Factory](./ligo/d-art.serie-factory)
+- [Serie Factory](./ligo/d-art.art-factories/serie_factory.mligo)
+- [Gallery Factory](./ligo/d-art.art-factories/gallery_factory.mligo)
+- [Permission manager](./ligo/d-art.permission-manager)
 
 ### Tests 
 
 - [Fixed Price](./ligo/test/d-art.fixed-price)
 - [FA2 Editions](./ligo/test/d-art.fa2-editions)
-- [Serie Factory](./ligo/test/d-art.serie-factory)
+- [Serie Factory](./ligo/test/d-art.art-factories/serie_factory_main.test.mligo)
+- [Gallery Factory](./ligo/test/d-art.art-factories/gallery_factory_main.test.mligo)
+- [Permission manager](./ligo/test/d-art.permission-manager)
 
 
-### Contract deployed:
-
-#### FA2 Edition:
-    
-    Jakarta TestNet: -
-    Mainnet : - 
-
-#### Serie Factory :
-    
-    Jakarta TestNet: -
-    Mainnet : - 
-
-#### Fixed price :
-    
-    Jakarta TestNet: -
-    Mainnet : - 
