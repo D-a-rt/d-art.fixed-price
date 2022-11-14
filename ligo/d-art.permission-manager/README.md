@@ -57,3 +57,11 @@ These two entrypoints are responsible to manage the galleries, they should fail 
 ### Add & Remove admin
 
 These two entrypoints are responsible to add and remove address from the admin map. They should fail if not access using an admin address, it should not be possible to add two times the same admin and not possible to remove an admin if there is only one address in the map.
+
+## Views
+
+This contract have two views:
+
+`is_gallery`: View responsible to return true if address is a gallery
+
+`is_minter`: View responsible to return true if address is a minter

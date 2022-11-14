@@ -544,7 +544,6 @@ export async function deployGalleryFactory(permisionManagerAdd: string): Promise
     }
 }
 
-
 export async function deployPermissionManager(): Promise<string | undefined> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.permission-manager/compile/permission_manager.tz'))
 
@@ -892,23 +891,6 @@ async function testGalleryFactoryContract(): Promise<void> {
 }
 
 async function testPermissionManagerContract(): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing permission manager admin entrypoints...`))
-
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/admin.test.mligo")}`),
-            (err, stdout) => {
-                if (err) {
-                    console.log(kleur.red('Failed to run tests.'));
-                    console.log(kleur.yellow().dim(err.toString()))
-                    reject();
-                } else {
-                    console.log(`Results: ${stdout}`)
-                    resolve()
-                }
-            }
-        )
-    })
     
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing permission manager main entrypoints...`))
