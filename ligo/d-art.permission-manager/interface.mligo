@@ -1,14 +1,3 @@
-// Invite & Revoke admin invitation
-type admin_invitation_param = 
-{
-    new_admin: address
-}
-
-// Accept || Refuse admin invitation
-type admin_response_param = 
-{
-    accept: bool
-}
 
 // Storage
 
