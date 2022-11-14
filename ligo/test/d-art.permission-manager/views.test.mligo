@@ -44,7 +44,7 @@ let test_is_gallery =
 
 // -- Is admin --
 
-let test_is_gallery =
+let test_is_admin =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None : address option), true) in
     let contract = Test.to_contract contract_add  in
 
