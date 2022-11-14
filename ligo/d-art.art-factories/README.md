@@ -20,7 +20,6 @@ This section is responsible to list and explain the storage of the two factory c
 
 type serie_factory_storage =
 {
-    admin: (address, unit) map;
     permission_manager: address;
     series : (nat, serie) big_map;
     metadata: (string, bytes) big_map;
@@ -29,7 +28,6 @@ type serie_factory_storage =
 
 type gallery_factory_storage =
 {
-    admin: address;
     permission_manager: address;
     galleries: (admin, address) big_map;
     metadata: (string, bytes) big_map;
@@ -40,11 +38,8 @@ type gallery_factory_storage =
 The two storage are very close to each other the main difference take place in the series and gallery big_map.
 Galleries can only originate one contract that will represent their galleries and on which they will be able to curate their own artists. On the other hand artists can originate as many as series as they want.
 
-### admin: 
-The administrator map of the contract, these address are only responsible to update the permission_manager contract in case v2 is available. we use a map instead of a single address as we do not want to lose the access.
-
 ### permission_manager: 
-The address of the contract responsible to manage the permission for the origination of the contracts.
+The address of the contract responsible to manage the permission for the origination of the contracts and the administration.
 
 ### metadata
 
@@ -114,8 +109,6 @@ The different entrypoints of the contract are define by:
 type art_factory = 
     |   Create_serie of create_entrypoint
     |   Update_permission_manager of admin_response_param 
-    |   Add_admin of address
-    |   Remove_admin of address
 
 
 #else
@@ -123,8 +116,6 @@ type art_factory =
 type art_factory = 
     |   Create_gallery of create_entrypoint
     |   Update_permission_manager of admin_response_param 
-    |   Add_admin of address
-    |   Remove_admin of address
 
 #endif
 ```
@@ -135,8 +126,4 @@ This entrypoint is the one responsible to originate the FA2 serie contract locat
 
 ### Update_permission_manager
 
-This entrypoint is the one responsible to update the address of the permission manager contract in case a new version is deployed. It should fail if the sender of the transaction is not any of the admins present in the admin map in the storage.
-
-### Add * Remove admin
-
-These two entrypoints are responsible to add and remove address from the admin map. They should fail if not access using an admin address, it should not be possible to add two times the same admin and not possible to remove an admin if there is only one address in the map.
+This entrypoint is the one responsible to update the address of the permission manager contract in case a new version is deployed. It should fail if the sender of the transaction is not an admin. (Manage by the permission manager contract)

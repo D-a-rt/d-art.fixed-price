@@ -172,14 +172,11 @@ type storage =
 }
 
 type admin_storage = {
-    admin : address;
     paused_minting : bool;
     permission_manager : address;
 }
 
 ```
-
-``admin`` : The admin address
 
 ``paused_minting`` : Boolean blocking access to the minting entrypoint
 
@@ -215,8 +212,6 @@ The `Admin` entrypoints are responsible for pausing the contract (only the minti
 type admin_entrypoints =
     |   Pause_minting of bool
     |   Update_permission_manager of address
-    |   Add_admin of address
-    |   Remove_admin of address
     |   Accept_proposals of proposal_param list
     |   Reject_proposals of proposal_param list
 ```
@@ -229,10 +224,6 @@ Entrypoints in order to pause minting for everyone.
 #### Update_minter_manage
 
 Entrypoints in order to update the contract holding the minters permission (made it updatable as this contract my be changed over time).
-
-#### Add & Remove admin
-
-Entrypoints in order to add admin to the admins map
 
 #### Accept & Reject proposals
 

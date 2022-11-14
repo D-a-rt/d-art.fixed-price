@@ -1,6 +1,6 @@
 # Permission manager contract 
 
-The permission manager is responsible to hold the addresses that will have access to the D A:RT system (admins, artists and galleries). The only purpose is to have a unique contract responsible to manage the permission of the ecosystem. Therefore the storage and the entrypoints are straightforward.
+The permission manager is responsible to hold the addresses that will have access to the D A:RT system (admin, artists and galleries). The only purpose is to have a unique contract responsible to manage the permission of the ecosystem. Therefore the storage and the entrypoints are straightforward.
 
 ## Storage definition
 
@@ -15,7 +15,7 @@ type admin_storage =
 
 type storage =
 {
-    admin: admin_storage;
+    admin_str: admin_storage;
     minters: (address, unit) big_map;
     galleries: (address, unit) big_map;
     metadata: (string, bytes) big_map;
@@ -84,3 +84,5 @@ This contract have two views:
 `is_gallery`: View responsible to return true if address is a gallery
 
 `is_minter`: View responsible to return true if address is a minter
+
+`is_admin`: View responsible to return true if address is admin
