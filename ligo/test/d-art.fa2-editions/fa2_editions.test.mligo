@@ -382,7 +382,7 @@ let test_create_proposal_success =
 
 // no amount
 let test_update_proposal_no_amount = 
-    let contract_add, admin, _, minter = FA2_STR.get_fa2_editions_contract(false) in
+    let contract_add, admin, _, minter = FA2_STR.get_fa2_editions_contract(false) insale_info
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source minter in

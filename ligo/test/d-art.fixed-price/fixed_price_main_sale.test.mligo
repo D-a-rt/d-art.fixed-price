@@ -6,7 +6,6 @@
 let test_create_sales =
     let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
 
-
     let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
 
@@ -17,7 +16,7 @@ let test_create_sales =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -25,7 +24,7 @@ let test_create_sales =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -52,7 +51,7 @@ let test_create_sales =
                  ) in
                 let () = match Big_map.find_opt first_sale_key new_str.for_sale with
                         Some fixed_price_saved -> (
-                            let () = assert_with_error (fixed_price_saved.price = 150000mutez) "CreateSale - Success : This test should pass (err: First sale wrong price saved)" in
+                            let () = assert_with_error (fixed_price_saved.commodity = (Tez (150000mutez))) "CreateSale - Success : This test should pass (err: First sale wrong price saved)" in
                             match fixed_price_saved.buyer with 
                                     Some _ -> (failwith "CreateSale - Success : This test should pass (err: First sale no buyer should be saved)" : unit)
                                 |   None -> unit
@@ -69,7 +68,7 @@ let test_create_sales =
                  ) in
                 let () = match Big_map.find_opt second_sale_key new_str.for_sale with
                         Some fixed_price_saved -> (
-                            let () = assert_with_error (fixed_price_saved.price = 100000mutez) "CreateSale - Success : This test should pass (err: Second sale wrong price saved)" in
+                            let () = assert_with_error (fixed_price_saved.commodity = (Tez (100000mutez))) "CreateSale - Success : This test should pass (err: Second sale wrong price saved)" in
                             match fixed_price_saved.buyer with 
                                     Some buyer -> assert_with_error (buyer = ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address)) "CreateSale - Success : This test should pass (err: Second sale wrong buyer saved)"
                                 |   None -> (failwith "CreateSale - Success : This test should pass (err: Second sale buyer should be saved)" : unit)
@@ -97,7 +96,7 @@ let test_create_sales_with_amount =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -105,7 +104,7 @@ let test_create_sales_with_amount =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -139,7 +138,7 @@ let test_create_sales_deprecated =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -147,7 +146,7 @@ let test_create_sales_deprecated =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -179,7 +178,7 @@ let test_create_sales_price_to_small_first_el =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 10mutez;
+                commodity = (Tez (10mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -187,7 +186,7 @@ let test_create_sales_price_to_small_first_el =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -199,7 +198,7 @@ let test_create_sales_price_to_small_first_el =
     match result with
         Success _gas -> failwith "CreateSale - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "CreateSale - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1tez") ) "CreateSale - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -219,7 +218,7 @@ let test_create_sales_price_to_small_third_el =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -227,14 +226,14 @@ let test_create_sales_price_to_small_third_el =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
                 };
             } : sale_info); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 10mutez;
+                commodity = (Tez (10mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 2n
@@ -246,7 +245,7 @@ let test_create_sales_price_to_small_third_el =
     match result with
         Success _gas -> failwith "CreateSale - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "CreateSale - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1tez") ) "CreateSale - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -267,7 +266,7 @@ let test_create_sales_already_on_sale_one_call =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -275,7 +274,7 @@ let test_create_sales_already_on_sale_one_call =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n
@@ -308,7 +307,7 @@ let test_create_sales_already_on_sale_second_call =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -326,7 +325,7 @@ let test_create_sales_already_on_sale_second_call =
                 message = ("54657374206d6573736167652074657374" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -359,7 +358,7 @@ let test_create_sales_buyer_is_seller =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -367,7 +366,7 @@ let test_create_sales_buyer_is_seller =
                 };
             } : sale_info ); ({
                 buyer = Some (admin);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -399,7 +398,7 @@ let test_create_sales_wrong_signature =
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -407,7 +406,7 @@ let test_create_sales_wrong_signature =
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -439,7 +438,7 @@ let test_create_sales_already_used_signature =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -447,7 +446,7 @@ let test_create_sales_already_used_signature =
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -463,7 +462,7 @@ let test_create_sales_already_used_signature =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -471,7 +470,7 @@ let test_create_sales_already_used_signature =
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 3n
@@ -505,7 +504,7 @@ let test_update_sales =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -513,7 +512,7 @@ let test_update_sales =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -526,14 +525,14 @@ let test_update_sales =
     let result = Test.transfer_to_contract contract
         (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 250000mutez;
+                commodity = (Tez (250000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 130000mutez;
+                commodity = (Tez (130000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -541,7 +540,7 @@ let test_update_sales =
             } : sale_info);
             ({
                 buyer = None;
-                price = 170000mutez;
+                commodity = (Tez (170000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -563,7 +562,7 @@ let test_update_sales =
                  ) in
                 let () = match Big_map.find_opt first_update_sale_key new_str.for_sale with
                         Some fixed_price_saved -> (
-                            let () = assert_with_error (fixed_price_saved.price = 250000mutez) "UpdateSale - Success : This test should pass (err: First sale wrong updated price saved)" in
+                            let () = assert_with_error (fixed_price_saved.commodity = (Tez (250000mutez))) "UpdateSale - Success : This test should pass (err: First sale wrong updated price saved)" in
                             match fixed_price_saved.buyer with 
                                     Some buyer -> assert_with_error (buyer = ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address)) "UpdateSale - Success : This test should pass (err: Second sale wrong buyer saved while updating)"
                                 |   None -> (failwith "UpdateSale - Success : This test should pass (err: First sale new buyer should be saved)" : unit)
@@ -580,7 +579,7 @@ let test_update_sales =
                  ) in
                 let () = match Big_map.find_opt second_sale_update_key new_str.for_sale with
                         Some fixed_price_saved -> (
-                            let () = assert_with_error (fixed_price_saved.price = 170000mutez) "UpdateSale - Success : This test should pass (err: Second sale wrong updated price saved)" in
+                            let () = assert_with_error (fixed_price_saved.commodity = (Tez (170000mutez))) "UpdateSale - Success : This test should pass (err: Second sale wrong updated price saved)" in
                             match fixed_price_saved.buyer with 
                                     Some _ ->  (failwith "UpdateSale - Success : This test should pass (err: Second sale new buyer should be none)" : unit)
                                 |   None -> unit
@@ -603,14 +602,14 @@ let test_update_sales_amount_specified =
     let result = Test.transfer_to_contract contract
         (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 250000mutez;
+                commodity = (Tez (250000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 130000mutez;
+                commodity = (Tez (130000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -638,14 +637,14 @@ let test_update_sales_to_small_first_el =
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100mutez;
+                commodity = (Tez (100mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 130000mutez;
+                commodity = (Tez (130000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -657,7 +656,7 @@ let test_update_sales_to_small_first_el =
     match result with
         Success _gas -> failwith "UpdateSale - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "UpdateSale - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1tez") ) "UpdateSale - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -678,7 +677,7 @@ let test_update_sales_to_small_second_el =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -686,7 +685,7 @@ let test_update_sales_to_small_second_el =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -698,14 +697,14 @@ let test_update_sales_to_small_second_el =
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 130000mutez;
+                commodity = (Tez (130000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 100mutez;
+                commodity = (Tez (100mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -717,7 +716,7 @@ let test_update_sales_to_small_second_el =
     match result with
         Success _gas -> failwith "UpdateSale - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "UpdateSale - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1tez") ) "UpdateSale - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -737,7 +736,7 @@ let test_update_sales_buyer_is_sender =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -745,7 +744,7 @@ let test_update_sales_buyer_is_sender =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -757,14 +756,14 @@ let test_update_sales_buyer_is_sender =
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
                 buyer = Some (admin);
-                price = 130000mutez;
+                commodity = (Tez (130000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 100mutez;
+                commodity = (Tez (100mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -796,7 +795,7 @@ let test_update_sales_not_owner =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -804,7 +803,7 @@ let test_update_sales_not_owner =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -820,14 +819,14 @@ let test_update_sales_not_owner =
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
                 buyer = Some (no_admin_addr : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
             } : sale_info ); ({
                 buyer = Some (no_admin_addr : address);
-                price = 1000000mutez;
+                commodity = (Tez (1000000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -856,14 +855,14 @@ let test_update_sales_not_created =
     let result = Test.transfer_to_contract contract
          (Update_sales ([({
                 buyer = None;
-                price = 130000mutez;
+                commodity = (Tez (130000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 0n 
                 };
             } : sale_info ); ({
                 buyer = None;
-                price = 100mutez;
+                commodity = (Tez (100mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -897,7 +896,7 @@ let test_revoke_sales =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -905,7 +904,7 @@ let test_revoke_sales =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -1036,7 +1035,7 @@ let test_revoke_sales_not_owner =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -1044,7 +1043,7 @@ let test_revoke_sales_not_owner =
                 };
             } : sale_info ); ({
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address);
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n

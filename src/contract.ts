@@ -72,7 +72,7 @@ async function contractAction(contractName: string, action: ContractAction, path
 export async function contracts (param: any, type: ContractAction): Promise<void> {
     switch (param.title) {
         case "fixed-price":
-            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             break;
         case "fa2-editions":
             contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
@@ -93,7 +93,7 @@ export async function contracts (param: any, type: ContractAction): Promise<void
             contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
             break;
         default:
-            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
             contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")

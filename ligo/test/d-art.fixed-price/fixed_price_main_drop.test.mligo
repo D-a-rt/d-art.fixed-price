@@ -218,7 +218,7 @@ let test_create_drops_price_to_small_first_el =
     match result with
         Success _gas -> failwith "Create_drops - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "Create_drops - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1tez") ) "Create_drops - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -267,7 +267,7 @@ let test_create_drops_price_to_small_second_el =
         Success _gas -> failwith "Create_drops - Wrong price : This test should fail"
     |   Fail (Rejected (err, _)) -> (
             
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "Price should be at least 0.1tez") ) "Create_drops - Wrong price : Should not work if wrong price" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1tez") ) "Create_drops - Wrong price : Should not work if wrong price" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    

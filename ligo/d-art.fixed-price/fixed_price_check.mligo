@@ -26,8 +26,29 @@ let fail_if_drop_date_not_met (fixed_price_drop : fixed_price_drop) : unit =
     then failwith "DROP_DATE_NOT_MET"
     else unit
 
+let fail_if_wrong_commodity (commodity, storage : commodity * storage) : unit =
+    match commodity with 
+        |   Tez price -> (
+                let () = assert_msg (price >= 100000mutez, "PRICE_SHOULD_BE_MINIMUM_0.1tez" ) in
+                assert_msg ( price = Tezos.get_amount(), "PRICE_SHOULD_BE_EQUAL_TO_AMOUNT" )
+            )
+        |   Fa2 param -> (
+                let () = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
+                let commodity_fa2_base : fa2_base = {
+                    address = param.address;
+                    id = param.id;
+                } in
+                match Big_map.find_opt commodity_fa2_base storage.stable_coin with
+                        Some mucoin -> assert_msg (param.amount >= mucoin, "PRICE_SHOULD_BE_MINIMUM_0.1" )
+                    |   None -> (failwith "FA2_NOT_SUPPORTED" )
+            )
 
-// -- Buy tokens checks
+let fail_if_wrong_price_specified (commodity : commodity) : unit =
+    match commodity with
+        |   Tez price -> assert_msg (price = Tezos.get_amount(), "WRONG_PRICE_SPECIFIED")
+        |   Fa2 _ -> assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ")
+
+    // -- Buy tokens checks
 
 let fail_if_buyer_not_authorized (add, buyer : address * address option ) : unit =
     // Check if sale is private if yes check if sender is buyer

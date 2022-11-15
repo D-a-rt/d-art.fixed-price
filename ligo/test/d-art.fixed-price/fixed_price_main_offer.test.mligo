@@ -17,6 +17,7 @@ let test_create_offer_will_be_deprecated =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             };
+            commodity = (Tez (1000tez));
         } : offer_conf)) 1000tez
     in
 
@@ -42,6 +43,7 @@ let test_create_offer_already_placed =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             };
+            commodity = (Tez (99999mutez));
         } : offer_conf)) 99999mutez
     in
 
@@ -69,6 +71,7 @@ let test_create_offer_already_placed =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             };
+            commodity = (Tez (1000tez));
         } : offer_conf)) 1000tez
     in
 
@@ -78,6 +81,7 @@ let test_create_offer_already_placed =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                 id = 1n
             };
+            commodity = (Tez (1000tez));
         } : offer_conf)) 1000tez
     in
 
@@ -105,18 +109,19 @@ let test_create_offer_success =
     let _gas = Test.transfer_to_contract_exn contract
         (Create_offer ({
             fa2_token = token;
+            commodity = (Tez (1000tez));
         } : offer_conf)) 1000tez
     in
 
     let new_str = Test.get_storage t_add in
 
     match Big_map.find_opt (token, admin) new_str.offers with
-        | None -> failwith "CreateOffer - Success : This test should pass (err: Offer should be saved in the big_map)"
-        | Some off -> (
-            let contract_bal = Test.get_balance add in
-            let () = assert_with_error ( contract_bal = 1000tez ) "CreateOffer - Success : Wrong contract bal" in
-            let () = assert_with_error ( off = 1000tez ) "CreateOffer - Success : Offer should have the amount sent to the contract" in
-            "Passed"
+            None -> (failwith "CreateOffer - Success : This test should pass (err: Offer should be saved in the big_map)" : string)
+        |   Some off -> (
+                let contract_bal = Test.get_balance add in
+                let () = assert_with_error ( contract_bal = 1000tez ) "CreateOffer - Success : Wrong contract bal" in
+                let () = assert_with_error ( off = (Tez (1000tez)) ) "CreateOffer - Success : Offer should have the amount sent to the contract" in
+                "Passed"
         )
     
 // -- REVOKE OFFER --

@@ -42,19 +42,23 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
     let drops_str : drops_storage = Big_map.literal ([
         ((fa2_b_1, admin),
             ({
-                price = 1000000mutez;
+                commodity = (Tez (1000000mutez));
                 drop_date = drop_date;
             })
         );
         ((fa2_b_2, admin),
             ({
-                price = 1000000mutez;
+                commodity = (Tez (1000000mutez));
                 drop_date = drop_date;
             })
         );
     ]) in
-    let empty_offers = (Big_map.empty : (fa2_base * address, tez) big_map) in
+    let empty_offers = (Big_map.empty : (fa2_base * address, commodity) big_map) in
 
+    let stable_coin = {
+        address = "KT1RVK54ne4gFfqyMwGD6zZk4crFkf1TD1kn";
+        id = 0;
+    } in
 
     let str = {
         admin = admin_str;
@@ -71,6 +75,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
             address = fee_account;
             percent = 3n;
         };
+        stable_coin = Big_map.literal([(stable_coin, 1000000n);]);
         metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
@@ -80,7 +85,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
         if isInDrops
         then (
             let str = { str with drops = drops_str; fa2_dropped = dropped } in
-            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_main" ([] : string list) (Test.compile_value str) 0tez in
             let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
     
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
@@ -91,7 +96,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
         )
         else (
             let str = { str with fa2_dropped = dropped } in
-            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_main" ([] : string list) (Test.compile_value str) 0tez in
             let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
     
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
@@ -105,7 +110,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
         if isInDrops
         then (
             let str = { str with drops = drops_str } in
-            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_main" ([] : string list) (Test.compile_value str) 0tez in
             let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
     
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
@@ -115,7 +120,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
 
         )
         else (
-            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+            let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_main" ([] : string list) (Test.compile_value str) 0tez in
             let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
     
             let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
@@ -147,10 +152,15 @@ let get_fixed_price_contract (signature_saved : bool) =
         contract_will_update = false;
     } in
 
+    let stable_coin = {
+        address = ("KT1RVK54ne4gFfqyMwGD6zZk4crFkf1TD1kn" : address);
+        id = 0n;
+    } in
+
     let empty_sales = (Big_map.empty : (fa2_base * address, fixed_price_sale) big_map ) in
     let drops_str = (Big_map.empty : (fa2_base * address, fixed_price_drop) big_map) in
     let empty_dropped = (Big_map.empty : (fa2_base, unit) big_map) in
-    let empty_offers = (Big_map.empty : (fa2_base * address, tez) big_map) in
+    let empty_offers = (Big_map.empty : (fa2_base * address, commodity) big_map) in
     
     let str = {
         admin = admin_str;
@@ -167,10 +177,11 @@ let get_fixed_price_contract (signature_saved : bool) =
             address = fee_account;
             percent = 35n;
         };
+        stable_coin = Big_map.literal([((stable_coin : fa2_base), (1000000n));]);
         metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
-    let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+    let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_main" ([] : string list) (Test.compile_value str) 0tez in
     let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
     
     let fa2_add = FA2_STR.get_edition_fa2_contract_fixed_price (addr) in
@@ -201,10 +212,15 @@ let get_fixed_price_contract_gallery (signature_saved : bool ) =
         contract_will_update = false;
     } in
 
+    let stable_coin = {
+        address = "KT1RVK54ne4gFfqyMwGD6zZk4crFkf1TD1kn";
+        id = 0;
+    } in
+
     let empty_sales = (Big_map.empty : (fa2_base * address, fixed_price_sale) big_map ) in
     let drops_str = (Big_map.empty : (fa2_base * address, fixed_price_drop) big_map) in
     let empty_dropped = (Big_map.empty : (fa2_base, unit) big_map) in
-    let empty_offers = (Big_map.empty : (fa2_base * address, tez) big_map) in
+    let empty_offers = (Big_map.empty : (fa2_base * address, commodity) big_map) in
     
     let str = {
         admin = admin_str;
@@ -221,10 +237,11 @@ let get_fixed_price_contract_gallery (signature_saved : bool ) =
             address = fee_account;
             percent = 35n;
         };
+        stable_coin = Big_map.literal([(stable_coin, 1000000n);]);
         metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
-    let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_tez_main" ([] : string list) (Test.compile_value str) 0tez in
+    let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_main" ([] : string list) (Test.compile_value str) 0tez in
     let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
 
     let t_fa2_gallery_add, gallery, fa2_gallery_add, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract_fixed_price (addr) in

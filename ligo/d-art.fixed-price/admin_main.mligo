@@ -8,6 +8,8 @@ type admin_entrypoints =
     | Update_public_key of key
     | Update_permission_manager of address
     | Contract_will_update of bool
+    | Add_stable_coin of add_stable_coin
+    | Remove_stable_coin of fa2_base
 
 let admin_main (param, storage : admin_entrypoints * storage) : (operation list) * storage =
   let () = fail_if_not_admin (storage.admin) in
@@ -30,3 +32,11 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
       (([] : operation list), { storage with admin.permission_manager = add; })
 
     | Contract_will_update bool -> ([] : operation list), { storage with admin.contract_will_update = bool }
+
+    | Add_stable_coin param -> 
+      if Big_map.mem param.fa2_base storage.stable_coin 
+      then ([] : operation list), { storage with stable_coin = Big_map.add param.fa2_base param.mucoin storage.stable_coin }
+      else (failwith "ALREADY_STABLE_COIN")
+
+    | Remove_stable_coin fa2_base ->
+      ([] : operation list), { storage with stable_coin = Big_map.remove fa2_base storage.stable_coin; }
