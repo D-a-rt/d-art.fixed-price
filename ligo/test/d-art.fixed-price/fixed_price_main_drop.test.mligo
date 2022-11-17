@@ -23,7 +23,7 @@ let test_create_drops =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -31,7 +31,7 @@ let test_create_drops =
                 };
             } : drop_info ); ({
                 drop_date = expected_time_result_four;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = (fa2_add : address);
                     id = 1n
@@ -58,7 +58,7 @@ let test_create_drops =
                  ) in
                 let () = match Big_map.find_opt first_drop_key new_str.drops with
                         Some fixed_drop_saved -> (
-                            let () = assert_with_error (fixed_drop_saved.price = 150000mutez) "Create_drops - Success : This test should pass (err: First sale wrong price saved)" in
+                            let () = assert_with_error (fixed_drop_saved.commodity = (Tez (150000mutez))) "Create_drops - Success : This test should pass (err: First sale wrong price saved)" in
                             assert_with_error (fixed_drop_saved.drop_date = expected_time_result_three) "Create_drops - Success : This test should pass (err: First sale wrong date saved)"
                         )
                     |   None -> (failwith "Create_drops - Success : This test should pass (err: First drop not saved)" : unit)
@@ -73,7 +73,7 @@ let test_create_drops =
                  ) in
                 let () = match Big_map.find_opt second_drop_key new_str.drops with
                         Some fixed_drop_saved -> (
-                            let () = assert_with_error (fixed_drop_saved.price = 100000mutez) "Create_drops - Success : This test should pass (err: Second drop wrong price saved)" in
+                            let () = assert_with_error (fixed_drop_saved.commodity = (Tez (100000mutez))) "Create_drops - Success : This test should pass (err: Second drop wrong price saved)" in
                             assert_with_error (fixed_drop_saved.drop_date = expected_time_result_four) "Create_drops - Success : This test should pass (err: Second drop wrong date saved)"
                         )
                     |   None -> (failwith "Create_drops - Success : This test should pass (err: Second drop not saved)" : unit)
@@ -104,7 +104,7 @@ let test_create_drops_with_amount =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -112,7 +112,7 @@ let test_create_drops_with_amount =
                 };
             } : drop_info ); ({
                 drop_date = expected_time_result_four;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -151,7 +151,7 @@ let test_create_drops_deprecated =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -159,7 +159,7 @@ let test_create_drops_deprecated =
                 };
             } : drop_info ); ({
                 drop_date = expected_time_result_four;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -198,7 +198,7 @@ let test_create_drops_price_to_small_first_el =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 1000mutez;
+                commodity = (Tez (1000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -206,7 +206,7 @@ let test_create_drops_price_to_small_first_el =
                 };
             } : drop_info ); ({
                 drop_date = expected_time_result_four;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
                     id = 1n
@@ -246,7 +246,7 @@ let test_create_drops_price_to_small_second_el =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -254,7 +254,7 @@ let test_create_drops_price_to_small_second_el =
                 };
             } : drop_info ); ({
                 drop_date = expected_time_result_four;
-                price = 1000mutez;
+                commodity = (Tez (1000mutez));
                 fa2_token = {
                     address = (fa2_add : address);
                     id = 1n
@@ -294,7 +294,7 @@ let test_create_drops_already_in_drop =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -302,7 +302,7 @@ let test_create_drops_already_in_drop =
                 };
             } : drop_info ); ({
                 drop_date = expected_time_result_four;
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 fa2_token = {
                     address = (fa2_add : address);
                     id = 0n
@@ -338,7 +338,7 @@ let test_create_drops_already_dropped =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
@@ -376,7 +376,7 @@ let test_create_drops_wrong_signature =
                 message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -416,7 +416,7 @@ let test_create_drops_already_used_signature =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -433,7 +433,7 @@ let test_create_drops_already_used_signature =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_four;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -473,7 +473,7 @@ let test_create_drops_wrong_drop_date =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_less;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -496,7 +496,7 @@ let test_create_drops_wrong_drop_date =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_more;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -533,7 +533,7 @@ let test_create_drops_not_authorized_drop_seller =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 100000mutez;
+                commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (fa2_add : address);

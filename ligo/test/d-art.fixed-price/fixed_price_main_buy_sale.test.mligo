@@ -18,6 +18,7 @@ let test_buy_fixed_price_token_seller_buyer =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
             seller = admin;
+            buyer = admin;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -50,7 +51,7 @@ let test_buy_fixed_price_token_wrong_signature =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
             seller = admin;
-            
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -83,7 +84,7 @@ let test_buy_fixed_price_token_signature_already_used =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
             seller = admin;
-            
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -116,7 +117,7 @@ let test_buy_fixed_price_token_wrong_price =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -136,6 +137,7 @@ let test_buy_fixed_price_token_wrong_price =
                 address = (fa2_add: address);
             } : fa2_base);
             seller = admin;
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -168,7 +170,7 @@ let test_buy_fixed_price_token_not_buyer =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address );
                 fa2_token = {
                     address = (fa2_add : address);
@@ -188,7 +190,7 @@ let test_buy_fixed_price_token_not_buyer =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = admin;
-            
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -201,7 +203,7 @@ let test_buy_fixed_price_token_not_buyer =
     match result with
         Success _gas -> failwith "Buy_fixed_price_token - Not specified buyer : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "SENDER_NOT_AUTHORIZE_TO_BUY") ) "Buy_fixed_price_token - Not specified buyer : Should not work if signature is not correct" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "BUYER_NOT_AUTHORIZE_TO_BUY") ) "Buy_fixed_price_token - Not specified buyer : Should not work if signature is not correct" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -234,7 +236,7 @@ let test_buy_fixed_price_token_success =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 213210368547757mutez;
+                commodity = (Tez (213210368547757mutez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -256,6 +258,7 @@ let test_buy_fixed_price_token_success =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = token_seller;
+            buyer = buyer;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -360,7 +363,7 @@ let test_buy_fixed_price_token_success_commission =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 100tez;
+                commodity = (Tez (100tez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -382,7 +385,7 @@ let test_buy_fixed_price_token_success_commission =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = token_minter;
-            
+            buyer = buyer;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -473,7 +476,7 @@ let test_buy_fixed_price_token_success_secondary =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 213210368547757mutez;
+                commodity = (Tez (213210368547757mutez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -493,7 +496,7 @@ let test_buy_fixed_price_token_success_secondary =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = token_seller;
-            
+            buyer = buyer;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -523,7 +526,7 @@ let test_buy_fixed_price_token_success_secondary =
                 message = ("726572657265" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 213210368547757mutez;
+                commodity = (Tez (213210368547757mutez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -543,6 +546,7 @@ let test_buy_fixed_price_token_success_secondary =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = buyer;
+            buyer = token_seller;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigte3DXyd46Qh8cqb2vCFSBZkyha9S4co9L2zKk4s3x8wMwR6TPUs7nLX2bYfzjDnzp5xaxuxg3cBJvnoMARAeyz8AkKJkLh" : signature);
@@ -640,7 +644,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = admin;
-            
+            buyer = buyer;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -673,7 +677,7 @@ let test_buy_fixed_price_token_success_secondary_commission =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 213210368547757mutez;
+                commodity = (Tez (213210368547757mutez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -693,7 +697,7 @@ let test_buy_fixed_price_token_success_secondary_commission =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = token_minter;
-            
+            buyer = buyer;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -726,7 +730,7 @@ let test_buy_fixed_price_token_success_secondary_commission =
                 message = ("726572657265" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 100tez;
+                commodity = (Tez (100tez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -746,6 +750,7 @@ let test_buy_fixed_price_token_success_secondary_commission =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = buyer;
+            buyer = second_buyer;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigte3DXyd46Qh8cqb2vCFSBZkyha9S4co9L2zKk4s3x8wMwR6TPUs7nLX2bYfzjDnzp5xaxuxg3cBJvnoMARAeyz8AkKJkLh" : signature);
@@ -849,7 +854,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = admin;
-            
+            buyer = buyer;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -894,7 +899,7 @@ let test_buy_fixed_price_token_success_commission_referrer =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             sale_infos = [({
-                price = 100tez;
+                commodity = (Tez (100tez));
                 buyer = None;
                 fa2_token = {
                     address = (fa2_add : address);
@@ -919,7 +924,7 @@ let test_buy_fixed_price_token_success_commission_referrer =
                 address = (fa2_add : address);
             } : fa2_base);
             seller = token_minter;
-            
+            buyer = buyer;
             referrer = Some(referrer);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);

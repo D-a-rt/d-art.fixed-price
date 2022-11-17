@@ -17,6 +17,7 @@ let test_buy_drop_token_wrong_signature =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
             seller = admin;
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -49,6 +50,7 @@ let test_buy_drop_token_signature_already_used =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
             seller = admin;
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -70,10 +72,8 @@ let test_buy_drop_token_wrong_price =
     let _, contract_tadd, edition_contract_add, _, admin = get_fixed_price_contract (false) in
     let contract = Test.to_contract contract_tadd in
     
-    let admin_addr = Test.nth_bootstrap_account 0 in
-    let () = Test.set_source admin_addr in
+    let () = Test.set_source admin in
     
-
     let now : timestamp = Tezos.get_now() in
     let three_days : int = 253800 in
     let expected_time_result_three = now + three_days in
@@ -85,7 +85,7 @@ let test_buy_drop_token_wrong_price =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract_add : address);
@@ -105,6 +105,7 @@ let test_buy_drop_token_wrong_price =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -116,6 +117,7 @@ let test_buy_drop_token_wrong_price =
     match result with
         Success _gas -> failwith "Buy_dropped_token - Wrong price specified : This test should fail"
     |   Fail (Rejected (err, _)) -> (
+            let () = Test.log err in
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "WRONG_PRICE_SPECIFIED") ) "Buy_dropped_token - Wrong price specified : Should not work if wrong price" in
             "Passed"
         )
@@ -140,7 +142,7 @@ let test_buy_drop_token_drop_date_not_met =
                 message = ("54657374206d657373616765207465746574657465" : bytes);
             }: authorization_signature);
             drop_infos = [({
-                price = 150000mutez;
+                commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
                 fa2_token = {
                     address = (edition_contract_add : address);
@@ -161,6 +163,7 @@ let test_buy_drop_token_drop_date_not_met =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -193,6 +196,7 @@ let test_buy_drop_token_not_dropped =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
+            buyer = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -223,6 +227,7 @@ let test_buy_drop_token_buyer_is_seller =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
+            buyer = admin;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);

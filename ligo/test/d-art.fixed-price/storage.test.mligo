@@ -56,8 +56,8 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
     let empty_offers = (Big_map.empty : (fa2_base * address, commodity) big_map) in
 
     let stable_coin = {
-        address = "KT1RVK54ne4gFfqyMwGD6zZk4crFkf1TD1kn";
-        id = 0;
+        address = ("KT1RVK54ne4gFfqyMwGD6zZk4crFkf1TD1kn" : address);
+        id = 0n;
     } in
 
     let str = {
@@ -75,7 +75,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
             address = fee_account;
             percent = 3n;
         };
-        stable_coin = Big_map.literal([(stable_coin, 1000000n);]);
+        stable_coin = Big_map.literal([((stable_coin : fa2_base), (1000000n));]);
         metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 
@@ -213,8 +213,8 @@ let get_fixed_price_contract_gallery (signature_saved : bool ) =
     } in
 
     let stable_coin = {
-        address = "KT1RVK54ne4gFfqyMwGD6zZk4crFkf1TD1kn";
-        id = 0;
+        address = ("KT1RVK54ne4gFfqyMwGD6zZk4crFkf1TD1kn" : address);
+        id = 0n;
     } in
 
     let empty_sales = (Big_map.empty : (fa2_base * address, fixed_price_sale) big_map ) in
@@ -237,7 +237,7 @@ let get_fixed_price_contract_gallery (signature_saved : bool ) =
             address = fee_account;
             percent = 35n;
         };
-        stable_coin = Big_map.literal([(stable_coin, 1000000n);]);
+        stable_coin = Big_map.literal([((stable_coin : fa2_base), (1000000n));]);
         metadata = (Big_map.empty : (string, bytes) big_map);
     } in
 

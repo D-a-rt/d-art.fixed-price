@@ -1,6 +1,6 @@
-#include "fixed_price_interface.mligo"
+#include "interface.mligo"
 #include "common.mligo"
-#include "fixed_price_check.mligo"
+#include "check.mligo"
 
 type admin_entrypoints =
     | Update_primary_fee of fee_data
@@ -35,8 +35,8 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
 
     | Add_stable_coin param -> 
       if Big_map.mem param.fa2_base storage.stable_coin 
-      then ([] : operation list), { storage with stable_coin = Big_map.add param.fa2_base param.mucoin storage.stable_coin }
-      else (failwith "ALREADY_STABLE_COIN")
+      then (failwith "ALREADY_STABLE_COIN")
+      else ([] : operation list), { storage with stable_coin = Big_map.add param.fa2_base param.mucoin storage.stable_coin }
 
     | Remove_stable_coin fa2_base ->
       ([] : operation list), { storage with stable_coin = Big_map.remove fa2_base storage.stable_coin; }

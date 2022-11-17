@@ -99,14 +99,14 @@ export async function contracts (param: any, type: ContractAction): Promise<void
             contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
             contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
             contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
-            contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
+            contractAction("Permission manager", type, "d-art.permission-manager/views.mligo", "permission_manager_main --views 'is_minter, is_gallery, is_admin'", "d-art.permission-manager/compile/permission_manager.tz")
             break;
     }
 }
 
 // -- Deploy contracts --
 
-export async function deployFixedPriceContract(): Promise<void> {
+export async function deployFixedPriceContract(permissionManager: string): Promise<void> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'))
 
     const fixed_price_contract_metadata = {
@@ -132,7 +132,7 @@ export async function deployFixedPriceContract(): Promise<void> {
         code: code,
         storage: {
             admin: {
-                address: process.env.ADMIN_PUBLIC_KEY_HASH,
+                permission_manager: permissionManager,
                 pb_key: process.env.SIGNER_PUBLIC_KEY,
                 signed_message_used: new MichelsonMap(),
                 contract_will_update: false
@@ -150,6 +150,7 @@ export async function deployFixedPriceContract(): Promise<void> {
                 address: process.env.ADMIN_PUBLIC_KEY_HASH,
                 percent: 25,
             },
+            stable_coin: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
             })
@@ -174,7 +175,7 @@ export async function deployFixedPriceContract(): Promise<void> {
     }
 }
 
-export async function deployEditionContract(): Promise<void> {
+export async function deployEditionContract(permisionManagerAdd: string): Promise<void> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fa2-editions/compile/multi_nft_token_editions.tz'))
 
     const p = new Parser();
@@ -411,9 +412,8 @@ export async function deployEditionContract(): Promise<void> {
                 token_metadata: MichelsonMap.fromLiteral({})
             },
             admin: {
-                admin: process.env.ADMIN_PUBLIC_KEY_HASH,
                 pause_minting: false,
-                permission_manager: "KT1XYpZxVxfKyJBvdHbhFo3nbdNVeF15nkFG",
+                permission_manager: permisionManagerAdd,
             },
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
@@ -517,7 +517,6 @@ export async function deployGalleryFactory(permisionManagerAdd: string): Promise
     const originateParam = {
         code: code,
         storage: {
-            admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
             permission_manager: permisionManagerAdd,
             galleries: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
@@ -550,7 +549,7 @@ export async function deployPermissionManager(): Promise<string | undefined> {
 
     const permissionManagerMetadata = {
         name: 'A:RT - Permission Manager',
-        description: 'This contract is responsible to manage the artists and galleries permissions around the network.',
+        description: 'This contract is responsible to manage access to the D A:RT system.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -569,11 +568,10 @@ export async function deployPermissionManager(): Promise<string | undefined> {
     const originateParam = {
         code: code,
         storage: {
-            admin: {
+            admin_str: {
                 admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
                 pending_admin: null,
             },
-            origznation_paused: false,
             minters: MichelsonMap.fromLiteral({}),
             galleries: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
@@ -601,27 +599,28 @@ export async function deployPermissionManager(): Promise<string | undefined> {
     }
 }
 
-export const deployContracts = async (param: any, permissionManager?: string) => {
+export const deployContracts = async (param: any) => {
     switch (param.title) {
         case "fixed-price":
-            await deployFixedPriceContract()
+            if (param.permissionManager) await deployFixedPriceContract(param.permissionManager)
             break;
         case "fa2-editions":
-            await deployEditionContract()
+            if (param.permissionManager) await deployEditionContract(param.permissionManager)
             break;
         case "serie-factory":
-            if (permissionManager) await deploySerieFactory(permissionManager)
+            if (param.permissionManager) await deploySerieFactory(param.permissionManager)
             break;
         case "gallery-factory":
-            if (permissionManager) await deployGalleryFactory(permissionManager)
+            console.log(param.permissionManager)
+            if (param.permissionManager) await deployGalleryFactory(param.permissionManager)
             break;
         case "permission-manager":
             await deployPermissionManager()
             break;
         default:
-            await deployEditionContract()
-            await deployFixedPriceContract()
             const permissionManagerAdd = await deployPermissionManager()
+            if (permissionManagerAdd) await deployEditionContract(permissionManagerAdd)
+            if (permissionManagerAdd) await deployFixedPriceContract(permissionManagerAdd)
             if (permissionManagerAdd) await deploySerieFactory(permissionManagerAdd)
             if (permissionManagerAdd) await deployGalleryFactory(permissionManagerAdd)
             break;
@@ -983,201 +982,204 @@ export const uploadContractMetadata = async () => {
 
     // TODO : Add missing views
     const editions_contract_metadata = {
-        name: 'Name...',
-        description: 'Description...',
+        name: 'A:RT Gallery',
+        description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],
-        imageUri: "ipfs://...",
-        views: [{
-            name: 'token_metadata',
-            description: 'Get the metadata for the tokens minted using this contract',
-            pure: false,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (pair (nat %token_id) (map %token_info string bytes))
-                        returnType: {
-                            prim: "pair",
-                            args: [
-                                { prim: "nat", annots: ["%token_id"] },
-                                { prim: "map", args: [{ prim: "string" }, { prim: "bytes" }], annots: ["%token_info"] },
-                            ],
-                        },
-                        code: parsedEditionMetadataMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'royalty_distribution',
-            description: 'Get the minter of a specify token as well as the amount of royalty and the splits corresponding to it.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (pair address (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))))
-                        returnType: {
-                            prim: "pair",
-                            args: [
-                                { prim: "address" },
-                                {
-                                    prim: "pair",
-                                    args: [
-                                        { prim: "nat", annots: ["%royalty"] },
-                                        {
-                                            prim: "list",
-                                            args: [
-                                                {
-                                                    prim: "pair",
-                                                    args: [
-                                                        { prim: "address", annots: ["%address"] },
-                                                        { prim: "nat", annots: ["%pct"] },
-                                                    ]
-                                                }
-                                            ],
-                                            annots: ["%splits"]
-                                        },
-                                    ]
-                                },
-                            ],
-                        },
-                        code: parsedRoyaltyDistributionMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'splits',
-            description: 'Get the splits for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (list (pair (address %address) (nat %pct)))
-                        returnType: {
-                            prim: "list",
-                            args: [
-                                {
-                                    prim: "pair",
-                                    args: [
-                                        { prim: "address", annots: ["%address"] },
-                                        { prim: "nat", annots: ["%pct"] },
-                                    ]
-                                }
-                            ],
-                            annots: ["%splits"]
-                        },
-                        code: parsedSplitsMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'royalty_splits',
-            description: 'Get the royalty and splits for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
-                        returnType: {
-                            prim: "pair",
-                            args: [
-                                { prim: "nat", annots: ["%royalty"] },
-                                {
-                                    prim: "list",
-                                    args: [
-                                        {
-                                            prim: "pair",
-                                            args: [
-                                                { prim: "address", annots: ["%address"] },
-                                                { prim: "nat", annots: ["%pct"] },
-                                            ]
-                                        }
-                                    ],
-                                    annots: ["%splits"]
-                                },
-                            ]
-                        },
-                        code: parsedRoyaltySplitsMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'royalty',
-            description: 'Get the royalty for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // nat
-                        returnType: {
-                            prim: 'nat',
-                        },
-                        code: parsedRoyaltyMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'minter',
-            description: 'Get the minter for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // nat
-                        returnType: {
-                            prim: 'address',
-                        },
-                        code: parsedMinterMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'is_token_minter',
-            description: 'Verify if address is minter on the contract.',
-            pure: false,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'pair',
-                            args: [
-                                { prim: "address" },
-                                { prim: "nat" }
-                            ]
-                        },
-                        // nat
-                        returnType: {
-                            prim: 'bool',
-                        },
-                        code: parsedIsTokenMinterMichelsonCode,
-                    },
-                },
-            ],
-        }],
+        imageUri: "ipfs://QmUxNNqSrsDK5JLk42u2iwwFkP8osFM2pcfYRuEZKsmwrL",
+        imageUriSvg: true,
+        headerLogo: "ipfs://Qmf4LS9HgwYSWVq73AL1HVaaeW1s44qJvZuUDJkVyTEKze",
+        headerLogoSvg: true
+        // views: [{
+        //     name: 'token_metadata',
+        //     description: 'Get the metadata for the tokens minted using this contract',
+        //     pure: false,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (pair (nat %token_id) (map %token_info string bytes))
+        //                 returnType: {
+        //                     prim: "pair",
+        //                     args: [
+        //                         { prim: "nat", annots: ["%token_id"] },
+        //                         { prim: "map", args: [{ prim: "string" }, { prim: "bytes" }], annots: ["%token_info"] },
+        //                     ],
+        //                 },
+        //                 code: parsedEditionMetadataMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'royalty_distribution',
+        //     description: 'Get the minter of a specify token as well as the amount of royalty and the splits corresponding to it.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (pair address (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))))
+        //                 returnType: {
+        //                     prim: "pair",
+        //                     args: [
+        //                         { prim: "address" },
+        //                         {
+        //                             prim: "pair",
+        //                             args: [
+        //                                 { prim: "nat", annots: ["%royalty"] },
+        //                                 {
+        //                                     prim: "list",
+        //                                     args: [
+        //                                         {
+        //                                             prim: "pair",
+        //                                             args: [
+        //                                                 { prim: "address", annots: ["%address"] },
+        //                                                 { prim: "nat", annots: ["%pct"] },
+        //                                             ]
+        //                                         }
+        //                                     ],
+        //                                     annots: ["%splits"]
+        //                                 },
+        //                             ]
+        //                         },
+        //                     ],
+        //                 },
+        //                 code: parsedRoyaltyDistributionMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'splits',
+        //     description: 'Get the splits for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (list (pair (address %address) (nat %pct)))
+        //                 returnType: {
+        //                     prim: "list",
+        //                     args: [
+        //                         {
+        //                             prim: "pair",
+        //                             args: [
+        //                                 { prim: "address", annots: ["%address"] },
+        //                                 { prim: "nat", annots: ["%pct"] },
+        //                             ]
+        //                         }
+        //                     ],
+        //                     annots: ["%splits"]
+        //                 },
+        //                 code: parsedSplitsMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'royalty_splits',
+        //     description: 'Get the royalty and splits for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
+        //                 returnType: {
+        //                     prim: "pair",
+        //                     args: [
+        //                         { prim: "nat", annots: ["%royalty"] },
+        //                         {
+        //                             prim: "list",
+        //                             args: [
+        //                                 {
+        //                                     prim: "pair",
+        //                                     args: [
+        //                                         { prim: "address", annots: ["%address"] },
+        //                                         { prim: "nat", annots: ["%pct"] },
+        //                                     ]
+        //                                 }
+        //                             ],
+        //                             annots: ["%splits"]
+        //                         },
+        //                     ]
+        //                 },
+        //                 code: parsedRoyaltySplitsMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'royalty',
+        //     description: 'Get the royalty for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // nat
+        //                 returnType: {
+        //                     prim: 'nat',
+        //                 },
+        //                 code: parsedRoyaltyMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'minter',
+        //     description: 'Get the minter for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // nat
+        //                 returnType: {
+        //                     prim: 'address',
+        //                 },
+        //                 code: parsedMinterMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'is_token_minter',
+        //     description: 'Verify if address is minter on the contract.',
+        //     pure: false,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'pair',
+        //                     args: [
+        //                         { prim: "address" },
+        //                         { prim: "nat" }
+        //                     ]
+        //                 },
+        //                 // nat
+        //                 returnType: {
+        //                     prim: 'bool',
+        //                 },
+        //                 code: parsedIsTokenMinterMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }],
     };
 
     const contractMetadata = await client.storeBlob(

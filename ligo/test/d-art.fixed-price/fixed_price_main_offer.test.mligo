@@ -50,7 +50,7 @@ let test_create_offer_already_placed =
     match result with
         Success _gas -> failwith "CreateOffer - Offer below 0.1tez : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_MINIMUM_0.1_TEZ") ) "CreateOffer - Offer below 0.1tez : Should not work if offer below 0.1tez" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1tez") ) "CreateOffer - Offer below 0.1tez : Should not work if offer below 0.1tez" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -59,8 +59,7 @@ let test_create_offer_already_placed =
 
 // Fail if offer already placed
 let test_create_offer_already_placed = 
-    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
-    
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in 
 
     let () = Test.set_source admin in
     let contract = Test.to_contract t_add in
@@ -124,6 +123,88 @@ let test_create_offer_success =
                 "Passed"
         )
     
+// fail if wrong commodity fa2 not supported
+let test_create_offer_stablecoin_not_supported = 
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
+
+    let () = Test.set_source admin in
+    let contract = Test.to_contract t_add in
+
+    let result = Test.transfer_to_contract contract
+        (Create_offer ({
+            fa2_token = {
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 1n
+            };
+            commodity = (Fa2 ({address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address); id = 0n; amount = 1000n } : fa2_token));
+        } : offer_conf)) 1000tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateOffer - Stable coin not supported : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_NOT_SUPPORTED") ) "CreateOffer - Stable coin not supported : Should not work if stable coin not supported" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"  
+    
+// fail if wrong commodity fa2 no amount
+let test_create_offer_stablecoin_no_amount = 
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
+
+    let () = Test.set_source admin in
+    let contract = Test.to_contract t_add in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin (Add_stable_coin ({fa2_base = {address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD": address); id= 0n}; mucoin = 1000000n}))) 0tez in
+
+    let result = Test.transfer_to_contract contract
+        (Create_offer ({
+            fa2_token = {
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 1n
+            };
+            commodity = (Fa2 ({address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address); id = 0n; amount = 1000000n } : fa2_token));
+        } : offer_conf)) 1000tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateOffer - Stable coin no amount : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = Test.log err in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "CreateOffer - Stable coin no amount : Should not work if stable coin and amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"      
+
+// fail if wrong commodity min price
+let test_create_offer_stablecoin_fa2_min_price =
+    let _, t_add, _, _, admin = get_fixed_price_contract (false) in
+    
+    let () = Test.set_source admin in
+    let contract = Test.to_contract t_add in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin (Add_stable_coin ({fa2_base = {address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD": address); id= 0n}; mucoin = 1000000n}))) 0tez in
+
+    let result = Test.transfer_to_contract contract
+        (Create_offer ({
+            fa2_token = {
+                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+                id = 1n
+            };
+            commodity = (Fa2 ({address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address); id = 0n; amount = 1000n } : fa2_token));
+        } : offer_conf)) 0tez
+    in
+
+    match result with
+        Success _gas -> failwith "CreateOffer - Stable coin min price not met: This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "PRICE_SHOULD_BE_MINIMUM_0.1") ) "CreateOffer - Stable coin min price not met : Should not work if min price is not met" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"      
+
 // -- REVOKE OFFER --
 
 // Fail if will be deprecated
@@ -137,11 +218,9 @@ let test_revoke_offer_no_offer_placed =
 
     let result = Test.transfer_to_contract contract
         (Revoke_offer ({
-            fa2_token = {
-                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                id = 1n
-            };
-        } : offer_conf)) 0tez
+            address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            id = 1n
+        } : fa2_base)) 0tez
     in
 
     match result with
@@ -162,11 +241,9 @@ let test_revoke_offer_no_amount =
 
     let result = Test.transfer_to_contract contract
         (Revoke_offer ({
-            fa2_token = {
-                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                id = 1n
-            };
-        } : offer_conf)) 10tez
+            address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            id = 1n
+        } : fa2_base)) 10tez
     in
 
     match result with
@@ -194,13 +271,15 @@ let test_create_offer_success =
     let _gas = Test.transfer_to_contract_exn contract
         (Create_offer ({
             fa2_token = token;
+            commodity = (Tez (1000tez));
         } : offer_conf)) 1000tez
     in
 
     let _gas = Test.transfer_to_contract_exn contract
         (Revoke_offer ({
-            fa2_token = token;
-        } : offer_conf)) 0tez
+            address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
+            id = 1n
+        } : fa2_base)) 0tez
     in
 
     let new_str = Test.get_storage t_add in
@@ -256,6 +335,7 @@ let test_accept_offer_buyer_is_seller =
     let _gas = Test.transfer_to_contract_exn contract
         (Create_offer ({
             fa2_token = token;
+            commodity = (Tez (1000tez))
         } : offer_conf)) 1000tez
     in
 
@@ -307,7 +387,7 @@ let test_accept_no_offer_placed =
     |   Fail _ -> failwith "Internal test failure"    
 
 // Success
-let test_create_offer_success = 
+let test_accept_offer_success = 
     let add, t_add, fa2_add, t_fa2_add, _ = get_fixed_price_contract (false) in 
         
     // Get balance of different actors of the sale to verify 
@@ -335,6 +415,7 @@ let test_create_offer_success =
     let _gas = Test.transfer_to_contract_exn contract
         (Create_offer ({
             fa2_token = token;
+            commodity = (Tez (100tez))
         } : offer_conf)) 100tez
     in
 
@@ -400,7 +481,7 @@ let test_create_offer_success =
 
 
 // Success Gallery contract 
-let test_create_offer_success_commission = 
+let test_accept_offer_success_commission = 
     let _, t_add, gallery, fa2_add, t_fa2_add, _ = get_fixed_price_contract_gallery (false) in 
         
     // Get balance of different actors of the sale to verify 
@@ -430,6 +511,7 @@ let test_create_offer_success_commission =
     let _gas = Test.transfer_to_contract_exn contract
         (Create_offer ({
             fa2_token = token;
+            commodity = (Tez (100tez))
         } : offer_conf)) 100tez
     in
     

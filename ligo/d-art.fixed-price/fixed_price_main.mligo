@@ -1,4 +1,4 @@
-#include "admin_main.mligo"
+#include "admin.mligo"
 
 type fixed_price_entrypoints =
     | Admin of admin_entrypoints
@@ -8,7 +8,7 @@ type fixed_price_entrypoints =
     | Create_drops of drop_configuration
     | Revoke_drops of revoke_param
     | Create_offer of offer_conf
-    | Revoke_offer of offer_conf
+    | Revoke_offer of fa2_base
     | Accept_offer of accept_offer
     | Buy_fixed_price_token of buy_token
     | Buy_dropped_token of buy_token
@@ -17,16 +17,17 @@ let create_offer (offer_conf, storage : offer_conf * storage) : return =
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
     let () = assert_msg (not Big_map.mem (offer_conf.fa2_token, Tezos.get_sender()) storage.offers, "OFFER_ALREADY_PLACED") in
     let () = fail_if_wrong_commodity (offer_conf.commodity, storage) in
+    let () = fail_if_wrong_price_specified (offer_conf.commodity) in
 
     ([]: operation list), { storage with offers = Big_map.add (offer_conf.fa2_token, Tezos.get_sender()) offer_conf.commodity storage.offers }
 
-let revoke_offer (offer_conf, storage : offer_conf * storage) : return =
+let revoke_offer (fa2_base, storage : fa2_base * storage) : return =
     let () = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
-    match Big_map.find_opt (offer_conf.fa2_token, Tezos.get_sender()) storage.offers with
+    match Big_map.find_opt (fa2_base, Tezos.get_sender()) storage.offers with
         |   None -> (failwith "NO_OFFER_PLACED" : return)
         |   Some offer_amt -> (
                 let offer_ctr : unit contract = resolve_contract (Tezos.get_sender()) in
-                (match offer_amt with | Tez price -> [Tezos.transaction unit price offer_ctr] | Fa2 _ -> ([] : operation list)), { storage with offers = Big_map.remove (offer_conf.fa2_token, Tezos.get_sender()) storage.offers }
+                (match offer_amt with | Tez price -> [Tezos.transaction unit price offer_ctr] | Fa2 _ -> ([] : operation list)), { storage with offers = Big_map.remove (fa2_base, Tezos.get_sender()) storage.offers }
             )
 
 let accept_offer (accept_conf, storage : accept_offer * storage) : return =
@@ -35,7 +36,7 @@ let accept_offer (accept_conf, storage : accept_offer * storage) : return =
     match Big_map.find_opt (accept_conf.fa2_token, accept_conf.buyer) storage.offers with
         |   None -> (failwith "NO_OFFER_PLACED" : return)
         |   Some offer_amt -> (
-                let operation_list : operation list = perform_sale_operation (accept_conf.fa2_token, Tezos.get_sender(), accept_conf.buyer, (None : address option), offer_amt, storage) in
+                let operation_list : operation list = perform_sale_operation (accept_conf.fa2_token, Tezos.get_sender(), accept_conf.buyer, accept_conf.buyer, (None : address option), offer_amt, storage) in
                 operation_list, { storage with offers = Big_map.remove (accept_conf.fa2_token, accept_conf.buyer) storage.offers }
             )
 
@@ -107,15 +108,16 @@ let revoke_sales (revoke_sales_param, storage : revoke_param * storage) : return
     ([] : operation list), new_strg
 
 let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
-    let () = assert_msg (buy_token.buyer <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
+    let () = assert_msg (buy_token.buyer <> buy_token.seller && Tezos.get_sender() <> buy_token.seller , "SELLER_NOT_AUTHORIZED") in
     let () = verify_signature (buy_token.authorization_signature, storage) in
 
     let concerned_fixed_price_sale : fixed_price_sale = get_sale (buy_token.fa2_token, buy_token.seller, storage) in
 
     let () = fail_if_buyer_not_authorized (Tezos.get_sender(), concerned_fixed_price_sale.buyer) in
+    let () = fail_if_buyer_not_authorized (buy_token.buyer, concerned_fixed_price_sale.buyer) in
     let () = fail_if_wrong_price_specified (concerned_fixed_price_sale.commodity) in
 
-    let operation_list : operation list = perform_sale_operation (buy_token.fa2_token, buy_token.seller, buy_token.buyer, buy_token.referrer, concerned_fixed_price_sale.commodity, storage) in
+    let operation_list : operation list = perform_sale_operation (buy_token.fa2_token, buy_token.seller, buy_token.buyer, Tezos.get_sender(), buy_token.referrer, concerned_fixed_price_sale.commodity, storage) in
     
     operation_list, { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; for_sale = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.for_sale; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used }
 
@@ -173,7 +175,7 @@ let revoke_drops (revoke_drops_param, storage : revoke_param * storage) : return
     ([]: operation list), new_storage
 
 let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
-    let () = assert_msg (buy_token.buyer <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
+    let () = assert_msg (buy_token.buyer <> buy_token.seller && Tezos.get_sender() <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
     let () = verify_signature (buy_token.authorization_signature, storage) in
 
     let concerned_fixed_price_drop : fixed_price_drop = get_drop (buy_token.fa2_token, buy_token.seller, storage) in
@@ -181,7 +183,7 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let () = fail_if_wrong_price_specified (concerned_fixed_price_drop.commodity) in
     let () = fail_if_drop_date_not_met concerned_fixed_price_drop in
 
-    let operation_list : operation list = perform_sale_operation (buy_token.fa2_token, buy_token.seller, buy_token.buyer, buy_token.referrer, concerned_fixed_price_drop.commodity, storage) in
+    let operation_list : operation list = perform_sale_operation (buy_token.fa2_token, buy_token.seller, buy_token.buyer, Tezos.get_sender(), buy_token.referrer, concerned_fixed_price_drop.commodity, storage) in
     let new_strg = { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; drops = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.drops; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used } in
 
     operation_list, new_strg
@@ -191,7 +193,7 @@ let fixed_price_main (p , storage : fixed_price_entrypoints * storage) : return 
     | Admin admin_param -> admin_main (admin_param, storage)
 
     | Create_offer offer_conf -> create_offer (offer_conf, storage)
-    | Revoke_offer offer_conf -> revoke_offer (offer_conf, storage)
+    | Revoke_offer param -> revoke_offer (param, storage)
     | Accept_offer param -> accept_offer (param, storage)
 
     // Fixed price sales entrypoints

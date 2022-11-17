@@ -45,7 +45,7 @@ type signed_message_used = (bytes, unit) big_map
 type add_stable_coin = 
 {
   fa2_base : fa2_base;
-  mucoin : mucoin
+  mucoin : mucoin;
 }
 
 type admin_storage =
