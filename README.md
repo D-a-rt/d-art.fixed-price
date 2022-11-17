@@ -2,7 +2,7 @@
 
 #### Introduction:
 
-This set of contracts contain three different types of contract: fa2-editions (two variants), fixed-price and fa2-editions-factory (will call it serie-factory).
+This set of contracts contain 5 different types of contract: fa2-editions (three variants), fixed-price and serie-factory, gallery-factory and permission-manager.
 
 #### Prerequisites
 
