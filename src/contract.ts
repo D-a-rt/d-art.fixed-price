@@ -12,8 +12,6 @@ import { InMemorySigner } from '@taquito/signer';
 import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 
 // -- View import
-// Serie factory
-import { default as IsMinter } from './views/serie_factory/is_minter.tz';
 
 // FA2 no factory
 import { default as Minter } from './views/fa2-editions-no-factory/fa2_editions_minter.tz';
@@ -37,7 +35,7 @@ const client = new NFTStorage({
     token: process.env.NFT_STORAGE_KEY!,
 })
 
-enum ContractAction {
+export enum ContractAction {
     COMPILE = "compile contract",
     SIZE = "info measure-contract"
 }
@@ -71,55 +69,44 @@ async function contractAction(contractName: string, action: ContractAction, path
 
 // -- Compile contracts --
 
-export async function compileContracts(param: any): Promise<void> {
+export async function contracts (param: any, type: ContractAction): Promise<void> {
     switch (param.title) {
         case "fixed-price":
-            contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             break;
-        case "fa2-editions-factory":
-            contractAction("Fa2 editions factory", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
+        case "fa2-editions-serie":
+            contractAction("Fa2 editions serie", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
             break;
-        case "serie-factory":
-            contractAction("Serie factory", ContractAction.COMPILE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
-            break;
-        default:
-            contractAction("Fixed-price", ContractAction.COMPILE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main", "d-art.fixed-price/compile/fixed_price_main.tz")
-            contractAction("Fa2 editions", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
-            contractAction("Fa2 editions factory", ContractAction.COMPILE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
-            contractAction("Serie factory", ContractAction.COMPILE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
-            break;
-    }
-}
-
-export async function calculateSize(param: any): Promise<void> {
-    switch (param.title) {
-        case "fixed-price":
-            contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
-            break;
-        case "fa2-editions":
-            contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'")
-            break;
-        case "fa2-editions-factory":
-            contractAction("Fa2 editions factory", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
+        case "fa2-editions-gallery":
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
             break;
         case "serie-factory":
-            contractAction("Serie factory", ContractAction.SIZE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
+            contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
+            break;
+        case "gallery-factory":
+            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
+            break;
+        case "permission-manager":
+            contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
             break;
         default:
-            await contractAction("Fixed-price", ContractAction.SIZE, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_tez_main")
-            await contractAction("Fa2 editions", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'")
-            await contractAction("Fa2 editions factory", ContractAction.SIZE, "d-art.fa2-editions/compile_fa2_editions_factory.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.serie-factory/compile/serie.tz")
-            await contractAction("Serie factory", ContractAction.SIZE, "d-art.serie-factory/compile.mligo", "art_serie_factory_main --views 'is_minter'", "d-art.serie-factory/compile/serie_factory.tz")
+            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
+            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
+            contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
+            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
+            contractAction("Permission manager", type, "d-art.permission-manager/views.mligo", "permission_manager_main --views 'is_minter, is_gallery, is_admin'", "d-art.permission-manager/compile/permission_manager.tz")
             break;
     }
 }
 
 // -- Deploy contracts --
 
-export async function deployFixedPriceContract(): Promise<void> {
+export async function deployFixedPriceContract(permissionManager: string): Promise<void> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'))
 
     const fixed_price_contract_metadata = {
@@ -145,7 +132,7 @@ export async function deployFixedPriceContract(): Promise<void> {
         code: code,
         storage: {
             admin: {
-                address: process.env.ADMIN_PUBLIC_KEY_HASH,
+                permission_manager: permissionManager,
                 pb_key: process.env.SIGNER_PUBLIC_KEY,
                 signed_message_used: new MichelsonMap(),
                 contract_will_update: false
@@ -163,6 +150,7 @@ export async function deployFixedPriceContract(): Promise<void> {
                 address: process.env.ADMIN_PUBLIC_KEY_HASH,
                 percent: 25,
             },
+            stable_coin: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
             })
@@ -187,7 +175,7 @@ export async function deployFixedPriceContract(): Promise<void> {
     }
 }
 
-export async function deployEditionContract(): Promise<void> {
+export async function deployEditionContract(permisionManagerAdd: string): Promise<void> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fa2-editions/compile/multi_nft_token_editions.tz'))
 
     const p = new Parser();
@@ -202,8 +190,8 @@ export async function deployEditionContract(): Promise<void> {
 
     // TODO : Add missing views
     const editions_contract_metadata = {
-        name: 'A:RT - Original',
-        description: 'The original serie for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create unique pieces.',
+        name: 'A:RT - Legacy',
+        description: 'The lecgacy contract for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create only one unique piece.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -413,18 +401,19 @@ export async function deployEditionContract(): Promise<void> {
     const originateParam = {
         code: code,
         storage: {
-            next_edition_id: 0,
+            next_token_id: 0,
+            as_minted: MichelsonMap.fromLiteral({}),
+            proposals: MichelsonMap.fromLiteral({}),
             editions_metadata: MichelsonMap.fromLiteral({}),
-            max_editions_per_run: 250,
+            max_editions_per_run: 1,
             assets: {
                 ledger: MichelsonMap.fromLiteral({}),
                 operators: MichelsonMap.fromLiteral({}),
                 token_metadata: MichelsonMap.fromLiteral({})
             },
             admin: {
-                admin: process.env.ADMIN_PUBLIC_KEY_HASH,
                 pause_minting: false,
-                minters_manager: "KT1XYpZxVxfKyJBvdHbhFo3nbdNVeF15nkFG",
+                permission_manager: permisionManagerAdd,
             },
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
@@ -451,39 +440,16 @@ export async function deployEditionContract(): Promise<void> {
     }
 }
 
-export async function deploySerieFactory(): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.serie-factory/compile/serie_factory.tz'))
-
-    const p = new Parser();
-
-    const parsedIsMinterMichelsonCode = p.parseMichelineExpression(IsMinter.code);
+export async function deploySerieFactory(permisionManagerAdd: string): Promise<void> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/serie_factory.tz'))
 
     const serieFactoryMetadata = {
         name: 'A:RT - Serie Factory',
-        description: 'This contract take care of holding the selection of authorized artists on D a:rt and is responsible to originate series.',
+        description: 'This contract is responsible to originate series for authorized artists on D a:rt.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
-        interfaces: ['TZIP-016'],
-        views: [{
-            name: 'is_minter',
-            description: 'Verify if address is minter on the contract.',
-            pure: false,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'address',
-                        },
-                        returnType: {
-                            prim: 'bool',
-                        },
-                        code: parsedIsMinterMichelsonCode,
-                    },
-                },
-            ],
-        }]
+        interfaces: ['TZIP-016']
     }
 
     const contractMetadata = await client.storeBlob(
@@ -498,11 +464,8 @@ export async function deploySerieFactory(): Promise<void> {
     const originateParam = {
         code: code,
         storage: {
-            admin: {
-                admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
-                origination_paused: false,
-            },
-            minters: MichelsonMap.fromLiteral({}),
+            admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
+            permission_manager: permisionManagerAdd,
             series: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
@@ -530,21 +493,136 @@ export async function deploySerieFactory(): Promise<void> {
     }
 }
 
+export async function deployGalleryFactory(permisionManagerAdd: string): Promise<void> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/gallery_factory.tz'))
+
+    const galleryFactoryMetadata = {
+        name: 'A:RT - Gallery Factory',
+        description: 'This contract is responsible to originate new gallery contract to let them the possibilities to curate artists and create NFTs in collaboration with them on the D a:rt platform.',
+        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        license: "MIT",
+        interfaces: ['TZIP-016']
+    }
+
+    const contractMetadata = await client.storeBlob(
+        new Blob([JSON.stringify(galleryFactoryMetadata)]),
+    )
+
+    if (!contractMetadata) {
+        console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
+        return;
+    }
+
+    const originateParam = {
+        code: code,
+        storage: {
+            permission_manager: permisionManagerAdd,
+            galleries: MichelsonMap.fromLiteral({}),
+            metadata: MichelsonMap.fromLiteral({
+                "": char2Bytes(`ipfs://${contractMetadata}`),
+            })
+        }
+    }
+
+    try {
+        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+
+        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+
+
+        const originationOp = await toolkit.contract.originate(originateParam);
+
+        await originationOp.confirmation();
+        const { address } = await originationOp.contract()
+
+        console.log('Gallery Factory contract deployed at: ', address)
+
+    } catch (error) {
+        const jsonError = JSON.stringify(error);
+        console.log(kleur.red(`Gallery Factory origination error ${jsonError}`));
+    }
+}
+
+export async function deployPermissionManager(): Promise<string | undefined> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.permission-manager/compile/permission_manager.tz'))
+
+    const permissionManagerMetadata = {
+        name: 'A:RT - Permission Manager',
+        description: 'This contract is responsible to manage access to the D A:RT system.',
+        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        license: "MIT",
+        interfaces: ['TZIP-016']
+    }
+
+    const contractMetadata = await client.storeBlob(
+        new Blob([JSON.stringify(permissionManagerMetadata)]),
+    )
+
+    if (!contractMetadata) {
+        console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
+        throw Error('Unable to upload data to ipfs')
+    }
+
+    const originateParam = {
+        code: code,
+        storage: {
+            admin_str: {
+                admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
+                pending_admin: null,
+            },
+            minters: MichelsonMap.fromLiteral({}),
+            galleries: MichelsonMap.fromLiteral({}),
+            metadata: MichelsonMap.fromLiteral({
+                "": char2Bytes(`ipfs://${contractMetadata}`),
+            })
+        }
+    }
+
+    try {
+        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+
+        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+
+
+        const originationOp = await toolkit.contract.originate(originateParam);
+
+        await originationOp.confirmation();
+        const { address } = await originationOp.contract()
+
+        console.log('Permission manager contract deployed at: ', address)
+        return address
+    } catch (error) {
+        const jsonError = JSON.stringify(error);
+        console.log(kleur.red(`Permission manager origination error ${jsonError}`));
+    }
+}
+
 export const deployContracts = async (param: any) => {
     switch (param.title) {
         case "fixed-price":
-            await deployFixedPriceContract()
+            if (param.permissionManager) await deployFixedPriceContract(param.permissionManager)
             break;
         case "fa2-editions":
-            await deployEditionContract()
+            if (param.permissionManager) await deployEditionContract(param.permissionManager)
             break;
         case "serie-factory":
-            await deploySerieFactory()
+            if (param.permissionManager) await deploySerieFactory(param.permissionManager)
+            break;
+        case "gallery-factory":
+            console.log(param.permissionManager)
+            if (param.permissionManager) await deployGalleryFactory(param.permissionManager)
+            break;
+        case "permission-manager":
+            await deployPermissionManager()
             break;
         default:
-            await deployEditionContract()
-            await deployFixedPriceContract()
-            await deploySerieFactory()
+            const permissionManagerAdd = await deployPermissionManager()
+            if (permissionManagerAdd) await deployEditionContract(permissionManagerAdd)
+            if (permissionManagerAdd) await deployFixedPriceContract(permissionManagerAdd)
+            if (permissionManagerAdd) await deploySerieFactory(permissionManagerAdd)
+            if (permissionManagerAdd) await deployGalleryFactory(permissionManagerAdd)
             break;
     }
 }
@@ -653,7 +731,7 @@ async function testEditionContract(): Promise<void> {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
                     console.log(kleur.yellow().dim(err.toString()))
-                    reject();
+                    
                 } else {
                     console.log(`Results: ${stdout}`)
                     resolve()
@@ -699,10 +777,46 @@ async function testEditionContract(): Promise<void> {
     })
 
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints...`))
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/multi_nft_token_editions.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_serie...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_serie.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_gallery...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_gallery.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -735,30 +849,13 @@ async function testEditionContract(): Promise<void> {
     })
 }
 
-async function testFactoryContract(): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing serie factory admin entrypoints...`))
-
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.serie-factory/admin.test.mligo")}`),
-            (err, stdout) => {
-                if (err) {
-                    console.log(kleur.red('Failed to run tests.'));
-                    console.log(kleur.yellow().dim(err.toString()))
-                    reject();
-                } else {
-                    console.log(`Results: ${stdout}`)
-                    resolve()
-                }
-            }
-        )
-    })
+async function testSerieFactoryContract(): Promise<void> {
 
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing serie factory main entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.serie-factory/serie_factory_main.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/serie_factory_main.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -773,6 +870,64 @@ async function testFactoryContract(): Promise<void> {
     })
 }
 
+async function testGalleryFactoryContract(): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing gallery factory main entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/gallery_factory_main.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+}
+
+async function testPermissionManagerContract(): Promise<void> {
+    
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing permission manager main entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/permission_manager.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+    
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing permission manager views entrypoints...`))
+
+        child.exec(
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/views.test.mligo")}`),
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+}
 
 export const testContracts = async (param: any) => {
     switch (param.title) {
@@ -783,12 +938,30 @@ export const testContracts = async (param: any) => {
             await testEditionContract()
             break;
         case "serie-factory":
-            await testFactoryContract()
+            await testSerieFactoryContract()
+            break;
+        case "gallery-factory":
+            await testGalleryFactoryContract()
+            break;
+        case "permission-manager":
+            await testPermissionManagerContract()
             break;
         default:
+            console.log(kleur.magenta(`Testing editions contracts:`))
+            console.log(kleur.magenta(` `))
             await testEditionContract()
+            console.log(kleur.magenta(`Testing fixed price contracts:`))
+            console.log(kleur.magenta(` `))
             await testFixedPriceContract()
-            await testFactoryContract()
+            console.log(kleur.magenta(`Testing serie factory contracts:`))
+            console.log(kleur.magenta(` `))
+            await testSerieFactoryContract()
+            console.log(kleur.magenta(`Testing gallery factory contracts:`))
+            console.log(kleur.magenta(` `))
+            await testGalleryFactoryContract()
+            console.log(kleur.magenta(`Testing permission manager contracts:`))
+            console.log(kleur.magenta(` `))
+            await testPermissionManagerContract()
             break;
     }
 }
@@ -809,201 +982,204 @@ export const uploadContractMetadata = async () => {
 
     // TODO : Add missing views
     const editions_contract_metadata = {
-        name: 'Name...',
-        description: 'Description...',
+        name: 'A:RT Gallery',
+        description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],
-        imageUri: "ipfs://...",
-        views: [{
-            name: 'token_metadata',
-            description: 'Get the metadata for the tokens minted using this contract',
-            pure: false,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (pair (nat %token_id) (map %token_info string bytes))
-                        returnType: {
-                            prim: "pair",
-                            args: [
-                                { prim: "nat", annots: ["%token_id"] },
-                                { prim: "map", args: [{ prim: "string" }, { prim: "bytes" }], annots: ["%token_info"] },
-                            ],
-                        },
-                        code: parsedEditionMetadataMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'royalty_distribution',
-            description: 'Get the minter of a specify token as well as the amount of royalty and the splits corresponding to it.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (pair address (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))))
-                        returnType: {
-                            prim: "pair",
-                            args: [
-                                { prim: "address" },
-                                {
-                                    prim: "pair",
-                                    args: [
-                                        { prim: "nat", annots: ["%royalty"] },
-                                        {
-                                            prim: "list",
-                                            args: [
-                                                {
-                                                    prim: "pair",
-                                                    args: [
-                                                        { prim: "address", annots: ["%address"] },
-                                                        { prim: "nat", annots: ["%pct"] },
-                                                    ]
-                                                }
-                                            ],
-                                            annots: ["%splits"]
-                                        },
-                                    ]
-                                },
-                            ],
-                        },
-                        code: parsedRoyaltyDistributionMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'splits',
-            description: 'Get the splits for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (list (pair (address %address) (nat %pct)))
-                        returnType: {
-                            prim: "list",
-                            args: [
-                                {
-                                    prim: "pair",
-                                    args: [
-                                        { prim: "address", annots: ["%address"] },
-                                        { prim: "nat", annots: ["%pct"] },
-                                    ]
-                                }
-                            ],
-                            annots: ["%splits"]
-                        },
-                        code: parsedSplitsMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'royalty_splits',
-            description: 'Get the royalty and splits for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
-                        returnType: {
-                            prim: "pair",
-                            args: [
-                                { prim: "nat", annots: ["%royalty"] },
-                                {
-                                    prim: "list",
-                                    args: [
-                                        {
-                                            prim: "pair",
-                                            args: [
-                                                { prim: "address", annots: ["%address"] },
-                                                { prim: "nat", annots: ["%pct"] },
-                                            ]
-                                        }
-                                    ],
-                                    annots: ["%splits"]
-                                },
-                            ]
-                        },
-                        code: parsedRoyaltySplitsMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'royalty',
-            description: 'Get the royalty for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // nat
-                        returnType: {
-                            prim: 'nat',
-                        },
-                        code: parsedRoyaltyMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'minter',
-            description: 'Get the minter for a token id.',
-            pure: true,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'nat',
-                        },
-                        // nat
-                        returnType: {
-                            prim: 'address',
-                        },
-                        code: parsedMinterMichelsonCode,
-                    },
-                },
-            ],
-        }, {
-            name: 'is_token_minter',
-            description: 'Verify if address is minter on the contract.',
-            pure: false,
-            implementations: [
-                {
-                    michelsonStorageView:
-                    {
-                        parameter: {
-                            prim: 'pair',
-                            args: [
-                                { prim: "address" },
-                                { prim: "nat" }
-                            ]
-                        },
-                        // nat
-                        returnType: {
-                            prim: 'bool',
-                        },
-                        code: parsedIsTokenMinterMichelsonCode,
-                    },
-                },
-            ],
-        }],
+        imageUri: "ipfs://QmUxNNqSrsDK5JLk42u2iwwFkP8osFM2pcfYRuEZKsmwrL",
+        imageUriSvg: true,
+        headerLogo: "ipfs://Qmf4LS9HgwYSWVq73AL1HVaaeW1s44qJvZuUDJkVyTEKze",
+        headerLogoSvg: true
+        // views: [{
+        //     name: 'token_metadata',
+        //     description: 'Get the metadata for the tokens minted using this contract',
+        //     pure: false,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (pair (nat %token_id) (map %token_info string bytes))
+        //                 returnType: {
+        //                     prim: "pair",
+        //                     args: [
+        //                         { prim: "nat", annots: ["%token_id"] },
+        //                         { prim: "map", args: [{ prim: "string" }, { prim: "bytes" }], annots: ["%token_info"] },
+        //                     ],
+        //                 },
+        //                 code: parsedEditionMetadataMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'royalty_distribution',
+        //     description: 'Get the minter of a specify token as well as the amount of royalty and the splits corresponding to it.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (pair address (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))))
+        //                 returnType: {
+        //                     prim: "pair",
+        //                     args: [
+        //                         { prim: "address" },
+        //                         {
+        //                             prim: "pair",
+        //                             args: [
+        //                                 { prim: "nat", annots: ["%royalty"] },
+        //                                 {
+        //                                     prim: "list",
+        //                                     args: [
+        //                                         {
+        //                                             prim: "pair",
+        //                                             args: [
+        //                                                 { prim: "address", annots: ["%address"] },
+        //                                                 { prim: "nat", annots: ["%pct"] },
+        //                                             ]
+        //                                         }
+        //                                     ],
+        //                                     annots: ["%splits"]
+        //                                 },
+        //                             ]
+        //                         },
+        //                     ],
+        //                 },
+        //                 code: parsedRoyaltyDistributionMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'splits',
+        //     description: 'Get the splits for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (list (pair (address %address) (nat %pct)))
+        //                 returnType: {
+        //                     prim: "list",
+        //                     args: [
+        //                         {
+        //                             prim: "pair",
+        //                             args: [
+        //                                 { prim: "address", annots: ["%address"] },
+        //                                 { prim: "nat", annots: ["%pct"] },
+        //                             ]
+        //                         }
+        //                     ],
+        //                     annots: ["%splits"]
+        //                 },
+        //                 code: parsedSplitsMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'royalty_splits',
+        //     description: 'Get the royalty and splits for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
+        //                 returnType: {
+        //                     prim: "pair",
+        //                     args: [
+        //                         { prim: "nat", annots: ["%royalty"] },
+        //                         {
+        //                             prim: "list",
+        //                             args: [
+        //                                 {
+        //                                     prim: "pair",
+        //                                     args: [
+        //                                         { prim: "address", annots: ["%address"] },
+        //                                         { prim: "nat", annots: ["%pct"] },
+        //                                     ]
+        //                                 }
+        //                             ],
+        //                             annots: ["%splits"]
+        //                         },
+        //                     ]
+        //                 },
+        //                 code: parsedRoyaltySplitsMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'royalty',
+        //     description: 'Get the royalty for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // nat
+        //                 returnType: {
+        //                     prim: 'nat',
+        //                 },
+        //                 code: parsedRoyaltyMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'minter',
+        //     description: 'Get the minter for a token id.',
+        //     pure: true,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'nat',
+        //                 },
+        //                 // nat
+        //                 returnType: {
+        //                     prim: 'address',
+        //                 },
+        //                 code: parsedMinterMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }, {
+        //     name: 'is_token_minter',
+        //     description: 'Verify if address is minter on the contract.',
+        //     pure: false,
+        //     implementations: [
+        //         {
+        //             michelsonStorageView:
+        //             {
+        //                 parameter: {
+        //                     prim: 'pair',
+        //                     args: [
+        //                         { prim: "address" },
+        //                         { prim: "nat" }
+        //                     ]
+        //                 },
+        //                 // nat
+        //                 returnType: {
+        //                     prim: 'bool',
+        //                 },
+        //                 code: parsedIsTokenMinterMichelsonCode,
+        //             },
+        //         },
+        //     ],
+        // }],
     };
 
     const contractMetadata = await client.storeBlob(

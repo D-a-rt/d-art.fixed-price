@@ -25,13 +25,13 @@ let create_txs_editions (param, storage : create_editions_param * nft_token_stor
         then (failwith "FA2_INVALID_TOKEN_ID" : minted)
         else
             let tx : transfer_destination_descriptor = {
-            to_ = Some t.owner;
-            token_id = new_token_id;
-            amount = 1n;
+                to_ = Some t.owner;
+                token_id = new_token_id;
+                amount = 1n;
             } in
             {
-            storage = acc.storage;
-            reversed_txs = tx :: acc.reversed_txs;
+                storage = acc.storage;
+                reversed_txs = tx :: acc.reversed_txs;
             }
         ) param seed1
 

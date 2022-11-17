@@ -8,30 +8,31 @@ import * as helper from './helper';
 
 program
     .command('test-contract')
-    .option('-t, --title <title>', 'Title of the contract to test: fixed-price, fa2-editions')
+    .option('-t, --title <title>', 'Title of the contract to test: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
     .action((title: string) => {
         contract.testContracts(title)
     })
 
 program
     .command('compile-contract')
-    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions, fa2-editions-factory, serie-factory')
+    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
     .action((title: string) => {
-        contract.compileContracts(title)
+        contract.contracts(title, contract.ContractAction.COMPILE)
     })
 
 program
     .command('deploy-contract')
-    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, serie-factory')
-    .action((title: string) => {
-        contract.deployContracts(title)
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
+    .option('-pm, --permission-manager <permissionManager>', 'Any permission manager contract already deployed')
+    .action((param: any) => {
+        contract.deployContracts(param)
     })
 
 program
     .command('contract-size')
-    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-factory, serie-factory')
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
     .action((title: string) => {
-        contract.calculateSize(title)
+        contract.contracts(title, contract.ContractAction.SIZE)
     })
 
 program

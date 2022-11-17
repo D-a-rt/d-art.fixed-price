@@ -33,6 +33,8 @@ type transfer =
 
 // -- Admin types
 
+type mucoin = nat
+
 type authorization_signature = {
   signed : signature;
   message : bytes;
@@ -40,9 +42,15 @@ type authorization_signature = {
 
 type signed_message_used = (bytes, unit) big_map
 
+type add_stable_coin = 
+{
+  fa2_base : fa2_base;
+  mucoin : mucoin;
+}
+
 type admin_storage =
 {
-  address : address;
+  permission_manager : address;
   pb_key : key;
   signed_message_used : signed_message_used;
   contract_will_update: bool;
@@ -59,10 +67,15 @@ type fee_data =
 
 // -- Fixed  price sale types
 
+type commodity =
+  | Tez of tez
+  | Fa2 of fa2_token
+
+
 type fixed_price_sale =
 [@layout:comb]
 {
-  price : tez;
+  commodity : commodity;
   buyer : address option;
 }
 
@@ -73,7 +86,8 @@ type fixed_price_sale =
 type offer_conf =
 [@layout:comb]
 {
-  fa2_token: fa2_base
+  fa2_token: fa2_base;
+  commodity : commodity;
 }
 
 type accept_offer = 
@@ -89,7 +103,7 @@ type sale_info =
 [@layout:comb]
 {
   buyer : address option;
-  price: tez;
+  commodity: commodity;
   fa2_token: fa2_base;
 }
 
@@ -107,6 +121,7 @@ type buy_token =
   seller: address;
   buyer: address;
   authorization_signature: authorization_signature;
+  referrer: address option;
 }
 
 
@@ -116,7 +131,7 @@ type drop_info =
 [@layout:comb]
 {
   fa2_token: fa2_base;
-  price: tez;
+  commodity: commodity;
   drop_date: timestamp;
 }
 
@@ -130,7 +145,7 @@ type drop_configuration =
 type fixed_price_drop =
 [@layout:comb]
 {
-  price: tez;
+  commodity: commodity;
   drop_date: timestamp;
 }
 
@@ -153,6 +168,7 @@ type revoke_param =
 }
 
 
+
 // Contract storage
 type storage =
 [@layout:comb]
@@ -160,12 +176,13 @@ type storage =
   admin: admin_storage;
   for_sale: (fa2_base * address, fixed_price_sale) big_map;
   drops: drops_storage;
-  offers: (fa2_base * address, tez) big_map;
+  offers: (fa2_base * address, commodity) big_map;
   fa2_sold: (fa2_base, unit) big_map;
   fa2_dropped: (fa2_base, unit) big_map;
   fee_primary: fee_data;
   fee_secondary: fee_data;
   metadata : (string, bytes) big_map;
+  stable_coin : (fa2_base, mucoin) big_map;
 }
 
 type return = operation list * storage

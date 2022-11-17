@@ -42,7 +42,6 @@ type update_operator =
   | Add_operator of operator_param
   | Remove_operator of operator_param
 
-
 type token_metadata =
 [@layout:comb]
   {
@@ -96,20 +95,30 @@ type burn_param =
   token_id: token_id;
 }
 
+type license =
+[@layout:comb]
+{
+    upgradeable : bool;
+    hash : bytes;
+}
+
 // -- Edition entrypoints
 
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 type edition_metadata =
 [@layout:comb]
 {
     edition_info: (string, bytes) map;
     total_edition_number: nat;
+    license : license;
     royalty: nat;
     splits: split list;
 }
 
 #else
+
+#if GALLERY_CONTRACT
 
 type edition_metadata =
 [@layout:comb]
@@ -118,16 +127,50 @@ type edition_metadata =
     edition_info: (string, bytes) map;
     total_edition_number: nat;
     royalty: nat;
+    license : license;
+    splits: split list;
+    gallery_commission: nat;
+    gallery_commission_splits: split list;
+}
+
+type invitation_param = 
+{
+    accept: bool
+}
+
+#else
+
+type proposal_metadata =
+[@layout:comb]
+{
+    accepted : bool;
+    minter : address;
+    edition_info: (string, bytes) map;
+    license : license;
+    total_edition_number: nat;
+    royalty: nat;
     splits: split list;
 }
 
+type edition_metadata =
+[@layout:comb]
+{
+    minter : address;
+    edition_info: (string, bytes) map;
+    total_edition_number: nat;
+    license : license;
+    royalty: nat;
+    splits: split list;
+}
+
+#endif
 #endif
 
 // -- Storage definition
 
 // Admin storage
 
-#if WILL_ORIGINATE_FROM_FACTORY
+#if SERIE_CONTRACT
 
 type admin_storage = {
     admin : address;
@@ -136,12 +179,24 @@ type admin_storage = {
 
 #else
 
+#if GALLERY_CONTRACT
+
 type admin_storage = {
-    admin : address;
-    paused_minting : bool;
-    minters_manager : address;
+    // In order for galleries to manage the artists from multiple addresses and 
+    // in case they lose access to any of these addresses
+    admins: (address, unit) map;
+    minters: (address, unit) big_map;
+    pending_minters: (address, unit) big_map;
 }
 
+#else
+
+type admin_storage = {
+    paused_minting : bool;
+    permission_manager : address;
+}
+
+#endif
 #endif
 
 type ledger = (token_id, address) big_map
@@ -154,6 +209,24 @@ type nft_token_storage = {
 
 type editions_metadata = (nat, edition_metadata) big_map
 
+
+#if GALLERY_CONTRACT
+
+type editions_storage =
+{
+    next_edition_id : nat;
+    max_editions_per_run : nat;
+    editions_metadata : editions_metadata;
+    mint_proposals : editions_metadata;
+    assets : nft_token_storage;
+    admin : admin_storage;
+    metadata: (string, bytes) big_map;
+}
+
+#else
+
+#if SERIE_CONTRACT
+
 type editions_storage =
 {
     next_edition_id : nat;
@@ -163,3 +236,20 @@ type editions_storage =
     admin : admin_storage;
     metadata: (string, bytes) big_map;
 }
+
+#else
+
+type editions_storage =
+{
+    next_token_id : nat;
+    max_editions_per_run : nat;
+    as_minted: (address, unit) big_map;
+    proposals : (nat, proposal_metadata) big_map;
+    editions_metadata : editions_metadata;
+    assets : nft_token_storage;
+    admin : admin_storage;
+    metadata: (string, bytes) big_map;
+}
+
+#endif
+#endif

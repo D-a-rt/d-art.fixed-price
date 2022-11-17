@@ -2,18 +2,29 @@
 
 The contract is in the directory ligo/d-art.fixed-price and the corresponding test in ligo/test/d-art.fixed-price.
 
-The purpose of this contract is to handle the sale of FA2 NFTs (not multi-asset ~ the contract can be easily tweeked to allow multi asset versions), the different features are:
+The purpose of this contract is to handle the sale of FA2 NFTs using tez and any stable coin following the fa2 standard (not multi-asset ~ the contract can be easily tweeked to allow multi asset versions), the different features are:
 
 - Create classic fix price sales
 - Create private fix price sales (sell to a specfic address)
 - Updates fixed price sales (either price or buyer - address to sell the nft to)
 - Revoke fixed price sales
-- Create drops similat to a fixed price sale (Except that drop date will be specified - and the token won't be able to purchased before this drop date. A drop can be revoked only 6 hours before the drop date or 24h after it has been dropped)
+
+- Create drops similar to a fixed price sale (Except that drop date will be specified - and the token won't be able to be purchased before this drop date. A drop can be revoked only 6 hours before the drop date or 24h after it has been dropped)
 - Revoke drop (Restricition specified above)
+
+- Create offer
+- Revoke offer
+- Accept offer
+
 - Buy a fixed price token (Royalties automatically handled on chain)
 - Buy a fixed price drop (Royalties automatically handled on chain)
 
-Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform)
+In order to pay using a stable coin, it is necessary for the admin to add the address, the id and the decimal (mucoin) of the stable coin in the big_map.
+
+- Add stable coin
+- Remove stable coin
+
+Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform, on top of it will help with the referrer system)
 
 ## Storage definition
 
@@ -21,6 +32,8 @@ This section is responsible to list and explain the storage of the fixed price s
 
 
 ``` ocaml
+type mucoin = nat;
+
 type storage =
 [@layout:comb]
 {
@@ -32,6 +45,8 @@ type storage =
     fa2_dropped: (fa2_base, unit) big_map;
     fee_primary: fee_data;
     fee_secondary: fee_data;
+    stable_coin : (fa2_base, mucoin) big_map;
+    metadata : (string, bytes) big_map;
 }
 ```
 
@@ -49,7 +64,7 @@ type storage =
 }
 
 type admin_storage = {
-  address : address;
+  permission_manager : address;
   pb_key : key;
   signed_message_used : signed_message_used;
   contract_will_update : bool;
@@ -64,11 +79,11 @@ type authorization_signature = {
 ```
 
 
-``address`` : Define the address of the administrator of the contract.
+``permission_manager`` : Define the address of the permission manager contract responsible to control the admin.
 
 ``pb_key`` : Public key responsible to check the authorization_signature sent in order to protect the entrypoint.
 
-``signed_message_used`` : Big_map of all the signed messages already used by users to prevent the smart kids from using used one. ^^
+``signed_message_used`` : Big_map of all the signed messages already used by users to prevent the smart kids from using used one.
 
 ``contract_will_update`` : Boolean that will block access to the creates entrypoints. The idea behind it is to leave the ability to empty contract storage and slowly move sales to a new version of the contract.
 
@@ -98,7 +113,7 @@ type fa2_base =
 type fixed_price_sale =
 [@layout:comb]
 {
-  price : tez;
+  commodity : commodity;
   buyer : address option;
 }
 ```
@@ -107,7 +122,7 @@ The `for_sale` record is used to hold all the active sales in the contract.
 
 ``fa2_base * address`` : The `key` is composed of the general information of a token and a seller address.
 
-``fixed_price_sale`` : The `value` is composed of all the necessary information related to the sale: price and an optional address in order to list to a specific address.
+``fixed_price_sale`` : The `value` is composed of all the necessary information related to the sale: commodity and an optional address in order to list to a specific address.
 
 Why `buyer` in `fixed_price_sale` ?
 
@@ -148,7 +163,7 @@ type drops_storage = (fa2_base * address, fixed_price_drop) big_map
 type fixed_price_drop =
 [@layout:comb]
 {
-  price: tez;
+  commodity: commodity;
   drop_date: timestamp;
 }
 
@@ -158,7 +173,7 @@ type fixed_price_drop =
 
 ``fixed_price_drop`` : The drops' `Big_map` values.
 
-``price`` : The price of the tokens dropped.
+``commodity`` : The commodity in which the seller want to sell the token.
 
 ``drop_date`` : The time when the sale start. Note
 
@@ -235,24 +250,30 @@ The `Admin` entrypoints are responsible for updating fees and the `pb_key` respo
 
 ``` ocaml
 type admin_entrypoints =
-    | UpdatePrimaryFee of fee_data
+    | Update_primary_fee of fee_data
     | UpdateSecondaryfee of fee_data
-    | UpdatePublicKey of key
-    | ContractWillUpdate of bool
+    | Update_public_key of key
+    | Contract_will_update of bool
+    | Add_stable_coin of add_stable_coin
+    | Remove_stable_coin of fa2_base
 ```
 
 
-##### UpdatePrimaryFee & UpdateSecondaryFee
+##### Update_primary_fee & Update_secondary_fee
 
 Entrypoints in order to update the address and the percentage of the fee for transactions.
 
-##### UpdatePublicKey
+##### Update_public_key
 
 Entrypoints to update public key for the signature verification.
 
-##### ContractWillUpdate
+##### Contract_will_update
 
 Entrypoint responsible to block access to any seller for the entrypoints `Create_sales` and `Create_drops` in order to empty this contract and update the a newer version (in case a new one or new logic is implemented)
+
+##### Add & Remove stable coin
+
+These two entrypoints are only accessible by the admin and responsible to manage which stable coin will be accepted in the ecosystem.
 
 
 ### Create_sales
@@ -260,6 +281,10 @@ Entrypoint responsible to block access to any seller for the entrypoints `Create
 The `Create_sales` entrypoint is responsible to create sales (note it's possible to list multiple tokens at the time).
 
 ``` ocaml
+
+type commodity =
+  | Tez of tez
+  | Fa2 of fa2_token
 
 type sale_configuration =
 [@layout:comb]
@@ -272,7 +297,7 @@ type sale_info =
 [@layout:comb]
 {
   buyer : address option;
-  price: tez;
+  commodity: commodity;
   fa2_token: fa2_base;
 }
 
@@ -323,7 +348,7 @@ type drop_info =
 [@layout:comb]
 {
   fa2_token: fa2_base;
-  price: tez;
+  commodity: commodity;
   drop_date: timestamp;
 }
 
@@ -347,6 +372,7 @@ type revoke_drops_param =
 ```
 
 All the needed field to configure a `drop`. The entrypoints only contains record already defined previously.
+
 
 ### Buy_fixed_price_token && Buy_dropped_token
 
