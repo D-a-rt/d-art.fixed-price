@@ -16,13 +16,13 @@ import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 // Fa2 gallery originated
 import {
     TokenMetadataViewGallery,
-    RoyaltyDistributionGallery,
-    SplitsGallery,
-    RoyaltySplitsGallery,
-    RoyaltyGallery,
-    MinterGallery,
-    IsTokenMinterGallery,
-    CommissionSplitsGallery
+    RoyaltyDistributionViewGallery,
+    SplitsViewGallery,
+    RoyaltySplitsViewGallery,
+    RoyaltyViewGallery,
+    MinterViewGallery,
+    IsTokenMinterViewGallery,
+    CommissionSplitsViewGallery
 } from './views/fa2_editions_gallery.tz';
 
 // FA2 Legacy
@@ -982,6 +982,7 @@ export const testContracts = async (param: any) => {
     }
 }
 
+// Example metadata upload for Legacy contracts
 export const uploadContractMetadataLegacy = async () => {
 
     const p = new Parser();
@@ -1207,7 +1208,7 @@ export const uploadContractMetadataLegacy = async () => {
     console.log(contractMetadata)
 }
 
-// Example metadata upload for factory generated contracts
+// Example metadata upload for serie factory generated contracts
 export const uploadContractMetadataSerie = async () => {
 
     const p = new Parser();
@@ -1433,19 +1434,19 @@ export const uploadContractMetadataSerie = async () => {
     console.log(contractMetadata)
 }
 
-// Example metadata upload for factory generated contracts
+// Example metadata upload for gallery factory generated contracts
 export const uploadContractMetadataGallery = async () => {
 
     const p = new Parser();
 
-    const parsedSplitsMichelsonCode = p.parseMichelineExpression(SplitsGallery.code);
-    const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterGallery.code);
-    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(RoyaltyGallery.code);
-    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterGallery.code);
-    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplitsGallery.code);
+    const parsedSplitsMichelsonCode = p.parseMichelineExpression(SplitsViewGallery.code);
+    const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterViewGallery.code);
+    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(RoyaltyViewGallery.code);
+    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterViewGallery.code);
+    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplitsViewGallery.code);
     const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(TokenMetadataViewGallery.code);
-    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionGallery.code);
-    const parsedCommissionSplitsGalleryMichelsonCode = p.parseMichelineExpression(CommissionSplitsGallery.code);
+    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewGallery.code);
+    const parsedCommissionSplitsGalleryMichelsonCode = p.parseMichelineExpression(CommissionSplitsViewGallery.code);
 
     const editions_contract_metadata = {
         name: 'A:RT Gallery',

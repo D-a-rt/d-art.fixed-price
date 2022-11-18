@@ -71,7 +71,7 @@ export const TokenMetadataViewGallery = {
                 PAIR } } }`
 }
 
-export const RoyaltyDistributionGallery = {
+export const RoyaltyDistributionViewGallery = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -94,7 +94,7 @@ export const RoyaltyDistributionGallery = {
           { DUP ; GET 11 ; SWAP ; DUP ; DUG 2 ; GET 7 ; PAIR ; SWAP ; CAR ; PAIR } }`
 }
 
-export const SplitsGallery = {
+export const SplitsViewGallery = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -115,7 +115,7 @@ export const SplitsGallery = {
         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 11 } }`
 }
 
-export const RoyaltySplitsGallery = {
+export const RoyaltySplitsViewGallery = {
     code : `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -138,7 +138,7 @@ export const RoyaltySplitsGallery = {
           { DUP ; GET 11 ; SWAP ; GET 7 ; PAIR } }`
 }
 
-export const RoyaltyGallery = {
+export const RoyaltyViewGallery = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -159,7 +159,7 @@ export const RoyaltyGallery = {
         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 7 } }`
 }
 
-export const MinterGallery = {
+export const MinterViewGallery = {
     code : `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -180,7 +180,7 @@ export const MinterGallery = {
         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { CAR } }`
 }
 
-export const IsTokenMinterGallery = {
+export const IsTokenMinterViewGallery = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -240,7 +240,7 @@ export const IsUniqueEditionGallery = {
             IF { PUSH bool False } { PUSH bool True } } }`
 }
 
-export const CommissionSplitsGallery = {
+export const CommissionSplitsViewGallery = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
