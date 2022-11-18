@@ -51,8 +51,21 @@ program
 
 program
     . command('upload_metadata')
+    .option('-t, --title <title>', 'Title of the contract to measure: Legacy, Serie, Gallery')
     .action((option: any) => {
-        contract.uploadContractMetadata()
+        switch (option.title) {
+            case "Legacy":
+                contract.uploadContractMetadataLegacy()
+                break;
+            case "Serie":
+                contract.uploadContractMetadataSerie()
+                break;
+            case "Gallery":
+                contract.uploadContractMetadataGallery()
+                break;
+            default:
+                console.log('Wrong parameter passed: Legacy, Serie, Gallery')
+        }
     })
 
 program
