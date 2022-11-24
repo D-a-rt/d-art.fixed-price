@@ -2,7 +2,8 @@
 
 The contract is in the directory ligo/d-art.fixed-price and the corresponding test in ligo/test/d-art.fixed-price.
 
-The purpose of this contract is to handle the sale of FA2 NFTs using tez and any stable coin following the fa2 standard (not multi-asset ~ the contract can be easily tweeked to allow multi asset versions), the different features are:
+The purpose of this contract is to handle the sale of FA2 NFTs using tez and any stable coin following the fa2 standard. 
+The different features are:
 
 - Create classic fix price sales
 - Create private fix price sales (sell to a specfic address)
@@ -24,7 +25,7 @@ In order to pay using a stable coin, it is necessary for the admin to add the ad
 - Add stable coin
 - Remove stable coin
 
-Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform, on top of it will help with the referrer system)
+Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform, on top of it will help with the referrer system). A referrer address can be passed to the buy entrypoints in order to send a 1% commission to it. (Will be used when a user of the app will share the link of NFT page if it is for sale )
 
 ## Storage definition
 
