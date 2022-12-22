@@ -193,6 +193,8 @@ let test_serie_factory_originated_royalty_distribution_view =
     let () = assert_with_error (distribution = distri) "Views - Splits : This test should pass, wrong minter specified" in
     "Passed"
 
+// -- FA2 editions version originated from Gallery factory contract
+
 let test_gallery_factory_originated_commission_splits = 
     let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
     let contract = Test.to_contract contract_add in
@@ -243,3 +245,17 @@ let test_gallery_factory_originated_commission_splits =
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
+
+let test_token_metadata_view_symbol =
+    let t_fa2_gallery_add, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract_fixed_price(("KT1DHceF5q3wuxBLAb6iYiocddpWv71A3Nhd" : address)) in
+    let strg = Test.get_storage t_fa2_gallery_add in
+
+    let token_metadata = FA2_GALLERY_STR.token_metadata (0n, strg) in
+
+    let token_m = ({
+        token_id = 0n;
+        token_info = Map.literal [(("symbol"), ("4a3a504e" : bytes)); (("license") , ("ff7a7aff" : bytes)); (("edition_number"), Bytes.pack(1n));]
+    } : FA2_GALLERY_STR.token_metadata) in
+
+    let () = assert_with_error (token_metadata = token_m) "Views - Token metadata : This test should pass, wrong token_metadata for gallery FA2" in
+    "Passed"

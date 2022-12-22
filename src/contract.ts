@@ -433,6 +433,7 @@ export async function deployEditionContract(permisionManagerAdd: string): Promis
             },
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
+                "symbol": "A:RT"
             })
         }
     }
@@ -1227,9 +1228,6 @@ export const uploadContractMetadataSerie = async () => {
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],
         imageUri: "ipfs://QmUxNNqSrsDK5JLk42u2iwwFkP8osFM2pcfYRuEZKsmwrL",
-        imageUriSvg: true,
-        headerLogo: "ipfs://Qmf4LS9HgwYSWVq73AL1HVaaeW1s44qJvZuUDJkVyTEKze",
-        headerLogoSvg: true,
         views: [{
             name: 'token_metadata',
             description: 'Get the metadata for the tokens minted using this contract',

@@ -32,7 +32,7 @@ let create_serie (param, storage : create_entrypoint * storage) : (operation lis
         editions_metadata = editions_metadata_str;
         assets = asset_str;
         admin = admin_str;
-        metadata = Big_map.literal([("", param.metadata);]);
+        metadata = Big_map.literal([("", param.metadata); ("symbol", param.symbol);]);
     } in
     
     let create_contract : lambda_create_contract =

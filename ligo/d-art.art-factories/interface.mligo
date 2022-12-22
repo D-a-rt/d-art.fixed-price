@@ -3,6 +3,7 @@ type create_entrypoint =
 [@layout:comb]
 {
     metadata: bytes;
+    symbol: bytes;
 }
 
 // Storage
