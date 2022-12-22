@@ -76,7 +76,7 @@ let test_create_serie_not_minter =
     let not_minter = Test.nth_bootstrap_account 3 in
 
     let () = Test.set_source not_minter in
-    let result = Test.transfer_to_contract contract ((Create_serie ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes) })) : art_factory) 0tez in 
+    let result = Test.transfer_to_contract contract ((Create_serie ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
 
     match result with
         Success _gas -> failwith "Create_serie - Not minter : This test should fail"
@@ -92,7 +92,7 @@ let test_create_serie_no_amount =
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source minter in
-    let result = Test.transfer_to_contract contract ((Create_serie ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes) })) : art_factory) 1tez in 
+    let result = Test.transfer_to_contract contract ((Create_serie ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 1tez in 
 
     match result with
         Success _gas -> failwith "Create_serie - No amount : This test should fail"
@@ -111,7 +111,7 @@ let test_create_serie =
 
     let () = Test.set_source minter in
 
-    let _gas = Test.transfer_to_contract_exn contract ((Create_serie ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes) })) : art_factory) 0tez in 
+    let _gas = Test.transfer_to_contract_exn contract ((Create_serie ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
 
     let new_strg = Test.get_storage contract_add in
 

@@ -120,10 +120,17 @@ let token_metadata (token_id, storage: nat * editions_storage) : token_metadata 
     | Some _ ->
             let edition_id = token_id_to_edition_id(token_id, storage) in
             (match (Big_map.find_opt edition_id storage.editions_metadata) with
-            | Some edition_metadata -> ({
-                  token_id = token_id;
-                  token_info = Map.add "license" (edition_metadata.license.hash) (Map.add "edition_number" (Bytes.pack(token_id - (edition_id * storage.max_editions_per_run) + 1n) ) edition_metadata.edition_info)
-               } : token_metadata)
+            | Some edition_metadata -> (
+                match (Big_map.find_opt "symbol" storage.metadata) with
+                    | Some symbol -> ({
+                        token_id = token_id;
+                        token_info = Map.add "symbol" (symbol) (Map.add "license" (edition_metadata.license.hash) (Map.add "edition_number" (Bytes.pack(token_id - (edition_id * storage.max_editions_per_run) + 1n) ) edition_metadata.edition_info))
+                    } : token_metadata)
+                    | None -> ({
+                        token_id = token_id;
+                        token_info = Map.add "license" (edition_metadata.license.hash) (Map.add "edition_number" (Bytes.pack(token_id - (edition_id * storage.max_editions_per_run) + 1n) ) edition_metadata.edition_info)
+                    } : token_metadata)
+            )
             | None -> (failwith "FA2_TOKEN_UNDEFINED" : token_metadata))
     | None -> (failwith "FA2_TOKEN_UNDEFINED" : token_metadata)
 

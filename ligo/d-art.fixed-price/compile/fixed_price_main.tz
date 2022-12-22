@@ -898,17 +898,7 @@
              SWAP ;
              UNPAIR ;
              IF_LEFT
-               { PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
-                 PUSH mutez 0 ;
-                 AMOUNT ;
-                 COMPARE ;
-                 EQ ;
-                 PAIR ;
-                 DUP 4 ;
-                 SWAP ;
-                 EXEC ;
-                 DROP ;
-                 SWAP ;
+               { SWAP ;
                  GET 18 ;
                  SWAP ;
                  DUP ;
@@ -963,19 +953,30 @@
                  EXEC } } ;
          SWAP ;
          APPLY ;
-         DIG 7 ;
+         LAMBDA
+           (pair address (option address))
+           unit
+           { UNPAIR ;
+             SWAP ;
+             IF_NONE
+               { DROP ; UNIT }
+               { COMPARE ;
+                 EQ ;
+                 IF { UNIT } { PUSH string "BUYER_NOT_AUTHORIZE_TO_BUY" ; FAILWITH } } } ;
+         DIG 8 ;
          UNPAIR ;
          IF_LEFT
-           { DIG 7 ;
+           { DIG 8 ;
              DROP ;
              IF_LEFT
-               { DIG 3 ;
+               { DIG 4 ;
                  DROP ;
                  IF_LEFT
                    { DIG 2 ;
-                     DIG 4 ;
+                     DIG 3 ;
                      DIG 5 ;
-                     DROP 3 ;
+                     DIG 6 ;
+                     DROP 4 ;
                      IF_LEFT
                        { PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
                          PUSH mutez 0 ;
@@ -1204,7 +1205,9 @@
                                  NIL operation ;
                                  PAIR } } } }
                    { IF_LEFT
-                       { PUSH string "SELLER_NOT_AUTHORIZED" ;
+                       { DIG 2 ;
+                         DROP ;
+                         PUSH string "SELLER_NOT_AUTHORIZED" ;
                          SWAP ;
                          DUP ;
                          DUG 2 ;
@@ -1356,7 +1359,7 @@
                          UPDATE 1 ;
                          SWAP ;
                          PAIR }
-                       { DIG 4 ;
+                       { DIG 5 ;
                          DROP ;
                          PUSH string "SELLER_NOT_AUTHORIZED" ;
                          SWAP ;
@@ -1374,7 +1377,7 @@
                          NEQ ;
                          AND ;
                          PAIR ;
-                         DIG 6 ;
+                         DIG 7 ;
                          SWAP ;
                          EXEC ;
                          DROP ;
@@ -1386,7 +1389,7 @@
                          DUG 2 ;
                          GET 7 ;
                          PAIR ;
-                         DIG 5 ;
+                         DIG 6 ;
                          SWAP ;
                          EXEC ;
                          DROP ;
@@ -1406,12 +1409,19 @@
                          DUP ;
                          CDR ;
                          SENDER ;
+                         PAIR ;
+                         DUP 5 ;
                          SWAP ;
-                         IF_NONE
-                           { DROP ; UNIT }
-                           { COMPARE ;
-                             EQ ;
-                             IF { UNIT } { PUSH string "BUYER_NOT_AUTHORIZE_TO_BUY" ; FAILWITH } } ;
+                         EXEC ;
+                         DROP ;
+                         DUP ;
+                         CDR ;
+                         DUP 3 ;
+                         GET 5 ;
+                         PAIR ;
+                         DIG 4 ;
+                         SWAP ;
+                         EXEC ;
                          DROP ;
                          DUP ;
                          CAR ;
@@ -1513,8 +1523,9 @@
                          UPDATE 1 ;
                          SWAP ;
                          PAIR } } }
-               { DIG 4 ;
-                 DROP ;
+               { DIG 2 ;
+                 DIG 5 ;
+                 DROP 2 ;
                  IF_LEFT
                    { DIG 4 ;
                      DROP ;
@@ -2056,10 +2067,11 @@
                          NIL operation ;
                          PAIR } } } }
            { DIG 2 ;
-             DIG 4 ;
+             DIG 3 ;
              DIG 5 ;
              DIG 6 ;
-             DROP 4 ;
+             DIG 7 ;
+             DROP 5 ;
              IF_LEFT
                { DIG 2 ;
                  DROP ;

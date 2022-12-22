@@ -214,7 +214,6 @@ let perform_sale_operation (fa2_token, seller, receiver, buyer, referrer, commod
           let referrer_fee = calculate_fee ( Some (10n), commodity) in
           let referrer_transfer : operation = commodity_transfer (referrer_fee, buyer, ref_add) in
           
-          // TODO : rec function
           let seller_commodity_amount : commodity = sub_commodity(commodity, add_commodity(add_commodity(add_commodity(admin_fee.1, royalties_fee), commission_fee), referrer_fee) ) in
           let seller_transfer : operation = commodity_transfer (seller_commodity_amount, buyer, seller) in
           

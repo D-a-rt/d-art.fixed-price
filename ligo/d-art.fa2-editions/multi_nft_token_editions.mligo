@@ -128,7 +128,6 @@ let fail_if_not_owner (sender, token_id, storage : address * token_id * editions
       then unit
       else (failwith "FA2_INSUFFICIENT_BALANCE" : unit)
 
-
 let rec recurs_add (address, acc, len : address * (address list) * nat) : (address list) =
     if len > 0n
     then let l = address :: acc in recurs_add (address, l, abs (len - 1n))
@@ -216,6 +215,7 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
 
         | Update_metadata metadata_param -> 
             let () = fail_if_not_admin editions_storage.admin in
+            
             let res = match Big_map.find_opt "" editions_storage.metadata with
                 |   Some _ -> ([]: operation list), {editions_storage with metadata = Big_map.update ("") (Some metadata_param) editions_storage.metadata }
                 |   None -> ([]: operation list), {editions_storage with metadata = Big_map.add ("") metadata_param editions_storage.metadata }

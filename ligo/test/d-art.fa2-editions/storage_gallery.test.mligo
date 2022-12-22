@@ -89,7 +89,7 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
             royalty = 150n;
             license = {
                 upgradeable = False;
-                hash = ("" : bytes);
+                hash = ("ff7a7aff" : bytes);
             };
             splits = [({
                 address = token_minter;
@@ -118,7 +118,9 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
         mint_proposals = (Big_map.empty : (nat, edition_metadata) big_map);
         assets = asset_strg;
         admin = admin_str;
-        metadata = (Big_map.empty : (string, bytes) big_map);
+        metadata = Big_map.literal([
+            ("symbol", ("4a3a504e" : bytes));
+        ]);
     } in
 
     let michelson_str = Test.compile_value str in
