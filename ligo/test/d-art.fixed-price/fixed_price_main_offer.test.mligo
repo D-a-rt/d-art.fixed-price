@@ -172,7 +172,6 @@ let test_create_offer_stablecoin_no_amount =
     match result with
         Success _gas -> failwith "CreateOffer - Stable coin no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = Test.log err in
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "CreateOffer - Stable coin no amount : Should not work if stable coin and amount specified" in
             "Passed"
         )

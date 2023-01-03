@@ -16,6 +16,7 @@ type fixed_price_entrypoints =
 let create_offer (offer_conf, storage : offer_conf * storage) : return =
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
     let () = assert_msg (not Big_map.mem (offer_conf.fa2_token, Tezos.get_sender()) storage.offers, "OFFER_ALREADY_PLACED") in
+    let () = assert_msg (Tezos.get_sender() = Tezos.get_source(), "SOURCE_SHOULD_BE_SENDER") in
     let () = fail_if_wrong_commodity (offer_conf.commodity, storage) in
     let () = fail_if_wrong_price_specified (offer_conf.commodity) in
 
