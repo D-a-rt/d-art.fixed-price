@@ -8,13 +8,13 @@ let assert_msg (condition, msg : bool * string ) : unit =
 
 // -- Math
 
-let ceil_div_tez (tz_qty, tz_qty_d : tez * nat) : tez =
+let floor_div_tez (tz_qty, tz_qty_d : tez * nat) : tez =
     let result : (tez * tez) option = ediv tz_qty tz_qty_d in
     match result with
             None -> (failwith "DIVISION_BY_ZERO"  : tez)
         |   Some e -> e.0
 
-let ceil_div_amt (fa2_amt, fa2_amt_d : nat * nat) : nat =
+let floor_div_amt (fa2_amt, fa2_amt_d : nat * nat) : nat =
     let result : (nat * nat) option = ediv fa2_amt fa2_amt_d in
     match result with
             None -> (failwith "DIVISION_BY_ZERO"  : nat)
@@ -25,13 +25,13 @@ let calculate_fee (percent, commodity : (nat option) * commodity) : commodity =
         | Tez price -> (
             match percent with
                     None -> (Tez (0mutez))
-                |   Some percentage -> (Tez (ceil_div_tez (price * percentage, 1000n)))
+                |   Some percentage -> (Tez (floor_div_tez (price * percentage, 1000n)))
         )
 
         | Fa2 token -> (
             match percent with
                     None -> (Fa2 ({ address = token.address; id = token.id; amount = 0n } : fa2_token))
-                |   Some percentage -> (Fa2 ({ address = token.address; id = token.id; amount = ceil_div_amt (token.amount * percentage, 1000n) } : fa2_token)) 
+                |   Some percentage -> (Fa2 ({ address = token.address; id = token.id; amount = floor_div_amt (token.amount * percentage, 1000n) } : fa2_token)) 
         )
         
 let add_commodity (com_val, com_val_2 : commodity * commodity) : commodity =
