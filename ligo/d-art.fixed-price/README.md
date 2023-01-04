@@ -385,10 +385,11 @@ The `Buy_dropped_token`  entrypoint is responsible to buy a token from a `drops`
 type buy_token =
 [@layout:comb]
 {
-    fa2_token: fa2_token;
-    seller: seller;
-    buyer: address;
+    fa2_token: fa2_base;
+    seller: address;
+    receiver: address;
     authorization_signature: authorization_signature;
+    referrer: address option;
 }
 ```
 

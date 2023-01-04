@@ -120,7 +120,7 @@ type buy_token =
 {
   fa2_token: fa2_base;
   seller: address;
-  buyer: address;
+  receiver: address;
   authorization_signature: authorization_signature;
   referrer: address option;
 }

@@ -17,7 +17,7 @@ let test_buy_drop_token_wrong_signature =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
             seller = admin;
-            buyer = no_admin_addr;
+            receiver = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -50,7 +50,7 @@ let test_buy_drop_token_signature_already_used =
                 address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
             } : fa2_base);
             seller = admin;
-            buyer = no_admin_addr;
+            receiver = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
@@ -105,7 +105,7 @@ let test_buy_drop_token_wrong_price =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
-            buyer = no_admin_addr;
+            receiver = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -162,7 +162,7 @@ let test_buy_drop_token_drop_date_not_met =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
-            buyer = no_admin_addr;
+            receiver = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -195,7 +195,7 @@ let test_buy_drop_token_not_dropped =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
-            buyer = no_admin_addr;
+            receiver = no_admin_addr;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
@@ -226,7 +226,7 @@ let test_buy_drop_token_buyer_is_seller =
                 address = (edition_contract_add: address);
             } : fa2_base);
             seller = admin;
-            buyer = admin;
+            receiver = admin;
             referrer = (None : address option);
             authorization_signature = ({
                 signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);

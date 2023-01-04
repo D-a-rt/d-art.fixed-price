@@ -142,18 +142,26 @@ let handle_commodity_splits (buyer, split_fee, splits, operation_list : address 
         |   Fa2 token -> List.fold handle_splits splits (operation_list, (Fa2 ({address = token.address; id = token.id; amount = 0n})))
     
 let handle_royalties (buyer, token, commodity : address * fa2_base * commodity) : (operation list) * commodity =
-    match ((Tezos.call_view "royalty_splits" token.id token.address ): royalties option) with
+    match ((Tezos.call_view "royalty_splits" token.id token.address ): (royalties option) option) with
         None -> ([]: operation list), (match commodity with Tez _ -> (Tez (0mutez)) | Fa2 token-> (Fa2 ({address = token.address; id = token.id; amount = 0n})))
-        |   Some royalties_param ->
-                let royalties_fee : commodity = calculate_fee ( Some (royalties_param.royalty), commodity) in
-                handle_commodity_splits (buyer, royalties_fee, royalties_param.splits, ([] : operation list))
+        |   Some royalties_param -> (
+                match royalties_param with 
+                    None -> ([]: operation list), (match commodity with Tez _ -> (Tez (0mutez)) | Fa2 token-> (Fa2 ({address = token.address; id = token.id; amount = 0n})))
+                    |   Some p -> 
+                            let royalties_fee : commodity = calculate_fee ( Some (p.royalty), commodity) in
+                            handle_commodity_splits (buyer, royalties_fee, p.splits, ([] : operation list))
+        )
 
 let handle_commissions (buyer, token, commodity , operation_list : address * fa2_base * commodity * (operation list)) : (operation list) * commodity =
-    match ((Tezos.call_view "commission_splits" token.id token.address ): commissions option) with
+    match ((Tezos.call_view "commission_splits" token.id token.address ): (commissions option) option) with
             None -> operation_list, (match commodity with Tez _ -> (Tez (0mutez)) | Fa2 token-> (Fa2 ({address = token.address; id = token.id; amount = 0n})))
-            |   Some param ->
-                let commissions_fee : commodity = calculate_fee ( Some (param.commission_pct), commodity) in
-                handle_commodity_splits (buyer, commissions_fee, param.splits, operation_list)
+            |   Some param -> (
+                    match param with 
+                        None -> operation_list, (match commodity with Tez _ -> (Tez (0mutez)) | Fa2 token-> (Fa2 ({address = token.address; id = token.id; amount = 0n})))
+                        | Some p -> 
+                            let commissions_fee : commodity = calculate_fee ( Some (p.commission_pct), commodity) in
+                            handle_commodity_splits (buyer, commissions_fee, p.splits, operation_list)
+            )
 
 let commodity_transfer (commodity, from_address, to_address : commodity * address * address) : operation list =
     match commodity with
@@ -163,9 +171,13 @@ let commodity_transfer (commodity, from_address, to_address : commodity * addres
 // -- Authorize drop seller
 
 let is_authorized_drop_seller (add, token : address * fa2_base) : bool = 
-  match ((Tezos.call_view "is_token_minter" (add, token.id) token.address ): bool option) with
+  match ((Tezos.call_view "is_token_minter" (add, token.id) token.address ): (bool option) option) with
       None -> false
-    | Some _b -> _b
+    | Some b -> (
+        match b with
+            None -> false
+            | Some _b -> _b
+    )
 
 // -- Verify signature
 
