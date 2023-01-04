@@ -161,6 +161,7 @@ let mint_editions ( edition_run_list , storage : mint_edition_param list * editi
     let mint_single_edition_run : (editions_storage * mint_edition_param) -> editions_storage =
         fun (storage, param : editions_storage * mint_edition_param) ->
             let () : unit = assert_msg(param.royalty <= 250n, "ROYALTIES_CANNOT_EXCEED_25_PERCENT") in
+            let () : unit = assert_msg(param.royalty >= 50n, "ROYALTIES_MINIMUM_5_PERCENT") in
             let () : unit = assert_msg(param.total_edition_number >= 1n, "EDITION_NUMBER_SHOULD_BE_AT_LEAST_ONE") in
             let () : unit = assert_msg(param.total_edition_number <= storage.max_editions_per_run, "EDITION_RUN_TOO_LARGE" ) in
 
