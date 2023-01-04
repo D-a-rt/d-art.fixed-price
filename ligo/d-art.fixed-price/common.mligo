@@ -73,6 +73,12 @@ let sub_commodity (com_val, com_minus : commodity * commodity) : commodity =
                     )
         )
 
+// When concat the first list will be reversed, however in this case it should not be a problem
+let rec concat_l (type a) (l, ld : a list * a list) : a list =
+  match l with
+    | [] -> ld
+    | h::t -> concat_l (t, h::ld)
+
 // -- Contracts
 
 let address_to_contract_transfer_entrypoint(add : address) : ((transfer list) contract) =
@@ -107,13 +113,13 @@ type commissions =
   splits: split list;
 }
 
-let transfer_token (from_address, to_address, fa2_token: address * address * fa2_token) : operation =
+let transfer_token (from_address, to_address, fa2_token: address * address * fa2_token) : operation list=
    let contract = address_to_contract_transfer_entrypoint fa2_token.address in
-   Tezos.transaction [{ from_ = from_address; txs = [{ to_ = to_address; token_id = fa2_token.id; amount = fa2_token.amount}] }] 0mutez contract
+   if fa2_token.amount > 0n then [Tezos.transaction [{ from_ = from_address; txs = [{ to_ = to_address; token_id = fa2_token.id; amount = fa2_token.amount}] }] 0mutez contract] else []
 
-let transfer_tez (price, address : tez * address) : operation =
+let transfer_tez (price, address : tez * address) : operation list =
     let contract = resolve_contract address in
-    Tezos.transaction () price contract
+    if price > 0mutez then [Tezos.transaction () price contract] else []
 
 let handle_commodity_splits (buyer, split_fee, splits, operation_list : address * commodity * split list * operation list) : (operation list) * commodity =
     let handle_splits : (((operation list) * commodity) * split) -> (operation list) * commodity =
@@ -122,12 +128,12 @@ let handle_commodity_splits (buyer, split_fee, splits, operation_list : address 
             match fee with
                 |   Tez price -> (
                         if price > 0mutez 
-                        then (transfer_tez(price, split.address) :: operations), add_commodity((Tez (price)), cm)
+                        then concat_l(transfer_tez (price, split.address), operations), add_commodity((Tez (price)), cm)
                         else operations, cm
                     )
                 |   Fa2 token -> (
                         if token.amount > 0n 
-                        then (transfer_token (buyer, split.address, token) :: operations), add_commodity((Fa2 (token)), cm)
+                        then concat_l(transfer_token (buyer, split.address, token), operations), add_commodity((Fa2 (token)), cm)
                         else operations, cm
                     )
     in
@@ -149,7 +155,7 @@ let handle_commissions (buyer, token, commodity , operation_list : address * fa2
                 let commissions_fee : commodity = calculate_fee ( Some (param.commission_pct), commodity) in
                 handle_commodity_splits (buyer, commissions_fee, param.splits, operation_list)
 
-let commodity_transfer (commodity, from_address, to_address : commodity * address * address) : operation =
+let commodity_transfer (commodity, from_address, to_address : commodity * address * address) : operation list =
     match commodity with
         |   Tez price -> transfer_tez (price, to_address)
         |   Fa2 token -> transfer_token (from_address, to_address, token)
@@ -192,36 +198,70 @@ let get_drop (fa2_base, seller, storage : fa2_base * address * storage) : fixed_
         | None ->  (failwith "TOKEN_IS_NOT_DROPPED" : fixed_price_drop)
 
 // -- Manage admin fees
-let select_fee (referrer_pct, fa2_token, commodity, str : nat * fa2_base * commodity * storage) : address * commodity =
-  if Big_map.mem fa2_token str.fa2_sold
-  then str.fee_secondary.address, calculate_fee (Some (abs(str.fee_secondary.percent - referrer_pct)), commodity)
-  else str.fee_primary.address, calculate_fee (Some (abs(str.fee_primary.percent - referrer_pct)), commodity)
+let get_admin_fee (referrer, fa2_token, commodity, str : (address option) * fa2_base * commodity * storage) : address * commodity =
+    match referrer with
+        | Some _ -> (
+                if Big_map.mem fa2_token str.fa2_sold
+                then (
+                    if str.admin.referral_activated
+                    then (
+                        if str.fee_secondary.percent >= 10n
+                        then str.fee_secondary.address, calculate_fee (Some (abs(str.fee_secondary.percent - 10n)), commodity)
+                        else str.fee_secondary.address, calculate_fee (Some (str.fee_secondary.percent), commodity)
+                    )
+                    else str.fee_secondary.address, calculate_fee (Some (str.fee_secondary.percent), commodity)
+                )
+                else (
+                    if str.admin.referral_activated
+                    then (
+                        if str.fee_primary.percent >= 10n
+                        then str.fee_primary.address, calculate_fee (Some (abs(str.fee_primary.percent - 10n)), commodity)
+                        else str.fee_primary.address, calculate_fee (Some (str.fee_primary.percent), commodity)
+                    )
+                    else str.fee_primary.address, calculate_fee (Some (str.fee_primary.percent), commodity)
+                )
+            )
+        | None -> (
+            if Big_map.mem fa2_token str.fa2_sold
+            then str.fee_secondary.address, calculate_fee (Some (str.fee_secondary.percent), commodity)    
+            else str.fee_primary.address, calculate_fee (Some (str.fee_primary.percent), commodity)
+        )
 
 // -- Any kind of sale
 let perform_sale_operation (fa2_token, seller, receiver, buyer, referrer, commodity, storage : fa2_base * address * address * address * (address option) * commodity * storage) : operation list =
 
     // Fees
-    let admin_fee : address * commodity = match referrer with Some _ -> select_fee (10n, fa2_token, commodity, storage) | None -> select_fee (0n, fa2_token, commodity, storage) in
+    let admin_fee : address * commodity = get_admin_fee (referrer, fa2_token, commodity, storage) in
+    
     let (royalties_transfer, royalties_fee) : (operation list) * commodity = handle_royalties (buyer, fa2_token, commodity) in
     let (commission_royalties_transfer, commission_fee) : (operation list) * commodity = if Big_map.mem fa2_token storage.fa2_sold then royalties_transfer, (match commodity with Tez _ -> (Tez (0mutez)) | Fa2 token-> (Fa2 ({address = token.address; id = token.id; amount = 0n}))) else handle_commissions (buyer, fa2_token, commodity, royalties_transfer) in
     
     // Transfer
-    let admin_fee_transfer : operation = commodity_transfer (admin_fee.1, buyer, admin_fee.0) in
-    let receiver_transfer : operation = transfer_token (seller, receiver, ({ address = fa2_token.address; id = fa2_token.id; amount = 1n } : fa2_token)) in
+    let admin_fee_transfer : operation list = commodity_transfer (admin_fee.1, buyer, admin_fee.0) in
+    let receiver_transfer : operation list = transfer_token (seller, receiver, ({ address = fa2_token.address; id = fa2_token.id; amount = 1n } : fa2_token)) in
 
     match referrer with
         Some ref_add -> (
-          let referrer_fee = calculate_fee ( Some (10n), commodity) in
-          let referrer_transfer : operation = commodity_transfer (referrer_fee, buyer, ref_add) in
-          
-          let seller_commodity_amount : commodity = sub_commodity(commodity, add_commodity(add_commodity(add_commodity(admin_fee.1, royalties_fee), commission_fee), referrer_fee) ) in
-          let seller_transfer : operation = commodity_transfer (seller_commodity_amount, buyer, seller) in
-          
-          (referrer_transfer :: admin_fee_transfer :: receiver_transfer :: seller_transfer :: commission_royalties_transfer )
+            if storage.admin.referral_activated 
+            then (
+                let referrer_fee = calculate_fee (Some (10n) , commodity) in
+                let referrer_transfer : operation list = commodity_transfer (referrer_fee, buyer, ref_add) in
+                
+                let seller_commodity_amount : commodity = sub_commodity(commodity, add_commodity(add_commodity(add_commodity(admin_fee.1, royalties_fee), commission_fee), referrer_fee) ) in
+                let seller_transfer : operation list = commodity_transfer (seller_commodity_amount, buyer, seller) in
+                
+                concat_l (receiver_transfer, concat_l (seller_transfer ,concat_l (commission_royalties_transfer, concat_l (admin_fee_transfer, referrer_transfer))))
+            )
+            else (
+                let seller_commodity_amount : commodity = sub_commodity(commodity, add_commodity(add_commodity(admin_fee.1, royalties_fee), commission_fee) ) in
+                let seller_transfer : operation list = commodity_transfer (seller_commodity_amount, buyer, seller) in
+                
+                concat_l (receiver_transfer, concat_l (seller_transfer ,concat_l (commission_royalties_transfer, admin_fee_transfer)))
+            )
         )
-      |   None -> (
+        | None -> (
             let seller_commodity_amount : commodity = sub_commodity(commodity, add_commodity(add_commodity(admin_fee.1, royalties_fee), commission_fee) ) in
-            let seller_transfer : operation = commodity_transfer (seller_commodity_amount, buyer, seller) in
+            let seller_transfer : operation list = commodity_transfer (seller_commodity_amount, buyer, seller) in
               
-            (admin_fee_transfer :: receiver_transfer :: seller_transfer :: commission_royalties_transfer)
-          )
+            concat_l (receiver_transfer, concat_l (seller_transfer ,concat_l (commission_royalties_transfer, admin_fee_transfer)))
+        )

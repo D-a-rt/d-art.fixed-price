@@ -8,6 +8,7 @@ type admin_entrypoints =
     | Update_public_key of key
     | Update_permission_manager of address
     | Contract_will_update of bool
+    | Referral_activated of bool
     | Add_stable_coin of add_stable_coin
     | Remove_stable_coin of fa2_base
 
@@ -17,12 +18,12 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
   match param with
     | Update_primary_fee new_fee_data ->
         let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in
-        let () = assert_msg (new_fee_data.percent >= 10n, "PERCENTAGE_MUST_BE_MINIMUM_1_PERCENT") in
+        let () = assert_msg (new_fee_data.percent >= 0n, "PERCENTAGE_MUST_BE_MINIMUM_0_PERCENT") in
         ([] : operation list), { storage with fee_primary = new_fee_data }
 
     | Update_secondary_fee new_fee_data ->
         let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in
-        let () = assert_msg (new_fee_data.percent >= 10n, "PERCENTAGE_MUST_BE_MINIMUM_1_PERCENT") in
+        let () = assert_msg (new_fee_data.percent >= 0n, "PERCENTAGE_MUST_BE_MINIMUM_0_PERCENT") in
         ([] : operation list), { storage with fee_secondary = new_fee_data }
     
     | Update_public_key key ->
@@ -32,6 +33,8 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
       (([] : operation list), { storage with admin.permission_manager = add; })
 
     | Contract_will_update bool -> ([] : operation list), { storage with admin.contract_will_update = bool }
+
+    | Referral_activated bool -> ([] : operation list), { storage with admin.referral_activated = bool }
 
     | Add_stable_coin param -> 
       if Big_map.mem param.fa2_base storage.stable_coin 

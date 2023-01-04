@@ -338,7 +338,7 @@ let test_buy_fixed_price_token_success =
 
 // Success - verify fa2 gallery transfer, fee & royalties
 let test_buy_fixed_price_token_success_commission =
-    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false) in 
+    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, true) in 
     
     let contract = Test.to_contract t_add in
 
@@ -663,7 +663,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
 
 
 let test_buy_fixed_price_token_success_secondary_commission = 
-    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false) in 
+    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, true) in 
     
     let token_minter = Test.nth_bootstrap_account 3 in
     let () = Test.set_source token_minter in
@@ -874,7 +874,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
 
 // Success - verify fa2 gallery transfer, fee & royalties, and referrer
 let test_buy_fixed_price_token_success_commission_referrer =
-    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false) in 
+    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, true) in 
     
     let contract = Test.to_contract t_add in
 
@@ -969,6 +969,144 @@ let test_buy_fixed_price_token_success_commission_referrer =
             // Check that fees been transfer to fee address
             let new_fee_account_bal = Test.get_balance fee_account in
             let () =    if new_fee_account_bal - fee_account_bal = Some (9tez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
+            in
+
+            // Admin 50% of the 15% royalties here
+            let new_token_split_bal = Test.get_balance token_split in
+            let () =    if new_token_split_bal - token_split_bal = Some (7.5tez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
+            in
+
+            let new_gallery_account_bal = Test.get_balance gallery in
+            let () =    if new_gallery_account_bal - gallery_bal = Some (50tez)
+                        then unit   
+                        else (failwith "AcceptOffer - Success : This test should pass (err: Wrong percentage sent to commission address)" : unit)
+            in
+
+            // Check that seller got the right amount
+            let new_token_minter_bal = Test.get_balance token_minter in
+            let () =    if new_token_minter_bal - token_minter_bal = Some (32.5tez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong value sent to seller)" : unit)
+            in
+                                    
+            // Check that buyer owns the token
+            let () = match Big_map.find_opt 0n edition_str.assets.ledger with
+                    Some add -> (
+                        if add = buyer
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong address to the token)" : unit) 
+                    )
+                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token should have a value)" : unit)
+            in
+            "Passed"
+        )   
+    |   Fail (Rejected (_err, _)) -> failwith "Buy_fixed_price_token - Success : This test should pass"    
+    |   Fail err -> (
+        let () = Test.log err in
+        failwith "Internal test failure"        )
+
+
+// Success - verify fa2 gallery transfer, fee & royalties, and referrer
+let test_buy_fixed_price_token_success_commission_referrer_deactivated =
+    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, false) in 
+    
+    let contract = Test.to_contract t_add in
+
+    // Get balance of different actors of the sale to verify 
+    // that fees and royalties are sent correctly
+    let fee_account = Test.nth_bootstrap_account 2 in
+    let fee_account_bal = Test.get_balance fee_account in
+    
+    let token_minter = Test.nth_bootstrap_account 3 in
+    
+    let token_split = Test.nth_bootstrap_account 5 in
+    let token_split_bal = Test.get_balance token_split in
+
+    let gallery_bal = Test.get_balance gallery in
+
+    let () = Test.set_source token_minter in
+
+    let _gas_creation_sale = Test.transfer_to_contract_exn contract
+        (Create_sales ({
+            authorization_signature = ({
+                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
+                message = ("54657374206d657373616765207465746574657465" : bytes);
+            }: authorization_signature);
+            sale_infos = [({
+                commodity = (Tez (100tez));
+                buyer = None;
+                fa2_token = {
+                    address = (fa2_add : address);
+                    id = 0n 
+                };
+            } : sale_info );]
+        } : sale_configuration)) 0tez
+    in
+
+    let token_minter_bal = Test.get_balance token_minter in
+
+    let buyer = Test.nth_bootstrap_account 1 in
+    let referrer = Test.nth_bootstrap_account 9 in
+    let referrer_bal = Test.get_balance referrer in
+
+    let () = Test.set_source buyer in
+
+    let result = Test.transfer_to_contract contract
+        (Buy_fixed_price_token ({
+            fa2_token = ({
+                id = 0n;
+                address = (fa2_add : address);
+            } : fa2_base);
+            seller = token_minter;
+            buyer = buyer;
+            referrer = Some(referrer);
+            authorization_signature = ({
+                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
+                message = ("54657374206d6573736167652074657374207269676874" : bytes);
+            }: authorization_signature);
+      
+        })) 100tez
+    in
+
+    // To check the result of the edition storage account
+    let edition_str = Test.get_storage t_fa2_add in
+    // To check the result of the fixed price storage account
+    let new_fp_str = Test.get_storage t_add in
+
+    match result with
+        Success _gas -> (
+            // Check that message has been correctly saved 
+            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
+                    Some _ -> unit
+                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
+            in
+            // Check that sale is deleted from big map
+            let sale_key : fa2_base * address = (
+                {
+                    address = (fa2_add : address);
+                    id = 0n
+                },
+                admin
+            ) in
+            let () = match Big_map.find_opt sale_key new_fp_str.for_sale with
+                    Some _ -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Token still for sale)" : unit)
+                |   None -> unit
+            in
+            
+            // Check that fees been transfer to referrer
+            let new_referrer_bal = Test.get_balance referrer in
+            let () =    if new_referrer_bal - referrer_bal = Some (0tez)
+                        then unit
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
+            in
+            
+            // Check that fees been transfer to fee address
+            let new_fee_account_bal = Test.get_balance fee_account in
+            let () =    if new_fee_account_bal - fee_account_bal = Some (10tez)
                         then unit
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
             in

@@ -117,7 +117,6 @@ let test_buy_drop_token_wrong_price =
     match result with
         Success _gas -> failwith "Buy_dropped_token - Wrong price specified : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = Test.log err in
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "WRONG_PRICE_SPECIFIED") ) "Buy_dropped_token - Wrong price specified : Should not work if wrong price" in
             "Passed"
         )

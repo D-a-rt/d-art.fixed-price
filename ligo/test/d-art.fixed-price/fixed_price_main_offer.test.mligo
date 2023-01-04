@@ -481,7 +481,7 @@ let test_accept_offer_success =
 
 // Success Gallery contract 
 let test_accept_offer_success_commission = 
-    let _, t_add, gallery, fa2_add, t_fa2_add, _ = get_fixed_price_contract_gallery (false) in 
+    let _, t_add, gallery, fa2_add, t_fa2_add, _ = get_fixed_price_contract_gallery (false, true) in 
         
     // Get balance of different actors of the sale to verify 
     // that fees and royalties are sent correctly

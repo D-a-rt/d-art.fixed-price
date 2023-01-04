@@ -54,6 +54,7 @@ type admin_storage =
   pb_key : key;
   signed_message_used : signed_message_used;
   contract_will_update: bool;
+  referral_activated: bool;
 }
 
 // -- Fees

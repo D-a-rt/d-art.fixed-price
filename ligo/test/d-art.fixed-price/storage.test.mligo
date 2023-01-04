@@ -16,6 +16,7 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
         pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
         signed_message_used = (Big_map.empty : signed_message_used) ;
         contract_will_update = will_update;
+        referral_activated = True;
     } in
 
     let empty_sales = (Big_map.empty : (fa2_base * address, fixed_price_sale) big_map ) in
@@ -149,7 +150,8 @@ let get_fixed_price_contract (signature_saved : bool) =
         permission_manager = permission_m_add;
         pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
         signed_message_used = signed_ms;
-        contract_will_update = false;
+        contract_will_update = False;
+        referral_activated = True;
     } in
 
     let stable_coin = {
@@ -190,7 +192,7 @@ let get_fixed_price_contract (signature_saved : bool) =
     addr, taddr, fa2_add, t_fa2_add, admin
     
 
-let get_fixed_price_contract_gallery (signature_saved : bool ) =
+let get_fixed_price_contract_gallery (signature_saved, referral_activated : bool * bool ) =
     let () = Test.reset_state 10n ([233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez] : tez list) in
     
     let admin = Test.nth_bootstrap_account 0 in
@@ -209,7 +211,8 @@ let get_fixed_price_contract_gallery (signature_saved : bool ) =
         permission_manager = permission_m_add;
         pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
         signed_message_used = signed_ms;
-        contract_will_update = false;
+        contract_will_update = False;
+        referral_activated = referral_activated;
     } in
 
     let stable_coin = {

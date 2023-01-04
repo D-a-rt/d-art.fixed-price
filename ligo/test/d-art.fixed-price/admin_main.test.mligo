@@ -397,6 +397,60 @@ let test_contract_will_update_with_amount =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
+
+// -- REFERRAL ACTIVATED --
+
+// Success
+let test_referral_activated =
+    let _, contract_add,_ ,_, admin  = get_fixed_price_contract (false) in
+    
+    let () = Test.set_source admin in
+    let contract = Test.to_contract contract_add in
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (Referral_activated (true))) 0tez in    
+
+    let new_str = Test.get_storage contract_add in
+    let () = assert_with_error (new_str.admin.referral_activated = true) "Admin -> Referral_activated - True : Should be true" in
+
+    let _gas = Test.transfer_to_contract_exn contract (Admin  (Referral_activated (false))) 0tez in    
+
+    let new_str = Test.get_storage contract_add in
+    let () = assert_with_error (new_str.admin.referral_activated = false) "Admin -> Referral_activated - False : Should be false" in
+    "Passed"
+
+// Should fail if not admin
+let test_referral_activated_not_admin =
+    let _, contract_add,_ ,_, _  = get_fixed_price_contract (false) in
+    
+    let no_admin_addr = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source no_admin_addr in
+    
+    let contract = Test.to_contract contract_add in
+    let result = Test.transfer_to_contract contract (Admin  (Referral_activated (true))) 0tez in    
+
+    match result with
+        Success _gas -> failwith "Admin -> Referral_activated - Not admin : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Referral_activated - Not admin : Should not work if sender not admin" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
+// Should fail if amount passed as parameter
+let test_referral_activated_with_amount =
+    let _, contract_add,_ ,_, admin  = get_fixed_price_contract (false) in
+    
+    let () = Test.set_source admin in
+    let contract = Test.to_contract contract_add in
+    let result = Test.transfer_to_contract contract (Admin  (Referral_activated (true))) 1tez in    
+
+    match result with
+        Success _gas -> failwith "Admin -> Referral_activated - No amount : This test should fail"
+    |   Fail (Rejected (err, _)) -> (
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Referral_activated - No amount : Should not work if amount specified" in
+            "Passed"
+        )
+    |   Fail _ -> failwith "Internal test failure"    
+
 // -- Add_stable_coin --
 
 // fail if already stable coin
