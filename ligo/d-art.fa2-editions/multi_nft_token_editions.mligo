@@ -59,7 +59,7 @@ type editions_entrypoints =
     |   Upgrade_license of license_param
     |   Reject_proposals of proposal_param list
     |   Update_metadata of bytes
-    |   Burn_token of burn_param
+    |   Burn_token of token_id
 
 #else
 
@@ -81,7 +81,7 @@ type editions_entrypoints =
     |   Mint_editions of mint_edition_param list
     |   Upgrade_license of license_param
     |   Update_metadata of bytes
-    |   Burn_token of burn_param
+    |   Burn_token of token_id
 
 #else 
 
@@ -108,7 +108,7 @@ type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
     |   Update_metadata of bytes
-    |   Burn_token of burn_param
+    |   Burn_token of token_id
 
     |   Create_proposal of mint_edition_param
     |   Update_proposal of update_mint_edition_param
@@ -222,10 +222,9 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             in
             res
 
-        | Burn_token burn_param ->
-            let () = assert_msg (burn_param.owner = Tezos.get_sender(), "NOT_OWNER") in
-            let () : unit = fail_if_not_owner (Tezos.get_sender(), burn_param.token_id, editions_storage) in
-            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }
+        | Burn_token token_id ->
+            let () : unit = fail_if_not_owner (Tezos.get_sender(), token_id, editions_storage) in
+            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove token_id editions_storage.assets.ledger }
 
 #else
 
@@ -392,10 +391,9 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             in
             res
 
-        | Burn_token burn_param ->
-            let () = assert_msg (burn_param.owner = Tezos.get_sender(), "NOT_OWNER") in
-            let () : unit = fail_if_not_owner (Tezos.get_sender(), burn_param.token_id, editions_storage) in
-            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }
+        | Burn_token token_id ->
+            let () : unit = fail_if_not_owner (Tezos.get_sender(), token_id, editions_storage) in
+            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove token_id editions_storage.assets.ledger }
 
 #else
 
@@ -514,10 +512,9 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             in
             res
 
-        | Burn_token burn_param ->
-            let () = assert_msg (burn_param.owner = Tezos.get_sender(), "NOT_OWNER") in
-            let () : unit = fail_if_not_owner (Tezos.get_sender(), burn_param.token_id, editions_storage) in
-            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove burn_param.token_id editions_storage.assets.ledger }
+        | Burn_token token_id ->
+            let () : unit = fail_if_not_owner (Tezos.get_sender(), token_id, editions_storage) in
+            ([]: operation list), { editions_storage with assets.ledger =  Big_map.remove token_id editions_storage.assets.ledger }
 
 #endif
 #endif

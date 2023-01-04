@@ -191,7 +191,7 @@ type editions_entrypoints =
     |   Admin of admin_entrypoints
     |   FA2 of fa2_entry_points
     |   Update_metadata of bytes
-    |   Burn_token of burn_param
+    |   Burn_token of token_id
 
     |   Create_proposal of mint_edition_param
     |   Update_proposal of update_mint_edition_param
