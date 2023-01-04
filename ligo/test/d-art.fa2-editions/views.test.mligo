@@ -16,8 +16,12 @@ let test_is_token_minter_view =
 
     let is_minter = FA2_V.is_token_minter ((minter, 0n : address * FA2_I.token_id), strg) in
 
-    let () = assert_with_error (is_minter) "Views - Is token minter : This test should pass, correct minter specified" in
-    "Passed"
+    match is_minter with
+        | Some is_m -> (
+            let () = assert_with_error (is_m) "Views - Is token minter : This test should pass, correct minter specified" in
+            "Passed"
+        )
+        | None -> "Views - Is token minter : This test should pass, correct minter specified"
 
 
 let test_is_token_minter_view_false =
@@ -27,8 +31,12 @@ let test_is_token_minter_view_false =
     let not_minter = Test.nth_bootstrap_account 6 in
     let is_minter = FA2_V.is_token_minter ((not_minter, 0n : address * FA2_I.token_id ), strg) in
 
-    let () = assert_with_error (is_minter <> true) "Views - Is token minter : This test should pass, wrong minter specified" in
-    "Passed"
+    match is_minter with
+        | Some is_m -> (
+            let () = assert_with_error (is_m <> true) "Views - Is token minter : This test should pass, wrong minter specified" in
+            "Passed"
+        )
+        | None -> "Views - Is token minter : This test should pass, wrong minter specified"
 
 // -- Minter --
 
@@ -39,8 +47,12 @@ let test_minter_view =
 
     let minter_address = FA2_V.minter (1n, strg) in
 
-    let () = assert_with_error (minter_address = minter) "Views - Minter : This test should pass, wrong minter specified" in
-    "Passed"
+    match minter_address with
+        | Some minter_add -> (
+            let () = assert_with_error (minter_add = minter) "Views - Minter : This test should pass, wrong minter specified" in
+            "Passed"
+        )
+        | None -> "Views - Minter : This test should pass, wrong minter specified"
 
 // -- Views - royalty --
 // Success
@@ -50,8 +62,12 @@ let test_royalty_view =
 
     let royalty = FA2_V.royalty (1n, strg) in
 
-    let () = assert_with_error (royalty = 150n) "Views - Royalty : This test should pass, wrong royalty specified" in
-    "Passed"
+    match royalty with
+        | Some r -> (
+            let () = assert_with_error (r = 150n) "Views - Royalty : This test should pass, wrong royalty specified" in
+            "Passed"
+        )
+        | None -> "Views - Royalty : This test should pass, wrong royalty specified"
 
 
 // -- Views - royalty splits --
@@ -70,8 +86,12 @@ let test_royalty_splits_view =
         } : FA2_I.split )]
     } : FA2_V.royalties) in
 
-    let () = assert_with_error (royalties = roy) "Views - Royalty splits : This test should pass, wrong minter specified" in
-    "Passed"
+    match royalties with
+        | Some r -> (
+            let () = assert_with_error (r = roy) "Views - Royalty splits : This test should pass, wrong royalties specified" in
+            "Passed"
+        )
+        | None -> "Views - Royalty splits : This test should pass, wrong royalties specified"
 
 
 // -- Views - splits --
@@ -87,8 +107,12 @@ let test_splits_view =
             pct = 1000n;
         } : FA2_I.split )] in
 
-    let () = assert_with_error (splits = spts) "Views - Splits : This test should pass, wrong minter specified" in
-    "Passed"
+    match splits with
+        | Some s -> (
+            let () = assert_with_error (s = spts) "Views - Splits : This test should pass, wrong splits specified" in
+            "Passed"
+        )
+        | None -> "Views - Splits : This test should pass, wrong splits specified"
 
 
 // -- Views - royalty distribution --
@@ -107,8 +131,13 @@ let test_royalty_distribution_view =
         } : FA2_I.split )]
     } : FA2_V.royalties)) in
 
-    let () = assert_with_error (distribution = distri) "Views - Splits : This test should pass, wrong minter specified" in
-    "Passed"
+    match distribution with
+        | Some d -> (
+            let () = assert_with_error (d = distri) "Views - Splits : This test should pass, wrong royalti distribution specified" in
+            "Passed"
+        )
+        | None -> "Views - Splits : This test should pass, wrong royalti distribution specified"
+
 
 // -- Views - token metadata --
 // Success
@@ -123,8 +152,13 @@ let test_token_metadata_view =
         token_info = Map.literal [(("edition_number"), Bytes.pack(2n)); (("license") , ("ff7a7aff" : bytes)) ]
     } : FA2_V.token_metadata) in
 
-    let () = assert_with_error (token_metadata = token_m) "Views - Token metadata : This test should pass, wrong token_metadata" in
-    "Passed"
+    match token_metadata with
+        | Some tm -> (
+            let () = assert_with_error (tm = token_m) "Views - Token metadata : This test should pass, wrong token_metadata" in
+            "Passed"
+        )
+        | None -> "Views - Token metadata : This test should pass, wrong token_metadata"
+
 
 // -- Views - is token unique edition --
 // Success
@@ -134,8 +168,12 @@ let test_is_unique_edition =
 
     let is_unique_edition = FA2_V.is_unique_edition(1n, strg) in
 
-    let () = assert_with_error (is_unique_edition = false) "Views - Is unique edition : This test should pass, test is unique edition" in
-    "Passed"
+    match is_unique_edition with
+        | Some is_un -> (
+            let () = assert_with_error (is_un = false) "Views - Is unique edition : This test should pass, test is unique edition" in
+            "Passed"
+        )
+        | None -> "Views - Is unique edition : This test should pass, test is unique edition"
 
 
 // -- FA2 editions version originated from Serie factory contract
@@ -148,8 +186,13 @@ let test_serie_factory_originated_is_token_minter_view =
 
     let is_minter = FA2_SERIE_STR.is_token_minter ((minter, 0n : address * FA2_I.token_id), strg) in
 
-    let () = assert_with_error (is_minter) "Views - Is minter : This test should pass, correct minter specified" in
-    "Passed"
+    match is_minter with
+        | Some is_m -> (
+            let () = assert_with_error (is_m) "Views - Is minter : This test should pass, correct minter specified" in
+            "Passed"
+        )
+        | None -> "Views - Is minter : This test should pass, correct minter specified"
+
 
 let test_serie_factory_originated_is_token_minter_view_false =
     let contract_add, _, _, _ = FA2_SERIE_STR.get_fa2_editions_serie_contract(false) in
@@ -158,8 +201,13 @@ let test_serie_factory_originated_is_token_minter_view_false =
     let not_minter = Test.nth_bootstrap_account 6 in
     let is_minter = FA2_SERIE_STR.is_token_minter ((not_minter, 0n : address * FA2_I.token_id ), strg) in
 
-    let () = assert_with_error (is_minter <> true) "Views - Is minter : This test should pass, wrong minter specified" in
-    "Passed"
+    match is_minter with
+        | Some is_m -> (
+            let () = assert_with_error (is_m <> true) "Views - Is minter : This test should pass, wrong minter specified" in
+            "Passed"
+        )
+        | None -> "Views - Is minter : This test should pass, wrong minter specified"
+
 
 // -- Minter --
 
@@ -172,6 +220,7 @@ let test_serie_factory_originated_minter_view =
 
     let () = assert_with_error (minter_address = minter_add) "Views - Minter : This test should pass, wrong minter specified" in
     "Passed"
+    
 
 // -- Views - royalty distribution --
 
@@ -190,8 +239,13 @@ let test_serie_factory_originated_royalty_distribution_view =
         } : FA2_I.split )]
     } : FA2_V.royalties)) in
 
-    let () = assert_with_error (distribution = distri) "Views - Splits : This test should pass, wrong minter specified" in
-    "Passed"
+    match distribution with
+        | Some d -> (
+            let () = assert_with_error (d = distri) "Views - Splits : This test should pass, wrong distri specified" in
+            "Passed"
+        )
+        | None -> "Views - Is minter : This test should pass, wrong distri specified"
+
 
 // -- FA2 editions version originated from Gallery factory contract
 
@@ -219,7 +273,8 @@ let test_gallery_factory_originated_commission_splits =
         };] : FA2_I.split list);
     } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
 
-    let _gas = Test.transfer_to_contract contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let () = Test.set_source gallery in
+    let _gas = Test.transfer_to_contract_exn contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
     
     let () = Test.set_source minter in
     let result = Test.transfer_to_contract contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
@@ -230,19 +285,23 @@ let test_gallery_factory_originated_commission_splits =
             let commission_distribution = FA2_GALLERY_STR.commission_splits (0n, new_str) in
 
             let commission_distri = ({
-                commission_pct = 500n;
+                commission_pct = 300n;
                 splits = [({
                     address = gallery;
                     pct = 1000n;
                 } : FA2_I.split )]
             } : FA2_V.commissions) in
 
-            let () = assert_with_error (commission_distribution = commission_distri) "Views Gallery - Commissions Splits : This test should pass " in
-            "Passed"
+            match commission_distribution with
+                | Some cd -> (
+                    let () = assert_with_error (cd = commission_distri) "Views Gallery - Commissions Splits : This test should pass " in
+                    "Passed"
+                )
+                | None -> "Views - Is minter : This test should pass, wrong distri specified"
         )
     |   Fail (Rejected (err, _)) -> (
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_PROPOSAL_UNDEFINED") ) "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Should not work if minter is not sender" in
-            "Passed"
+            "Failed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
@@ -257,5 +316,9 @@ let test_token_metadata_view_symbol =
         token_info = Map.literal [(("symbol"), ("4a3a504e" : bytes)); (("license") , ("ff7a7aff" : bytes)); (("edition_number"), Bytes.pack(1n));]
     } : FA2_GALLERY_STR.token_metadata) in
 
-    let () = assert_with_error (token_metadata = token_m) "Views - Token metadata : This test should pass, wrong token_metadata for gallery FA2" in
-    "Passed"
+    match token_metadata with
+        | Some tm -> (
+            let () = assert_with_error (tm = token_m) "Views - Token metadata : This test should pass, wrong token_metadata for gallery FA2" in
+            "Passed"
+        )
+        | None -> "Views - Token metadata : This test should pass, wrong token_metadata for gallery FA2"

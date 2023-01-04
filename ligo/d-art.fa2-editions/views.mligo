@@ -17,15 +17,14 @@ type commissions =
 #if GALLERY_CONTRACT
 
 [@view]
-let commission_splits (token_id, storage : token_id * editions_storage) : commissions =
+let commission_splits (token_id, storage : token_id * editions_storage) : commissions option =
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata -> ({
+            Some edition_metadata -> Some ({
                 commission_pct = edition_metadata.gallery_commission;
                 splits = edition_metadata.gallery_commission_splits;
-            } : commissions)
-
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : commissions)
+            })
+        |   None -> (None : commissions option)
 
 #endif
 
@@ -35,109 +34,108 @@ let commission_splits (token_id, storage : token_id * editions_storage) : commis
 let minter (_token_id, storage : nat * editions_storage) : address = storage.admin.admin
 
 [@view]
-let is_token_minter (param, storage : (address * token_id) * editions_storage) : bool =
+let is_token_minter (param, storage : (address * token_id) * editions_storage) : bool option =
     let edition_id = token_id_to_edition_id(param.1, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
             Some _ -> 
                 if storage.admin.admin = param.0
-                then true
-                else false
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : bool)
+                then Some(True)
+                else Some(False)
+        |   None -> (None : bool option)
 
 [@view]
-let royalty_distribution (token_id, storage : token_id * editions_storage) : (address * royalties) =
+let royalty_distribution (token_id, storage : token_id * editions_storage) : (address * royalties) option =
     let edition_id = token_id_to_edition_id (token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata -> (
+            Some edition_metadata -> Some (
                 (storage.admin.admin : address ),
                 ({
                     royalty = edition_metadata.royalty;
                     splits = edition_metadata.splits;
                 }: royalties))
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : (address * royalties))
+        |   None -> (None : (address * royalties) option)
 
 #else
 
 [@view]
-let minter (token_id, storage : nat * editions_storage) : address =
+let minter (token_id, storage : nat * editions_storage) : address option =
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata -> edition_metadata.minter
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : address)
+            Some edition_metadata -> Some (edition_metadata.minter)
+        |   None -> (None : address option)
 
 [@view]
-let is_token_minter (param, storage : (address * token_id) * editions_storage) : bool =
+let is_token_minter (param, storage : (address * token_id) * editions_storage) : bool option=
     let edition_id = token_id_to_edition_id(param.1, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
             Some edition_metadata -> 
                 if edition_metadata.minter = param.0
-                then true
-                else false
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : bool)
+                then Some(True)
+                else Some(False)
+        |   None -> (None : bool option)
 
 [@view]
-let royalty_distribution (token_id, storage : token_id * editions_storage) : (address * royalties) =
+let royalty_distribution (token_id, storage : token_id * editions_storage) : (address * royalties) option=
     let edition_id = token_id_to_edition_id (token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata -> (
+            Some edition_metadata -> Some (
                 (edition_metadata.minter : address ),
                 ({
                     royalty = edition_metadata.royalty;
                     splits = edition_metadata.splits;
                 }: royalties))
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : (address * royalties))
+        |   None -> (None : (address * royalties) option)
 
 #endif
 
 [@view]
-let royalty (token_id, storage : nat * editions_storage) : nat =
+let royalty (token_id, storage : nat * editions_storage) : nat option =
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata -> edition_metadata.royalty
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : nat)
+            Some edition_metadata -> Some (edition_metadata.royalty)
+        |   None -> (None : nat option)
 
 [@view]
-let royalty_splits (token_id, storage : token_id * editions_storage) : royalties =
+let royalty_splits (token_id, storage : token_id * editions_storage) : royalties option =
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata -> ({
+            Some edition_metadata -> Some ({
                 royalty = edition_metadata.royalty;
                 splits = edition_metadata.splits;
-            }: royalties)
+            })
 
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : royalties)
+        |   None -> (None : royalties option)
 
 [@view]
-let splits (token_id, storage : token_id * editions_storage) : split list =
+let splits (token_id, storage : token_id * editions_storage) : (split list) option=
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata ->  edition_metadata.splits
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : split list)
+            Some edition_metadata -> Some (edition_metadata.splits)
+        |   None -> (None : (split list) option)
 
 [@view]
-let token_metadata (token_id, storage: nat * editions_storage) : token_metadata =
+let token_metadata (token_id, storage: nat * editions_storage) : token_metadata option =
   match (Big_map.find_opt token_id storage.assets.ledger) with
     | Some _ ->
             let edition_id = token_id_to_edition_id(token_id, storage) in
             (match (Big_map.find_opt edition_id storage.editions_metadata) with
             | Some edition_metadata -> (
                 match (Big_map.find_opt "symbol" storage.metadata) with
-                    | Some symbol -> ({
+                    | Some symbol -> Some ({
                         token_id = token_id;
                         token_info = Map.add "symbol" (symbol) (Map.add "license" (edition_metadata.license.hash) (Map.add "edition_number" (Bytes.pack(token_id - (edition_id * storage.max_editions_per_run) + 1n) ) edition_metadata.edition_info))
                     } : token_metadata)
-                    | None -> ({
+                    | None -> Some ({
                         token_id = token_id;
                         token_info = Map.add "license" (edition_metadata.license.hash) (Map.add "edition_number" (Bytes.pack(token_id - (edition_id * storage.max_editions_per_run) + 1n) ) edition_metadata.edition_info)
                     } : token_metadata)
             )
-            | None -> (failwith "FA2_TOKEN_UNDEFINED" : token_metadata))
-    | None -> (failwith "FA2_TOKEN_UNDEFINED" : token_metadata)
+            | None -> (None : token_metadata option))
+    | None -> (None : token_metadata option)
 
 [@view]
-let is_unique_edition (token_id, storage: nat * editions_storage) : bool =
+let is_unique_edition (token_id, storage: nat * editions_storage) : bool option=
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
-            Some edition_metadata -> if edition_metadata.total_edition_number > 1n then false else true
-        |   None -> (failwith "FA2_TOKEN_UNDEFINED" : bool)
-
+            Some edition_metadata -> if edition_metadata.total_edition_number > 1n then Some(False) else Some(True)
+        |   None -> (None : bool option)
