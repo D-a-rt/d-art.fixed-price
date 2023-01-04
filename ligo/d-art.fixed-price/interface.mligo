@@ -187,3 +187,7 @@ type storage =
 }
 
 type return = operation list * storage
+
+let one_month : int = 2419200
+let one_day : int = 86400
+let six_hours : int = 21600
