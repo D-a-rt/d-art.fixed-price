@@ -167,6 +167,7 @@ let mint_editions ( edition_run_list , storage : mint_edition_param list * editi
 
             let split_count : nat = List.fold_left verify_split 0n param.splits  in
             let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+            let () : unit = assert_msg (List.length param.splits <= 25n, "MAX_25_ADDRESS_IN_SPLIT") in
             
             let edition_metadata : edition_metadata = {
                 edition_info = Map.literal [("", param.edition_info)];
@@ -253,9 +254,11 @@ let create_proposal (edition_run_list , storage : pre_mint_edition_param list * 
 
             let split_count : nat = List.fold_left verify_split 0n param.splits  in
             let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+            let () : unit = assert_msg (List.length param.splits <= 25n, "MAX_25_ADDRESS_IN_SPLIT") in
 
             let commission_count : nat = List.fold_left verify_split 0n param.gallery_commission_splits  in
             let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") in
+            let () : unit = assert_msg (List.length param.gallery_commission_splits <= 25n, "MAX_25_ADDRESS_IN_SPLIT") in
             
             let edition_metadata : edition_metadata = {
                 minter = param.minter;
@@ -283,9 +286,11 @@ let update_proposal (edition_update, storage : update_pre_mint_edition_param * e
 
         let split_count : nat = List.fold_left verify_split 0n edition_update.splits  in
         let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+        let () : unit = assert_msg (List.length edition_update.splits <= 25n, "MAX_25_ADDRESS_IN_SPLIT") in
 
         let commission_count : nat = List.fold_left verify_split 0n edition_update.gallery_commission_splits  in
         let () : unit = assert_msg (commission_count = 1000n, "TOTAL_COMMISSION_SPLIT_MUST_BE_100_PERCENT") in
+        let () : unit = assert_msg (List.length edition_update.gallery_commission_splits <= 25n, "MAX_25_ADDRESS_IN_SPLIT") in
 
         let edition_metadata : edition_metadata = {
             minter = edition_update.minter;
@@ -428,6 +433,7 @@ let create_proposal (mint_param, storage : mint_edition_param * editions_storage
 
     let split_count : nat = List.fold_left verify_split 0n mint_param.splits  in
     let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+    let () : unit = assert_msg (List.length mint_param.splits <= 25n, "MAX_25_ADDRESS_IN_SPLIT") in
     
     let edition_metadata : proposal_metadata = {
         accepted = False;
@@ -451,6 +457,7 @@ let update_proposal (update_mint_param, storage : update_mint_edition_param * ed
 
     let split_count : nat = List.fold_left verify_split 0n update_mint_param.splits  in
     let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+    let () : unit = assert_msg (List.length update_mint_param.splits <= 25n, "MAX_25_ADDRESS_IN_SPLIT") in
     
     let edition_metadata : proposal_metadata = {
         accepted = False;

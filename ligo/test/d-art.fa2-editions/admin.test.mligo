@@ -560,7 +560,7 @@ let test_gallery_factory_originated_add_admin_success =
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
-            match Map.find_opt minter strg.admin.admins with
+            match Big_map.find_opt minter strg.admin.admins with
                     Some _ -> "Passed"
                 |   None -> failwith "Admin (Gallery factory originated fa2 contract) -> Add_admin - Success : This test should pass (new admin should be added to map)"
                
@@ -614,7 +614,7 @@ let test_gallery_factory_originated_remove_admin_one_left =
     match result with
         Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - one admin left : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "MINIMUM_1_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - one admin left : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNABLE_TO_REMOVE_YOURSELF") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - one admin left : Should not work if trying to remove itself specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
@@ -632,7 +632,7 @@ let test_gallery_factory_originated_remove_admin_success =
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
-            match Map.find_opt minter strg.admin.admins with
+            match Big_map.find_opt minter strg.admin.admins with
                     Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - Success : This test should pass (new admin should be removed from map)"
                 |   None ->  "Passed"
                

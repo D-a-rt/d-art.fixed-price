@@ -177,7 +177,7 @@ type admin_storage = {
 type admin_storage = {
     // In order for galleries to manage the artists from multiple addresses and 
     // in case they lose access to any of these addresses
-    admins: (address, unit) map;
+    admins: (address, unit) big_map;
     minters: (address, unit) big_map;
     pending_minters: (address, unit) big_map;
 }

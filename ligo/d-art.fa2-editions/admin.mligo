@@ -34,7 +34,7 @@ let fail_if_sender_not_pending_minter (storage : admin_storage) :  unit =
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =
-    if Map.mem (Tezos.get_sender()) storage.admins
+    if Big_map.mem (Tezos.get_sender()) storage.admins
     then unit
     else failwith "NOT_AN_ADMIN"
 
@@ -58,14 +58,14 @@ let admin_main(param, storage : admin_entrypoints * admin_storage) : (operation 
                 ([]: operation list), { storage with pending_minters = Big_map.remove old_minter storage.pending_minters;  minters = Big_map.remove old_minter storage.minters }
 
         |   Add_admin add ->
-            if Map.mem add storage.admins
+            if Big_map.mem add storage.admins
             then (failwith "ALREADY_ADMIN" : operation list * admin_storage)
-            else ([] : operation list), { storage with admins = Map.add add unit storage.admins; }
+            else ([] : operation list), { storage with admins = Big_map.add add unit storage.admins; }
         
         |   Remove_admin add ->
-            if Map.size storage.admins > 1n
-            then ([] : operation list), { storage with admins = Map.remove add storage.admins}
-            else (failwith "MINIMUM_1_ADMIN" : operation list * admin_storage)
+            let () = assert_msg (add <> Tezos.get_sender(), "UNABLE_TO_REMOVE_YOURSELF") in
+            ([] : operation list), { storage with admins = Big_map.remove add storage.admins}
+            
 
 #else
 
