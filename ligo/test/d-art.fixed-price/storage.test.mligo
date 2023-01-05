@@ -13,8 +13,6 @@ let get_fixed_price_contract_drop (will_update, isDropped, isInDrops, drop_date 
     
     let admin_str : admin_storage = {
         permission_manager = permission_m_add;
-        pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
-        signed_message_used = (Big_map.empty : signed_message_used) ;
         contract_will_update = will_update;
         referral_activated = True;
     } in
@@ -137,19 +135,10 @@ let get_fixed_price_contract (signature_saved : bool) =
     let admin = Test.nth_bootstrap_account 0 in
     let fee_account = Test.nth_bootstrap_account 2 in
 
-    let signed_ms = if signature_saved
-        then Big_map.literal([
-                ("54657374206d657373616765207465746574657465": bytes), ()        
-            ])
-        else  (Big_map.empty : signed_message_used) 
-    in
-
     let _, permission_m_add = PM_STR. get_permission_manager_contract((None : address option), false) in
     
     let admin_str : admin_storage = {
         permission_manager = permission_m_add;
-        pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
-        signed_message_used = signed_ms;
         contract_will_update = False;
         referral_activated = True;
     } in
@@ -198,19 +187,10 @@ let get_fixed_price_contract_gallery (signature_saved, referral_activated : bool
     let admin = Test.nth_bootstrap_account 0 in
     let fee_account = Test.nth_bootstrap_account 2 in
 
-    let signed_ms = if signature_saved
-        then Big_map.literal([
-                ("54657374206d657373616765207465746574657465": bytes), ()        
-            ])
-        else  (Big_map.empty : signed_message_used) 
-    in
-
     let _, permission_m_add = PM_STR. get_permission_manager_contract((None : address option), false) in
 
     let admin_str : admin_storage = {
         permission_manager = permission_m_add;
-        pb_key = ("edpkttsmzdmXenJw1s5VoXfrBHdo2f3WX9J3cyYByMj2cQSqzRR9uT" : key);
-        signed_message_used = signed_ms;
         contract_will_update = False;
         referral_activated = referral_activated;
     } in

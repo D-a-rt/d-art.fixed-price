@@ -25,7 +25,6 @@ In order to pay using a stable coin, it is necessary for the admin to add the ad
 - Add stable coin
 - Remove stable coin
 
-Note: For the entrypoints create and buy an authorization signature is asked (message and the signed message by the private key of the owner of the contract - this protection is meant to prevent bots from accessing the contract directly and restrict the access to the users of the platform, on top of it will help with the referrer system). A referrer address can be passed to the buy entrypoints in order to send a 1% commission to it. (Will be used when a user of the app will share the link of NFT page if it is for sale )
 
 ## Storage definition
 
@@ -67,28 +66,14 @@ type storage =
 type admin_storage = {
   permission_manager : address;
   pb_key : key;
-  signed_message_used : signed_message_used;
   contract_will_update : bool;
-}
-
-type signed_message_used = (authorization_signature, unit) big_map
-
-type authorization_signature = {
-  signed : signature;
-  message : bytes;
 }
 ```
 
 
 ``permission_manager`` : Define the address of the permission manager contract responsible to control the admin.
 
-``pb_key`` : Public key responsible to check the authorization_signature sent in order to protect the entrypoint.
-
-``signed_message_used`` : Big_map of all the signed messages already used by users to prevent the smart kids from using used one.
-
 ``contract_will_update`` : Boolean that will block access to the creates entrypoints. The idea behind it is to leave the ability to empty contract storage and slowly move sales to a new version of the contract.
-
-``authorization_signature`` : Record holding the signed message and the message in bytes.
 
 
 ## for_sale
@@ -245,15 +230,12 @@ type fix_price_entrypoints =
 
 ### Admin
 
-The `Admin` entrypoints are responsible for updating fees and the `pb_key` responsible to check the message and it's signature, and prevent new seller to create new sale in case the contract will update.
-
 #### admin_entrypoints
 
 ``` ocaml
 type admin_entrypoints =
     | Update_primary_fee of fee_data
     | UpdateSecondaryfee of fee_data
-    | Update_public_key of key
     | Contract_will_update of bool
     | Add_stable_coin of add_stable_coin
     | Remove_stable_coin of fa2_base
@@ -263,10 +245,6 @@ type admin_entrypoints =
 ##### Update_primary_fee & Update_secondary_fee
 
 Entrypoints in order to update the address and the percentage of the fee for transactions.
-
-##### Update_public_key
-
-Entrypoints to update public key for the signature verification.
 
 ##### Contract_will_update
 
@@ -291,7 +269,6 @@ type sale_configuration =
 [@layout:comb]
 {
   sale_infos : sale_info list;
-  authorization_signature: authorization_signature;
 }
 
 type sale_info =
@@ -341,7 +318,6 @@ Note: A drop can only be edited 6 hours before the drop date or 24hours after th
 type drop_configuration =
 [@layout:comb]
 {
-  authorization_signature: authorization_signature;
   drop_infos: drop_info list; 
 }
 
@@ -388,7 +364,6 @@ type buy_token =
     fa2_token: fa2_base;
     seller: address;
     receiver: address;
-    authorization_signature: authorization_signature;
     referrer: address option;
 }
 ```

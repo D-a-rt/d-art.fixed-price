@@ -18,10 +18,6 @@ let test_create_drops =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
@@ -43,11 +39,6 @@ let test_create_drops =
     let new_str = Test.get_storage contract_t_add in
     match result with
           Success _gas -> (
-              // Check message is well saved
-                let () = match Big_map.find_opt ("54657374206d657373616765207465746574657465" : bytes) new_str.admin.signed_message_used with
-                            Some _ -> unit
-                        |   None -> (failwith "Create_drops - Success : This test should pass (err: Signed message not saved)" : unit)
-                in
                 // Check first sale if well saved
                 let first_drop_key : fa2_base * address = (
                     {
@@ -99,10 +90,6 @@ let test_create_drops_with_amount =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
@@ -146,10 +133,6 @@ let test_create_drops_deprecated =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (150000mutez));
                 drop_date = expected_time_result_three;
@@ -193,10 +176,6 @@ let test_create_drops_price_to_small_first_el =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (1000mutez));
                 drop_date = expected_time_result_three;
@@ -241,10 +220,6 @@ let test_create_drops_price_to_small_second_el =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
@@ -289,10 +264,6 @@ let test_create_drops_already_in_drop =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
@@ -333,10 +304,6 @@ let test_create_drops_already_dropped =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;
@@ -356,101 +323,6 @@ let test_create_drops_already_dropped =
         )
     |   Fail _ -> failwith "Internal test failure"
 
-// Should fail if wrong signature
-let test_create_drops_wrong_signature = 
-    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
-    
-    let token_minter = Test.nth_bootstrap_account 4 in
-    let () = Test.set_source token_minter in
-    let contract = Test.to_contract contract_t_add in
-
-    let now : timestamp = Tezos.get_now() in
-    let three_days : int = 253800 in
-    
-    let expected_time_result_three = now + three_days in
-
-    let result = Test.transfer_to_contract contract
-        (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
-            }: authorization_signature);
-            drop_infos = [({
-                commodity = (Tez (100000mutez));
-                drop_date = expected_time_result_three;
-                fa2_token = {
-                    address = (fa2_add : address);
-                    id = 0n 
-                };
-            } : drop_info )]
-        } : drop_configuration)) 0tez
-    in
-
-    match result with
-        Success _gas -> failwith "Create_drops - Wrong signature : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Create_drops - Wrong signature : Should not work if signature is not correct" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
-// Should fail if signature already used
-let test_create_drops_already_used_signature = 
-    let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
-    
-    let token_minter = Test.nth_bootstrap_account 0 in
-    let () = Test.set_source token_minter in
-    let contract = Test.to_contract contract_t_add in
-
-    let now : timestamp = Tezos.get_now() in
-    let three_days : int = 253800 in
-    let four_days : int = 338400 in
-    
-    let expected_time_result_three = now + three_days in
-    let expected_time_result_four = now + four_days in
-
-    let _gas2 = Test.transfer_to_contract contract
-        (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
-            drop_infos = [({
-                commodity = (Tez (100000mutez));
-                drop_date = expected_time_result_three;
-                fa2_token = {
-                    address = (fa2_add : address);
-                    id = 1n 
-                };
-            } : drop_info )]
-        } : drop_configuration)) 0tez
-    in
-
-    let result = Test.transfer_to_contract contract
-        (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
-            drop_infos = [({
-                commodity = (Tez (100000mutez));
-                drop_date = expected_time_result_four;
-                fa2_token = {
-                    address = (fa2_add : address);
-                    id = 0n 
-                };
-            } : drop_info )]
-        } : drop_configuration)) 0tez
-    in
-
-    match result with
-        Success _gas -> failwith "Create_drops - Already used signature : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Create_drops - Already used signature : Should not work if signature is already used" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
 // Should fail if wrong drop date
 let test_create_drops_wrong_drop_date = 
     let _, contract_t_add, fa2_add, _ , _ = get_fixed_price_contract_drop (false, false, false, Tezos.get_now() + 28800) in
@@ -468,10 +340,6 @@ let test_create_drops_wrong_drop_date =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_less;
@@ -491,10 +359,6 @@ let test_create_drops_wrong_drop_date =
 
     let second_result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_more;
@@ -528,10 +392,6 @@ let test_create_drops_not_authorized_drop_seller =
 
     let result = Test.transfer_to_contract contract
         (Create_drops ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             drop_infos = [({
                 commodity = (Tez (100000mutez));
                 drop_date = expected_time_result_three;

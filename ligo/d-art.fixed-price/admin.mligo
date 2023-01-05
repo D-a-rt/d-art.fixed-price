@@ -5,7 +5,6 @@
 type admin_entrypoints =
     | Update_primary_fee of fee_data
     | Update_secondary_fee of fee_data
-    | Update_public_key of key
     | Update_permission_manager of address
     | Contract_will_update of bool
     | Referral_activated of bool
@@ -25,9 +24,6 @@ let admin_main (param, storage : admin_entrypoints * storage) : (operation list)
         let () = assert_msg (new_fee_data.percent <= 250n, "PERCENTAGE_MUST_BE_MAXIUM_25_PERCENT") in
         let () = assert_msg (new_fee_data.percent >= 0n, "PERCENTAGE_MUST_BE_MINIMUM_0_PERCENT") in
         ([] : operation list), { storage with fee_secondary = new_fee_data }
-    
-    | Update_public_key key ->
-      ([] : operation list), { storage with admin.pb_key = key; }
 
     | Update_permission_manager add ->
       (([] : operation list), { storage with admin.permission_manager = add; })

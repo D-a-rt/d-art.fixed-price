@@ -45,7 +45,6 @@ let accept_offer (accept_conf, storage : accept_offer * storage) : return =
 let create_sales (sale_configuration, storage : sale_configuration * storage) : return =
     let () = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
-    let () = verify_signature (sale_configuration.authorization_signature, storage) in
 
     let create_sale : (storage * sale_info ) -> storage =
         fun (strg, sale_param : storage * sale_info ) ->
@@ -66,7 +65,6 @@ let create_sales (sale_configuration, storage : sale_configuration * storage) : 
             {
                 storage with
                 for_sale = Big_map.add ({ address = sale_param.fa2_token.address; id = sale_param.fa2_token.id; }, Tezos.get_sender()) fixed_price_sale_values strg.for_sale;
-                admin.signed_message_used = Big_map.add sale_configuration.authorization_signature.message unit strg.admin.signed_message_used
             }
     in
 
@@ -110,7 +108,6 @@ let revoke_sales (revoke_sales_param, storage : revoke_param * storage) : return
 
 let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
     let () = assert_msg (buy_token.receiver <> buy_token.seller && Tezos.get_sender() <> buy_token.seller , "SELLER_NOT_AUTHORIZED") in
-    let () = verify_signature (buy_token.authorization_signature, storage) in
 
     let concerned_fixed_price_sale : fixed_price_sale = get_sale (buy_token.fa2_token, buy_token.seller, storage) in
 
@@ -120,13 +117,12 @@ let buy_fixed_price_token (buy_token, storage : buy_token * storage) : return =
 
     let operation_list : operation list = perform_sale_operation (buy_token.fa2_token, buy_token.seller, buy_token.receiver, Tezos.get_sender(), buy_token.referrer, concerned_fixed_price_sale.commodity, storage) in
     
-    operation_list, { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; for_sale = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.for_sale; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used }
+    operation_list, { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; for_sale = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.for_sale; }
 
 // Drop functions
 let create_drops (drop_configuration, storage : drop_configuration * storage) : return =
     let () = assert_msg (Tezos.get_amount() = 0mutez, "AMOUNT_SHOULD_BE_0TEZ") in
     let () = assert_msg (not storage.admin.contract_will_update, "WILL_BE_DEPRECATED") in
-    let () = verify_signature (drop_configuration.authorization_signature, storage) in
     
     let create_drop : ( storage * drop_info ) -> storage =
         fun (strg, drop_param : storage * drop_info ) ->
@@ -150,7 +146,6 @@ let create_drops (drop_configuration, storage : drop_configuration * storage) : 
                 storage with
                 fa2_dropped = Big_map.add drop_param.fa2_token unit strg.fa2_dropped;
                 drops = Big_map.add (drop_param.fa2_token, Tezos.get_sender()) fixed_price_drop strg.drops;
-                admin.signed_message_used = Big_map.add drop_configuration.authorization_signature.message unit strg.admin.signed_message_used
             }
     in
     let new_storage = List.fold create_drop drop_configuration.drop_infos storage in
@@ -177,7 +172,6 @@ let revoke_drops (revoke_drops_param, storage : revoke_param * storage) : return
 
 let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let () = assert_msg (buy_token.receiver <> buy_token.seller && Tezos.get_sender() <> buy_token.seller, "SELLER_NOT_AUTHORIZED") in
-    let () = verify_signature (buy_token.authorization_signature, storage) in
 
     let concerned_fixed_price_drop : fixed_price_drop = get_drop (buy_token.fa2_token, buy_token.seller, storage) in
 
@@ -185,7 +179,7 @@ let buy_dropped_token (buy_token, storage : buy_token * storage) : return =
     let () = fail_if_drop_date_not_met concerned_fixed_price_drop in
 
     let operation_list : operation list = perform_sale_operation (buy_token.fa2_token, buy_token.seller, buy_token.receiver, Tezos.get_sender(), buy_token.referrer, concerned_fixed_price_drop.commodity, storage) in
-    let new_strg = { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; drops = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.drops; admin.signed_message_used = Big_map.add buy_token.authorization_signature.message unit storage.admin.signed_message_used } in
+    let new_strg = { storage with fa2_sold = Big_map.add buy_token.fa2_token unit storage.fa2_sold; drops = Big_map.remove (buy_token.fa2_token, buy_token.seller) storage.drops;  } in
 
     operation_list, new_strg
 

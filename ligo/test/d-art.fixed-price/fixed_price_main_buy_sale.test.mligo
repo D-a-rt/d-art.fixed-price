@@ -20,10 +20,6 @@ let test_buy_fixed_price_token_seller_buyer =
             seller = admin;
             receiver =admin;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
         } : buy_token)) 0tez
     in
 
@@ -31,72 +27,6 @@ let test_buy_fixed_price_token_seller_buyer =
         Success _gas -> failwith "Buy_fixed_price_token - Seller is buyer : This test should fail"
     |   Fail (Rejected (err, _)) -> (
             let () = assert_with_error ( Test.michelson_equal err (Test.eval "SELLER_NOT_AUTHORIZED") ) "Buy_fixed_price_token - Seller is buyer : Should not work if seller is buyer" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
-// Fail if wrong signature
-let test_buy_fixed_price_token_wrong_signature =
-    let _, contract_t_add, _, _, admin = get_fixed_price_contract (false) in
-    
-    let no_admin_addr = Test.nth_bootstrap_account 1 in
-    let () = Test.set_source no_admin_addr in
-    
-    let contract = Test.to_contract contract_t_add in
-
-    let result = Test.transfer_to_contract contract
-        (Buy_fixed_price_token ({
-            fa2_token = ({
-                id = 0n;
-                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-            } : fa2_base);
-            seller = admin;
-            receiver =no_admin_addr;
-            referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
-            }: authorization_signature);
-        })) 0tez
-    in
-
-    match result with
-        Success _gas -> failwith "Buy_fixed_price_token - Wrong signature : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Buy_fixed_price_token - Wrong signature : Should not work if signature is not correct" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
-// Fail if signature already used
-let test_buy_fixed_price_token_signature_already_used =
-    let _, contract_t_add, _, _, admin = get_fixed_price_contract (true) in
-    
-    let no_admin_addr = Test.nth_bootstrap_account 1 in
-    let () = Test.set_source no_admin_addr in
-    
-    let contract = Test.to_contract contract_t_add in
-
-    let result = Test.transfer_to_contract contract
-        (Buy_fixed_price_token ({
-            fa2_token = ({
-                id = 0n;
-                address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-            } : fa2_base);
-            seller = admin;
-            receiver =no_admin_addr;
-            referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
-        })) 100000mutez
-    in
-
-    match result with
-        Success _gas -> failwith "Buy_fixed_price_token - Signature already used : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "Buy_fixed_price_token - Signature already used : Should not work if signature is not correct" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -112,10 +42,6 @@ let test_buy_fixed_price_token_wrong_price =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -139,10 +65,6 @@ let test_buy_fixed_price_token_wrong_price =
             seller = admin;
             receiver =no_admin_addr;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
         })) 100mutez
     in
 
@@ -165,10 +87,6 @@ let test_buy_fixed_price_token_not_buyer =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = Some ("tz1LWtbjgecb1SZ6AjHtyGCXPMiR6QZqtm6i" : address );
@@ -192,10 +110,6 @@ let test_buy_fixed_price_token_not_buyer =
             seller = admin;
             receiver =no_admin_addr;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
       
         })) 150000mutez
     in
@@ -203,7 +117,7 @@ let test_buy_fixed_price_token_not_buyer =
     match result with
         Success _gas -> failwith "Buy_fixed_price_token - Not specified buyer : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "BUYER_NOT_AUTHORIZE_TO_BUY") ) "Buy_fixed_price_token - Not specified buyer : Should not work if signature is not correct" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "BUYER_NOT_AUTHORIZE_TO_BUY") ) "Buy_fixed_price_token - Not specified buyer : Should not work if buye not authorized" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
@@ -231,10 +145,6 @@ let test_buy_fixed_price_token_success =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (213210368547757mutez));
                 buyer = None;
@@ -260,11 +170,6 @@ let test_buy_fixed_price_token_success =
             seller = token_seller;
             receiver = buyer;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
-      
         })) 213210368547757mutez
     in
 
@@ -275,11 +180,6 @@ let test_buy_fixed_price_token_success =
 
     match result with
         Success _gas -> (
-            // Check that message has been correctly saved 
-            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
-                    Some _ -> unit
-                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
-            in
             // Check that sale is deleted from big map
             let sale_key : fa2_base * address = (
                 {
@@ -358,10 +258,6 @@ let test_buy_fixed_price_token_success_commission =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100tez));
                 buyer = None;
@@ -387,10 +283,6 @@ let test_buy_fixed_price_token_success_commission =
             seller = token_minter;
             receiver =buyer;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
       
         })) 100tez
     in
@@ -402,11 +294,6 @@ let test_buy_fixed_price_token_success_commission =
 
     match result with
         Success _gas -> (
-            // Check that message has been correctly saved 
-            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
-                    Some _ -> unit
-                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
-            in
             // Check that sale is deleted from big map
             let sale_key : fa2_base * address = (
                 {
@@ -471,10 +358,6 @@ let test_buy_fixed_price_token_success_secondary =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (213210368547757mutez));
                 buyer = None;
@@ -498,10 +381,6 @@ let test_buy_fixed_price_token_success_secondary =
             seller = token_seller;
             receiver =buyer;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
       
         })) 213210368547757mutez
     in
@@ -521,10 +400,6 @@ let test_buy_fixed_price_token_success_secondary =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigtcPETftjKnjZC7kXTi4FkTvu7HxFffuJvnMQBARqHN5vSdvURHcipybYM6j72e3N9eH69cnFjBAZA4qjaVfQ5mkCfdzF9L" : signature);
-                message = ("726572657265" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (213210368547757mutez));
                 buyer = None;
@@ -548,10 +423,6 @@ let test_buy_fixed_price_token_success_secondary =
             seller = buyer;
             receiver =token_seller;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigte3DXyd46Qh8cqb2vCFSBZkyha9S4co9L2zKk4s3x8wMwR6TPUs7nLX2bYfzjDnzp5xaxuxg3cBJvnoMARAeyz8AkKJkLh" : signature);
-                message = ("7265726572657265" : bytes);
-            }: authorization_signature);
       
         })) 213210368547757mutez
     in
@@ -563,11 +434,6 @@ let test_buy_fixed_price_token_success_secondary =
 
     match result with
         Success _gas -> (
-            // Check that message has been correctly saved 
-            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
-                    Some _ -> unit
-                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
-            in
             // Check that sale is deleted from big map
             let sale_key : fa2_base * address = (
                 {
@@ -646,10 +512,6 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
             seller = admin;
             receiver =buyer;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
         })) 150000mutez
     in
 
@@ -672,10 +534,6 @@ let test_buy_fixed_price_token_success_secondary_commission =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (213210368547757mutez));
                 buyer = None;
@@ -699,10 +557,6 @@ let test_buy_fixed_price_token_success_secondary_commission =
             seller = token_minter;
             receiver =buyer;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
       
         })) 213210368547757mutez
     in
@@ -725,10 +579,6 @@ let test_buy_fixed_price_token_success_secondary_commission =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigtcPETftjKnjZC7kXTi4FkTvu7HxFffuJvnMQBARqHN5vSdvURHcipybYM6j72e3N9eH69cnFjBAZA4qjaVfQ5mkCfdzF9L" : signature);
-                message = ("726572657265" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100tez));
                 buyer = None;
@@ -752,10 +602,6 @@ let test_buy_fixed_price_token_success_secondary_commission =
             seller = buyer;
             receiver =second_buyer;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigte3DXyd46Qh8cqb2vCFSBZkyha9S4co9L2zKk4s3x8wMwR6TPUs7nLX2bYfzjDnzp5xaxuxg3cBJvnoMARAeyz8AkKJkLh" : signature);
-                message = ("7265726572657265" : bytes);
-            }: authorization_signature);
       
         })) 100tez
     in
@@ -767,11 +613,6 @@ let test_buy_fixed_price_token_success_secondary_commission =
 
     match result with
         Success _gas -> (
-            // Check that message has been correctly saved 
-            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
-                    Some _ -> unit
-                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
-            in
             // Check that sale is deleted from big map
             let sale_key : fa2_base * address = (
                 {
@@ -856,10 +697,6 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
             seller = admin;
             receiver =buyer;
             referrer = (None : address option);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
         })) 150000mutez
     in
 
@@ -894,10 +731,6 @@ let test_buy_fixed_price_token_success_commission_referrer =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100tez));
                 buyer = None;
@@ -926,10 +759,6 @@ let test_buy_fixed_price_token_success_commission_referrer =
             seller = token_minter;
             receiver =buyer;
             referrer = Some(referrer);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
       
         })) 100tez
     in
@@ -941,11 +770,6 @@ let test_buy_fixed_price_token_success_commission_referrer =
 
     match result with
         Success _gas -> (
-            // Check that message has been correctly saved 
-            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
-                    Some _ -> unit
-                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
-            in
             // Check that sale is deleted from big map
             let sale_key : fa2_base * address = (
                 {
@@ -1032,10 +856,6 @@ let test_buy_fixed_price_token_success_commission_referrer_deactivated =
 
     let _gas_creation_sale = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100tez));
                 buyer = None;
@@ -1064,10 +884,6 @@ let test_buy_fixed_price_token_success_commission_referrer_deactivated =
             seller = token_minter;
             receiver =buyer;
             referrer = Some(referrer);
-            authorization_signature = ({
-                signed = ("edsigu36wtky5nKCx6u4YWWbau68sQ9JSEr6Fb3f5CiwU5QSdLsRB2H6shbsZHo9EinNoHxq6f96Sm48UnfEfQxwVJCWy3Qodgz" : signature);
-                message = ("54657374206d6573736167652074657374207269676874" : bytes);
-            }: authorization_signature);
       
         })) 100tez
     in
@@ -1079,11 +895,6 @@ let test_buy_fixed_price_token_success_commission_referrer_deactivated =
 
     match result with
         Success _gas -> (
-            // Check that message has been correctly saved 
-            let () = match Big_map.find_opt ("54657374206d6573736167652074657374207269676874" : bytes) new_fp_str.admin.signed_message_used with
-                    Some _ -> unit
-                |   None -> (failwith "Buy_fixed_price_token - Success : This test should pass (err: Signed message not saved)" : unit)
-            in
             // Check that sale is deleted from big map
             let sale_key : fa2_base * address = (
                 {

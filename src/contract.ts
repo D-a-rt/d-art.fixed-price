@@ -150,8 +150,6 @@ export async function deployFixedPriceContract(permissionManager: string): Promi
         storage: {
             admin: {
                 permission_manager: permissionManager,
-                pb_key: process.env.SIGNER_PUBLIC_KEY,
-                signed_message_used: new MichelsonMap(),
                 contract_will_update: false
             },
             for_sale: MichelsonMap.fromLiteral({}),

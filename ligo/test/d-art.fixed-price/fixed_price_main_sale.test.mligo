@@ -11,10 +11,6 @@ let test_create_sales =
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -36,11 +32,6 @@ let test_create_sales =
     let new_str = Test.get_storage t_add in
     match result with
           Success _gas -> (
-              // Check message is well saved
-                let () = match Big_map.find_opt ("54657374206d657373616765207465746574657465" : bytes) new_str.admin.signed_message_used with
-                            Some _ -> unit
-                        |   None -> (failwith "CreateSale - Success : This test should pass (err: Signed message not saved)" : unit)
-                in
                 // Check first sale if well saved
                 let first_sale_key : fa2_base * address = (
                     {
@@ -91,10 +82,6 @@ let test_create_sales_with_amount =
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -133,10 +120,6 @@ let test_create_sales_deprecated =
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -173,10 +156,6 @@ let test_create_sales_price_to_small_first_el =
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (10mutez));
                 buyer = None;
@@ -213,10 +192,6 @@ let test_create_sales_price_to_small_third_el =
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100000mutez));
                 buyer = None;
@@ -261,10 +236,6 @@ let test_create_sales_already_on_sale_one_call =
     // One call verifying that bulk operation fail
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100000mutez));
                 buyer = None;
@@ -302,10 +273,6 @@ let test_create_sales_already_on_sale_second_call =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100000mutez));
                 buyer = None;
@@ -320,10 +287,6 @@ let test_create_sales_already_on_sale_second_call =
     // Second call to verify that if fails
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigtruMgRd6FbVWg5pbfFabZC7DS7gr88xT1x4DPxkuGxvUG4S7ttXoAsqy3QfyK62Woj7CmjzCgFW2igdhAhgUuBHfjrLeUv" : signature);
-                message = ("54657374206d6573736167652074657374" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (100000mutez));
                 buyer = None;
@@ -353,10 +316,6 @@ let test_create_sales_buyer_is_seller =
 
     let result = Test.transfer_to_contract contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -383,110 +342,6 @@ let test_create_sales_buyer_is_seller =
         )
     |   Fail _ -> failwith "Internal test failure"    
 
-// Should fail if wrong signature
-let test_create_sales_wrong_signature = 
-    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
-
-
-    let () = Test.set_source admin in
-    let contract = Test.to_contract t_add in
-
-    let result = Test.transfer_to_contract contract
-        (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d65737361676520746573742077726f6e67" : bytes);
-            }: authorization_signature);
-            sale_infos = [({
-                commodity = (Tez (150000mutez));
-                buyer = None;
-                fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                    id = 0n 
-                };
-            } : sale_info ); ({
-                buyer = None;
-                commodity = (Tez (100000mutez));
-                fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                    id = 1n
-                };
-            } : sale_info)]
-        } : sale_configuration)) 0tez
-    in
-
-    match result with
-        Success _gas -> failwith "CreateSale - Wrong signature : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "CreateSale - Wrong signature : Should not work if signature is not correct" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
-// Should fail if signature already used
-let test_create_sales_already_used_signature = 
-    let _, t_add, _, _, admin  = get_fixed_price_contract (false) in
-
-
-    let () = Test.set_source admin in
-    let contract = Test.to_contract t_add in
-
-    let _gas = Test.transfer_to_contract_exn contract
-        (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
-            sale_infos = [({
-                commodity = (Tez (150000mutez));
-                buyer = None;
-                fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                    id = 0n 
-                };
-            } : sale_info ); ({
-                buyer = None;
-                commodity = (Tez (100000mutez));
-                fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                    id = 1n
-                };
-            } : sale_info)]
-        } : sale_configuration)) 0tez
-    in
-
-    let result = Test.transfer_to_contract contract
-        (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
-            sale_infos = [({
-                commodity = (Tez (150000mutez));
-                buyer = None;
-                fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                    id = 2n 
-                };
-            } : sale_info ); ({
-                buyer = None;
-                commodity = (Tez (100000mutez));
-                fa2_token = {
-                    address = ("KT1Ti9x7gXoDzZGFgLC23ZRn3SnjMZP2y5gD" : address);
-                    id = 3n
-                };
-            } : sale_info)]
-        } : sale_configuration)) 0tez
-    in
-
-    match result with
-        Success _gas -> failwith "CreateSale - Already used signature : This test should fail"
-    |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNAUTHORIZED_USER") ) "CreateSale - Already used signature : Should not work if signature is already used" in
-            "Passed"
-        )
-    |   Fail _ -> failwith "Internal test failure"    
-
 // -- UPDATE SALES --
 
 // Success
@@ -499,10 +354,6 @@ let test_update_sales =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -672,10 +523,6 @@ let test_update_sales_to_small_second_el =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -731,10 +578,6 @@ let test_update_sales_buyer_is_sender =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -790,10 +633,6 @@ let test_update_sales_not_owner =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -891,10 +730,6 @@ let test_revoke_sales =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;
@@ -1030,10 +865,6 @@ let test_revoke_sales_not_owner =
 
     let _gas = Test.transfer_to_contract_exn contract
         (Create_sales ({
-            authorization_signature = ({
-                signed = ("edsigu4PZariPHMdLN4j7EDpTzUwW63ipuE7xxpKqjFMKQQ7vMg6gAtiQHCfTDK9pPMP9nv11Mwa1VmcspBv4ugLc5Lwx3CZdBg" : signature);
-                message = ("54657374206d657373616765207465746574657465" : bytes);
-            }: authorization_signature);
             sale_infos = [({
                 commodity = (Tez (150000mutez));
                 buyer = None;

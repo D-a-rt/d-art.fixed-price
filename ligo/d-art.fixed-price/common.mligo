@@ -184,23 +184,6 @@ let is_authorized_drop_seller (add, token : address * fa2_base) : bool =
             | Some _b -> _b
     )
 
-// -- Verify signature
-
-let signed_message_used (authorization_signature, storage : authorization_signature * storage) : bool =
-  Big_map.mem authorization_signature.message storage.admin.signed_message_used
-
-let signed_message_not_valid (authorization_signature, storage : authorization_signature * storage) : bool =
-  not Crypto.check storage.admin.pb_key authorization_signature.signed authorization_signature.message
-
-let mark_message_as_used (authorization_signature, storage : authorization_signature * storage) : signed_message_used =
-  let new_signed_message_used : signed_message_used = Big_map.add authorization_signature.message unit storage.admin.signed_message_used in
-  new_signed_message_used
-
-let verify_signature (authorization_signature, storage : authorization_signature * storage) : unit =
-  if signed_message_used (authorization_signature, storage) || signed_message_not_valid (authorization_signature, storage)
-  then failwith "UNAUTHORIZED_USER"
-  else unit
-
 // -- Fixed price sale
 let get_sale (fa2_base, seller, storage : fa2_base * address * storage) : fixed_price_sale =
     // Fail if fixed price sale is not present

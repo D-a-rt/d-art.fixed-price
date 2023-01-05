@@ -35,13 +35,6 @@ type transfer =
 
 type mucoin = nat
 
-type authorization_signature = {
-  signed : signature;
-  message : bytes;
-}
-
-type signed_message_used = (bytes, unit) big_map
-
 type add_stable_coin = 
 {
   fa2_base : fa2_base;
@@ -51,8 +44,6 @@ type add_stable_coin =
 type admin_storage =
 {
   permission_manager : address;
-  pb_key : key;
-  signed_message_used : signed_message_used;
   contract_will_update: bool;
   referral_activated: bool;
 }
@@ -91,7 +82,7 @@ type offer_conf =
   commodity : commodity;
 }
 
-type accept_offer = 
+type accept_offer =
 [@layout:comb]
 {
   fa2_token: fa2_base;
@@ -112,7 +103,6 @@ type sale_configuration =
 [@layout:comb]
 {
   sale_infos : sale_info list;
-  authorization_signature: authorization_signature;
 }
 
 type buy_token =
@@ -121,10 +111,8 @@ type buy_token =
   fa2_token: fa2_base;
   seller: address;
   receiver: address;
-  authorization_signature: authorization_signature;
   referrer: address option;
 }
-
 
 // -- Fixed price drop
 
@@ -139,7 +127,6 @@ type drop_info =
 type drop_configuration =
 [@layout:comb]
 {
-  authorization_signature: authorization_signature;
   drop_infos: drop_info list; 
 }
 
@@ -167,8 +154,6 @@ type revoke_param =
 {
   fa2_tokens: fa2_base list;
 }
-
-
 
 // Contract storage
 type storage =
