@@ -180,6 +180,7 @@ type admin_storage = {
     admins: (address, unit) big_map;
     minters: (address, unit) big_map;
     pending_minters: (address, unit) big_map;
+    pending_admins: (address, unit) big_map;
 }
 
 #else

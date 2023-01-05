@@ -53,6 +53,7 @@ type editions_entrypoints =
     |   Create_proposals of pre_mint_edition_param list
     |   Update_proposal of update_pre_mint_edition_param
     |   Remove_proposals of proposal_param list
+    |   Accept_admin_invitation of invitation_param
     |   Accept_minter_invitation of invitation_param
     |   Remove_minter_self of unit
     |   Mint_editions of proposal_param list
@@ -372,6 +373,12 @@ let editions_main (param, editions_storage : editions_entrypoints * editions_sto
             remove_proposals (remove_param, editions_storage)
 
         | Reject_proposals reject_param -> reject_proposals (reject_param, editions_storage)
+
+        | Accept_admin_invitation param ->
+            let () : unit = fail_if_sender_not_pending_admin (editions_storage.admin) in
+            if param.accept = true
+            then ([] : operation list), { editions_storage with admin.admins = Big_map.add (Tezos.get_sender()) unit editions_storage.admin.admins; admin.pending_admins = Big_map.remove (Tezos.get_sender()) editions_storage.admin.pending_admins }
+            else ([] : operation list), { editions_storage with admin.pending_admins = Big_map.remove (Tezos.get_sender()) editions_storage.admin.pending_admins }
 
         | Accept_minter_invitation param ->
             let () : unit = fail_if_sender_not_pending_minter (editions_storage.admin) in

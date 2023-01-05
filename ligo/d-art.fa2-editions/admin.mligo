@@ -22,7 +22,8 @@ let fail_if_minting_revoked (storage : admin_storage) : unit =
 #if GALLERY_CONTRACT
 
 type admin_entrypoints =
-    |   Add_admin of address
+    |   Send_admin_invitation of address
+    |   Remove_admin_invitation of address
     |   Remove_admin of address
     |   Send_minter_invitation of address
     |   Remove_minter of address
@@ -31,6 +32,11 @@ let fail_if_sender_not_pending_minter (storage : admin_storage) :  unit =
     if Big_map.mem (Tezos.get_sender()) storage.pending_minters
     then unit
     else failwith "NOT_PENDING_MINTER"
+
+let fail_if_sender_not_pending_admin (storage : admin_storage) :  unit =
+    if Big_map.mem (Tezos.get_sender()) storage.pending_admins
+    then unit
+    else failwith "NOT_PENDING_ADMIN"
 
 (* Fails if sender is not admin *)
 let fail_if_not_admin (storage : admin_storage) : unit =
@@ -57,11 +63,17 @@ let admin_main(param, storage : admin_entrypoints * admin_storage) : (operation 
         |   Remove_minter old_minter -> 
                 ([]: operation list), { storage with pending_minters = Big_map.remove old_minter storage.pending_minters;  minters = Big_map.remove old_minter storage.minters }
 
-        |   Add_admin add ->
-            if Big_map.mem add storage.admins
-            then (failwith "ALREADY_ADMIN" : operation list * admin_storage)
-            else ([] : operation list), { storage with admins = Big_map.add add unit storage.admins; }
-        
+        |   Send_admin_invitation new_admin ->
+                if Big_map.mem new_admin storage.pending_admins
+                then (failwith "INVITATION_ALREADY_SENT" : operation list * admin_storage)
+                else (
+                    if Big_map.mem new_admin storage.admins then (failwith "ALREADY_ADMIN" : operation list * admin_storage)
+                    else (([] : operation list), { storage with pending_admins = Big_map.add new_admin unit storage.pending_admins})
+            )
+
+        |   Remove_admin_invitation add ->
+            ([] : operation list), { storage with pending_admins = Big_map.remove add storage.pending_admins }
+
         |   Remove_admin add ->
             let () = assert_msg (add <> Tezos.get_sender(), "UNABLE_TO_REMOVE_YOURSELF") in
             ([] : operation list), { storage with admins = Big_map.remove add storage.admins}

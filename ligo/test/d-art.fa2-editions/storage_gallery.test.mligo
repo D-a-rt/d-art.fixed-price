@@ -15,6 +15,7 @@ let get_fa2_editions_gallery_contract () : ( ((editions_entrypoints, editions_st
             (minter, ());
         ]);
         pending_minters = (Big_map.empty : (address, unit) big_map);
+        pending_admins = (Big_map.empty : (address, unit) big_map);
     } in
 
     // Assets storage
@@ -69,6 +70,7 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
             (token_minter, ());
         ]);
         pending_minters = (Big_map.empty : (address, unit) big_map);
+        pending_admins = (Big_map.empty : (address, unit) big_map);
     } in
     
     let asset_strg : nft_token_storage = {
