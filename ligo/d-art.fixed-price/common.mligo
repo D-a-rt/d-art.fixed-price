@@ -121,7 +121,12 @@ let transfer_tez (price, address : tez * address) : operation list =
     let contract = resolve_contract address in
     if price > 0mutez then [Tezos.transaction () price contract] else []
 
+let verify_split (c, spt : nat * split) : nat = c + spt.pct
+
 let handle_commodity_splits (buyer, split_fee, splits, operation_list : address * commodity * split list * operation list) : (operation list) * commodity =
+    let split_count : nat = List.fold_left verify_split 0n splits  in
+    let () : unit = assert_msg (split_count = 1000n, "TOTAL_SPLIT_MUST_BE_100_PERCENT") in
+
     let handle_splits : (((operation list) * commodity) * split) -> (operation list) * commodity =
         fun ((operations, cm), split : ((operation list) * commodity) * split) ->
             let fee : commodity = calculate_fee (Some (split.pct), split_fee) in
