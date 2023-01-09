@@ -1,6 +1,6 @@
 #import "storage.test.mligo" "FA2_STR"
 #import "storage_serie.test.mligo" "FA2_SERIE_STR"
-#import "storage_gallery.test.mligo" "FA2_GALLERY_STR"
+#import "storage_space.test.mligo" "FA2_SPACE_STR"
 #include "../../d-art.fa2-editions/multi_nft_token_editions.mligo"
 
 // TEST FILE FOR ADMIN ENTRYPOINTS
@@ -174,659 +174,659 @@ let test_serie_factory_originated_revoke_minting =
     let () = assert_with_error (new_str.admin.minting_revoked = true) "Admin (Serie originated fa2 contract) -> Revoke_minting - Success : This test should pass :  Wrong Revoke_minting" in
     "Passed"
 
-// -- FA2 editions version originated from Gallery factory contract
+// -- FA2 editions version originated from Space factory contract
 
 // Send minter invitation 
 
 // fail no amount
-let test_gallery_factory_originated_send_minter_invitation_no_amount =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_minter_invitation_no_amount =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 
 // fail if no admin
-let test_gallery_factory_originated_send_minter_invitation_no_admin =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_minter_invitation_no_admin =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_minter in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - not admin : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - not admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - not admin : Should not work if not an admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - not admin : Should not work if not an admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // fail if already minter
-let test_gallery_factory_originated_send_minter_invitation_already_minter =
-    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_minter_invitation_already_minter =
+    let contract_add, _, _, minter, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - already minter : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - already minter : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_MINTER") ) "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - already minter : Should not work if already minter" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_MINTER") ) "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - already minter : Should not work if already minter" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 // fail if already sent minter
-let test_gallery_factory_originated_send_minter_invitation_already_sent =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_minter_invitation_already_sent =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - already minter : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - already minter : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "INVITATION_ALREADY_SENT") ) "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - already minter : Should not work if invitation already sent" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "INVITATION_ALREADY_SENT") ) "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - already minter : Should not work if invitation already sent" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 
 // Success
-let test_gallery_factory_originated_send_minter_invitation_success =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_minter_invitation_success =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt new_minter strg.admin.pending_minters with
-                    None -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass (minter not saved in big map)"
+                    None -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass (minter not saved in big map)"
                 |   Some _ -> "Passed"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // Accept_minter_invitation
 
 // fail no amount
-let test_gallery_factory_originated_accept_minter_invitation_no_amount =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_minter_invitation_no_amount =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = true }) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = true }) : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 // fail not pending minter
-let test_gallery_factory_originated_accept_minter_invitation_not_pending_minter =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_minter_invitation_not_pending_minter =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_minter in
 
-    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = true }) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = true }) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - not pending minter : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - not pending minter : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_PENDING_MINTER") ) "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - not pending minter : Should not work if not pending minter" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_PENDING_MINTER") ) "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - not pending minter : Should not work if not pending minter" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 // Success accept
-let test_gallery_factory_originated_accept_minter_invitation_success_accept =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_minter_invitation_success_accept =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
     
-    let () = Test.set_source gallery in
-    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let () = Test.set_source space in
+    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
     
     let () = Test.set_source new_minter in
-    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = true }) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = true }) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt new_minter strg.admin.minters with
-                    None -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter not saved in big map)"
+                    None -> failwith "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter not saved in big map)"
                 |   Some _ -> (
                         match Big_map.find_opt new_minter strg.admin.pending_minters with
-                                Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter not removed from pending big map)"
+                                Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter not removed from pending big map)"
                             |   None -> "Passed"
                 )
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // Success refuse
-let test_gallery_factory_originated_accept_minter_invitation_success_refuse =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_minter_invitation_success_refuse =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
     
-    let () = Test.set_source gallery in
-    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let () = Test.set_source space in
+    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
     
     let () = Test.set_source new_minter in
-    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = false }) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract (Accept_minter_invitation ({ accept = false }) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             let () = match Big_map.find_opt new_minter strg.admin.minters with
-                   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter should not be saved in big map)"
+                   Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter should not be saved in big map)"
                 |    None -> unit
             in
             
             match Big_map.find_opt new_minter strg.admin.pending_minters with
-                    Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter not removed from pending big map)"
+                    Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Accept_minter_invitation - Success : This test should pass (minter not removed from pending big map)"
                 |   None -> "Passed"
     
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Send_minter_invitation - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // -- Remove minter --
 
 // fail no amount
-let test_gallery_factory_originated_remove_minter_no_amount =
-    let contract_add, _, _, old_minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_minter_no_amount =
+    let contract_add, _, _, old_minter, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (old_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (old_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Remove_minter - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Remove_minter - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // fail if no admin
-let test_gallery_factory_originated_remove_minter_no_admin =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_minter_no_admin =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_minter in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter - not admin : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter - not admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Remove_minter - not admin : Should not work if not an admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Space factory originated fa2 contract) -> Remove_minter - not admin : Should not work if not an admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 
 // Success is minter
-let test_gallery_factory_originated_remove_minter_success_is_minter =
-    let contract_add, _, _, old_minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_minter_success_is_minter =
+    let contract_add, _, _, old_minter, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (old_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (old_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt old_minter strg.admin.minters with
-                    Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter - Success : This test should pass (minter not removed from minters big map)"
+                    Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter - Success : This test should pass (minter not removed from minters big map)"
                 |   None -> "Passed"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // Success is pending minter
-let test_gallery_factory_originated_remove_minter_success_is_pending_minter =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_minter_success_is_pending_minter =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_minter = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
-    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let () = Test.set_source space in
+    let _gaz = Test.transfer_to_contract contract ((Admin (Send_minter_invitation (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
     
-    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (new_minter) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_minter (new_minter) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt new_minter strg.admin.minters with
-                    Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter - Success : This test should pass (minter not removed from pending big map)"
+                    Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter - Success : This test should pass (minter not removed from pending big map)"
                 |   None -> "Passed"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // -- Remove_minter_self --
 
 // no amount
-let test_gallery_factory_originated_remove_minter_self_no_amount =
-    let contract_add, _, _, minter, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_minter_self_no_amount =
+    let contract_add, _, _, minter, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source minter in
-    let result = Test.transfer_to_contract contract (Remove_minter_self () : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract (Remove_minter_self () : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter_self - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter_self - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Remove_minter_self - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Remove_minter_self - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 // not a minter 
-let test_gallery_factory_originated_remove_minter_self_not_minter =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_minter_self_not_minter =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
-    let result = Test.transfer_to_contract contract (Remove_minter_self () : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let () = Test.set_source space in
+    let result = Test.transfer_to_contract contract (Remove_minter_self () : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter_self - not minter : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter_self - not minter : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_A_MINTER") ) "Admin (Gallery factory originated fa2 contract) -> Remove_minter_self - not minter : Should not work if not a minter" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_A_MINTER") ) "Admin (Space factory originated fa2 contract) -> Remove_minter_self - not minter : Should not work if not a minter" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 // success
-let test_gallery_factory_originated_remove_minter_self_success =
-    let contract_add, _, _, minter, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_minter_self_success =
+    let contract_add, _, _, minter, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source minter in
-    let result = Test.transfer_to_contract contract (Remove_minter_self () : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract (Remove_minter_self () : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt minter strg.admin.minters with
-                    Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter_self - Success : This test should pass (minter should  be removed from big map)"
+                    Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter_self - Success : This test should pass (minter should  be removed from big map)"
                 |   None -> "Passed"
                
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_minter_self - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Remove_minter_self - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
     
 // -- Send_admin_invitation --
 
 // fail no amount
-let test_gallery_factory_originated_send_admin_invitation_no_amount =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_admin_invitation_no_amount =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 
 // fail if no admin
-let test_gallery_factory_originated_send_admin_invitation_no_admin =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_admin_invitation_no_admin =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - not admin : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - not admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - not admin : Should not work if not an admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - not admin : Should not work if not an admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // fail if already admin
-let test_gallery_factory_originated_send_admin_invitation_already_admin =
-    let contract_add, admin, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_admin_invitation_already_admin =
+    let contract_add, admin, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - already admin : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - already admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - already admin : Should not work if already admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ADMIN") ) "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - already admin : Should not work if already admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 // fail if already sent admin
-let test_gallery_factory_originated_send_admin_invitation_already_sent =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_admin_invitation_already_sent =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let _gaz = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gaz = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - already sent : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - already sent : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "INVITATION_ALREADY_SENT") ) "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - already sent : Should not work if invitation already sent" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "INVITATION_ALREADY_SENT") ) "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - already sent : Should not work if invitation already sent" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 
 // Success
-let test_gallery_factory_originated_send_admin_invitation_success =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_send_admin_invitation_success =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt new_admin strg.admin.pending_admins with
-                    None -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - Success : This test should pass (admin not saved in big map)"
+                    None -> failwith "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - Success : This test should pass (admin not saved in big map)"
                 |   Some _ -> "Passed"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Send_admin_invitation - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Send_admin_invitation - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 
 // -- Remove_admin_invitation --
 
 // no amount
-let test_gallery_factory_originated_remove_admin_invitation =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_admin_invitation =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin_invitation - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_admin_invitation - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin_invitation - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Remove_admin_invitation - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // not admin
-let test_gallery_factory_originated_remove_admin_invitation_no_admin =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_admin_invitation_no_admin =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin_invitation - not admin : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_admin_invitation - not admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin_invitation - not admin : Should not work if not an admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Space factory originated fa2 contract) -> Remove_admin_invitation - not admin : Should not work if not an admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // success
-let test_gallery_factory_originated_remove_admin_invitation =
-    let contract_add, admin, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_admin_invitation =
+    let contract_add, admin, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source admin in
 
-    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt new_admin strg.admin.pending_admins with
                     None ->  "Passed"
-                |   Some _ ->failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin_invitation - Success : This test should pass (admin should be removed from big map)"
+                |   Some _ ->failwith "Admin (Space factory originated fa2 contract) -> Remove_admin_invitation - Success : This test should pass (admin should be removed from big map)"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin_invitation - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Remove_admin_invitation - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // -- Remove_admin -- 
 
 // no amount
-let test_gallery_factory_originated_remove_admin_no_amount =
-    let contract_add, _, _, _, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_admin_no_amount =
+    let contract_add, _, _, _, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_admin - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Remove_admin - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // not admin
-let test_gallery_factory_originated_remove_admin_no_admin =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_admin_no_admin =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - not admin : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_admin - not admin : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - not admin : Should not work if not an admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin (Space factory originated fa2 contract) -> Remove_admin - not admin : Should not work if not an admin" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // unable to remove self
-let test_gallery_factory_originated_remove_admin_self =
-    let contract_add, admin, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_admin_self =
+    let contract_add, admin, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source admin in
 
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - unable to remove self : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Remove_admin - unable to remove self : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNABLE_TO_REMOVE_YOURSELF") ) "Admin (Gallery factory originated fa2 contract) -> Remove_admin - unable to remove self : Should not work if trying to remove self" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "UNABLE_TO_REMOVE_YOURSELF") ) "Admin (Space factory originated fa2 contract) -> Remove_admin - unable to remove self : Should not work if trying to remove self" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"    
 
 // success
-let test_gallery_factory_originated_remove_admin =
-    let contract_add, admin, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_remove_admin =
+    let contract_add, admin, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     
     let () = Test.set_source admin in
-    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
     
     let () = Test.set_source new_admin in
-    let _gas = Test.transfer_to_contract_exn contract ((Accept_admin_invitation ({ accept = true }) : FA2_GALLERY_STR.editions_entrypoints) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract ((Accept_admin_invitation ({ accept = true }) : FA2_SPACE_STR.editions_entrypoints) : FA2_SPACE_STR.editions_entrypoints) 0tez in
     
     let () = Test.set_source admin in
-    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Admin (Remove_admin (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             match Big_map.find_opt new_admin strg.admin.admins with
                     None ->  "Passed"
-                |   Some _ ->failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - Success : This test should pass (admin not supposed to be in big map)"
+                |   Some _ ->failwith "Admin (Space factory originated fa2 contract) -> Remove_admin - Success : This test should pass (admin not supposed to be in big map)"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Remove_admin - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Remove_admin - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // -- Accept_admin_invitation -- 
 
 // no amount
-let test_gallery_factory_originated_accept_admin_invitation_no_amount =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_admin_invitation_no_amount =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = true }) : FA2_GALLERY_STR.editions_entrypoints) 1tez in
+    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = true }) : FA2_SPACE_STR.editions_entrypoints) 1tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"  
 
 // not pending admin
-let test_gallery_factory_originated_accept_admin_invitation_no_pending_admin =
-    let contract_add, _, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_admin_invitation_no_pending_admin =
+    let contract_add, _, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = true }) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = true }) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
-        Success _gas -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - no amount : This test should fail"
+        Success _gas -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - no amount : This test should fail"
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_PENDING_ADMIN") ) "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - no amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_PENDING_ADMIN") ) "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - no amount : Should not work if amount specified" in
             "Passed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 // Success - accept
-let test_gallery_factory_originated_accept_admin_invitation_success_accept =
-    let contract_add, admin, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_admin_invitation_success_accept =
+    let contract_add, admin, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source admin in
-    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = true }) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = true }) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             let () = match Big_map.find_opt new_admin strg.admin.admins with
-                    None -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be added to admins big map)"
+                    None -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be added to admins big map)"
                 |   Some _ -> unit
             in
             match Big_map.find_opt new_admin strg.admin.pending_admins with
                     None -> "Passed"
-                |   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be remove from pending admins)"
+                |   Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be remove from pending admins)"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // Success - refuse
-let test_gallery_factory_originated_accept_admin_invitation_success_refuse =
-    let contract_add, admin, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_accept_admin_invitation_success_refuse =
+    let contract_add, admin, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let new_admin = Test.nth_bootstrap_account 9 in
     
     let () = Test.set_source admin in
-    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_GALLERY_STR.admin_entrypoints)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract ((Admin (Send_admin_invitation (new_admin) : FA2_SPACE_STR.admin_entrypoints)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     let () = Test.set_source new_admin in
 
-    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = false }) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract (Accept_admin_invitation ({ accept = false }) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let strg = Test.get_storage contract_add in
             let () = match Big_map.find_opt new_admin strg.admin.admins with
                     None -> unit
-                |   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be removed to admins big map)"
+                |   Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be removed to admins big map)"
             in
             match Big_map.find_opt new_admin strg.admin.pending_admins with
                     None -> "Passed"
-                |   Some _ -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be remove from pending admins)"
+                |   Some _ -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass (admin should be remove from pending admins)"
         )
-    |   Fail (Rejected (_err, _)) -> failwith "Admin (Gallery factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass"
+    |   Fail (Rejected (_err, _)) -> failwith "Admin (Space factory originated fa2 contract) -> Accept_admin_invitation - Success : This test should pass"
     |   Fail _ -> failwith "Internal test failure"
 
 // -- Accept proposal --

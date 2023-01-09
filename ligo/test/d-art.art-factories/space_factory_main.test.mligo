@@ -1,5 +1,5 @@
 #import "storage.test.mligo" "FA2_STR"
-#include "../../d-art.art-factories/gallery_factory.mligo"
+#include "../../d-art.art-factories/space_factory.mligo"
 
 // TEST FILE FOR MAIN ENTRYPOINTS
 
@@ -7,7 +7,7 @@
 
 // Fail if amount
 let test_update_permission_manager_no_amount =
-    let contract_add, _ = FA2_STR.get_gallery_factory_contract() in
+    let contract_add, _ = FA2_STR.get_space_factory_contract() in
     let contract = Test.to_contract contract_add in
 
     // Obviously it should be a KT.. address using tz.. one for conveniance
@@ -26,7 +26,7 @@ let test_update_permission_manager_no_amount =
 
 // Fail if sender not admin
 let test_update_permission_manager_not_admin =
-    let contract_add, _ = FA2_STR.get_gallery_factory_contract() in
+    let contract_add, _ = FA2_STR.get_space_factory_contract() in
     let contract = Test.to_contract contract_add in
 
     // Obviously it should be a KT.. address using tz.. one for conveniance
@@ -45,7 +45,7 @@ let test_update_permission_manager_not_admin =
 
 // Success
 let test_update_permission_manager_success =
-    let contract_add, _ = FA2_STR.get_gallery_factory_contract() in
+    let contract_add, _ = FA2_STR.get_space_factory_contract() in
     let contract = Test.to_contract contract_add in
 
     // Obviously it should be a KT.. address using tz.. one for conveniance
@@ -65,57 +65,57 @@ let test_update_permission_manager_success =
         
     |   Fail _ -> failwith "Internal test failure"
 
-// -- Create gallery --
+// -- Create space --
 
-// Fail if not gallery
-let test_create_gallery_not_gallery =
-    let contract_add, _ = FA2_STR.get_gallery_factory_contract() in
+// Fail if not space
+let test_create_space_not_space_manager =
+    let contract_add, _ = FA2_STR.get_space_factory_contract() in
     let contract = Test.to_contract contract_add in
     
     let not_minter = Test.nth_bootstrap_account 3 in
 
     let () = Test.set_source not_minter in
-    let result = Test.transfer_to_contract contract ((Create_gallery ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
+    let result = Test.transfer_to_contract contract ((Create_space ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
 
     match result with
-        Success _gas -> failwith "Create_gallery - Not gallery : This test should fail"
+        Success _gas -> failwith "Create_space - Not space : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-                let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_A_GALLERY") ) "Create_gallery - Not gallery : Should not work if not a gallery" in
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_A_SPACE_MANAGER") ) "Create_space - Not space : Should not work if not a space" in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"    
 
 // Fail if no amount
-let test_create_gallery_no_amount =
-    let contract_add, minter = FA2_STR.get_gallery_factory_contract() in
+let test_create_space_no_amount =
+    let contract_add, minter = FA2_STR.get_space_factory_contract() in
     let contract = Test.to_contract contract_add in
 
     let () = Test.set_source minter in
-    let result = Test.transfer_to_contract contract ((Create_gallery ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 1tez in 
+    let result = Test.transfer_to_contract contract ((Create_space ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 1tez in 
 
     match result with
-        Success _gas -> failwith "Create_gallery - No amount : This test should fail"
+        Success _gas -> failwith "Create_space - No amount : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-                let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Create_gallery - No amount : Should not work if amount specified" in
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Create_space - No amount : Should not work if amount specified" in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"       
 
 // Success
-let test_create_gallery =
-    let contract_add, gallery = FA2_STR.get_gallery_factory_contract() in
+let test_create_space =
+    let contract_add, space = FA2_STR.get_space_factory_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let _gas = Test.transfer_to_contract_exn contract ((Create_gallery ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
+    let _gas = Test.transfer_to_contract_exn contract ((Create_space ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
 
     let new_strg = Test.get_storage contract_add in
 
     // Check serie is added to series big_map
-    match Big_map.find_opt gallery new_strg.galleries with
-        None -> "Create_gallery - Success : This test should pass : Serie should be present in the series big_map"
-        | Some _gallery -> (
+    match Big_map.find_opt space new_strg.spaces with
+        None -> "Create_space - Success : This test should pass : Serie should be present in the series big_map"
+        | Some _space -> (
             "Passed"
             // Check if serie storage is set properly (Not supported yet)
             // let contract_typed_add : (FA2.editions_entrypoints, FA2.editions_storage) typed_address = Test.cast_address serie.address in
@@ -129,23 +129,23 @@ let test_create_gallery =
             // else "Passed"
         )   
     
-// Fail if gallery already originated
+// Fail if space already originated
     
-let test_create_gallery_already_created =
+let test_create_space_already_created =
 
-    let contract_add, gallery = FA2_STR.get_gallery_factory_contract() in
+    let contract_add, space = FA2_STR.get_space_factory_contract() in
     let contract = Test.to_contract contract_add in
 
-    let () = Test.set_source gallery in
+    let () = Test.set_source space in
 
-    let _gas = Test.transfer_to_contract_exn contract ((Create_gallery ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
+    let _gas = Test.transfer_to_contract_exn contract ((Create_space ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
     
-    let result = Test.transfer_to_contract contract ((Create_gallery ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
+    let result = Test.transfer_to_contract contract ((Create_space ({ metadata = ("5465737420636f6e7472616374206d65746164617461": bytes); symbol = ("4a3a504e" : bytes) })) : art_factory) 0tez in 
 
     match result with
-            Success _gas -> failwith "Create_gallery - Already originated : This test should fail"
+            Success _gas -> failwith "Create_space - Already originated : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-                let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ORIGINATED") ) "Create_gallery - Already originated : Should not work if gallery already " in
+                let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_ORIGINATED") ) "Create_space - Already originated : Should not work if space already " in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"    

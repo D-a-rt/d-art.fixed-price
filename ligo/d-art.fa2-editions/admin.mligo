@@ -19,7 +19,7 @@ let fail_if_minting_revoked (storage : admin_storage) : unit =
 
 #else
 
-#if GALLERY_CONTRACT
+#if SPACE_CONTRACT
 
 type admin_entrypoints =
     |   Send_admin_invitation of address

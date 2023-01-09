@@ -2,7 +2,7 @@
 
 #### Introduction:
 
-This set of contracts contain 5 different types of contract: fa2-editions (three variants), fixed-price and serie-factory, gallery-factory and permission-manager.
+This set of contracts contain 5 different types of contract: fa2-editions (three variants), fixed-price and serie-factory, space-factory and permission-manager.
 
 #### Prerequisites
 
@@ -23,9 +23,9 @@ $ npm install -g
 
 The different available commands are:
 
-`contract-title`: ***fixed-price | fa2-editions | fa2-editions-serie | fa2-editions-gallery | serie-factory | gallery-factory | permission-manager*** 
+`contract-title`: ***fixed-price | fa2-editions | fa2-editions-serie | fa2-editions-space | serie-factory | space-factory | permission-manager*** 
 
-`contract-deploy-title` : ***fixed-price | fa2-editions | serie-factory | gallery-factory | permission-manager*** 
+`contract-deploy-title` : ***fixed-price | fa2-editions | serie-factory | space-factory | permission-manager*** 
 
 Note: these commands has been tested with the version 0.43 of ligo.
 ```
@@ -70,7 +70,7 @@ $ ligo run test ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo
 - [Fixed Price](./ligo/d-art.fixed-price)
 - [FA2 Editions](./ligo/d-art.fa2-editions)
 - [Serie Factory](./ligo/d-art.art-factories/serie_factory.mligo)
-- [Gallery Factory](./ligo/d-art.art-factories/gallery_factory.mligo)
+- [Space Factory](./ligo/d-art.art-factories/space_factory.mligo)
 - [Permission manager](./ligo/d-art.permission-manager)
 
 ### Tests 
@@ -78,7 +78,7 @@ $ ligo run test ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo
 - [Fixed Price](./ligo/test/d-art.fixed-price)
 - [FA2 Editions](./ligo/test/d-art.fa2-editions)
 - [Serie Factory](./ligo/test/d-art.art-factories/serie_factory_main.test.mligo)
-- [Gallery Factory](./ligo/test/d-art.art-factories/gallery_factory_main.test.mligo)
+- [Space Factory](./ligo/test/d-art.art-factories/space_factory_main.test.mligo)
 - [Permission manager](./ligo/test/d-art.permission-manager)
 
 

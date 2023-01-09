@@ -8,21 +8,21 @@ import * as helper from './helper';
 
 program
     .command('test-contract')
-    .option('-t, --title <title>', 'Title of the contract to test: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
+    .option('-t, --title <title>', 'Title of the contract to test: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-space, serie-factory, space-factory, permission-manager')
     .action((title: string) => {
         contract.testContracts(title)
     })
 
 program
     .command('compile-contract')
-    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
+    .option('-t, --title <title>', 'Title of the contract to compile: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-space, serie-factory, space-factory, permission-manager')
     .action((title: string) => {
         contract.contracts(title, contract.ContractAction.COMPILE)
     })
 
 program
     .command('deploy-contract')
-    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-space, serie-factory, space-factory, permission-manager')
     .option('-pm, --permission-manager <permissionManager>', 'Any permission manager contract already deployed')
     .action((param: any) => {
         contract.deployContracts(param)
@@ -30,7 +30,7 @@ program
 
 program
     .command('contract-size')
-    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-gallery, serie-factory, gallery-factory, permission-manager')
+    .option('-t, --title <title>', 'Title of the contract to measure: fixed-price, fa2-editions, fa2-editions-serie, fa2-editions-space, serie-factory, space-factory, permission-manager')
     .action((title: string) => {
         contract.contracts(title, contract.ContractAction.SIZE)
     })
@@ -51,7 +51,7 @@ program
 
 program
     . command('upload_metadata')
-    .option('-t, --title <title>', 'Title of the contract to measure: Legacy, Serie, Gallery')
+    .option('-t, --title <title>', 'Title of the contract to measure: Legacy, Serie, Space')
     .action((option: any) => {
         switch (option.title) {
             case "Legacy":
@@ -60,11 +60,11 @@ program
             case "Serie":
                 contract.uploadContractMetadataSerie()
                 break;
-            case "Gallery":
-                contract.uploadContractMetadataGallery()
+            case "Space":
+                contract.uploadContractMetadataSpace()
                 break;
             default:
-                console.log('Wrong parameter passed: Legacy, Serie, Gallery')
+                console.log('Wrong parameter passed: Legacy, Serie, Space')
         }
     })
 

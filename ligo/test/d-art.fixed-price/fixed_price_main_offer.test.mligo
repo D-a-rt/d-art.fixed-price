@@ -479,9 +479,9 @@ let test_accept_offer_success =
     "Passed"
 
 
-// Success Gallery contract 
+// Success Space contract 
 let test_accept_offer_success_commission = 
-    let _, t_add, gallery, fa2_add, t_fa2_add, _ = get_fixed_price_contract_gallery (false, true) in 
+    let _, t_add, space, fa2_add, t_fa2_add, _ = get_fixed_price_contract_space (false, true) in 
         
     // Get balance of different actors of the sale to verify 
     // that fees and royalties are sent correctly
@@ -494,7 +494,7 @@ let test_accept_offer_success_commission =
     let token_split = Test.nth_bootstrap_account 5 in
     let token_split_bal = Test.get_balance token_split in
 
-    let gallery_bal = Test.get_balance gallery in
+    let space_bal = Test.get_balance space in
 
     // Contract and params
     let contract = Test.to_contract t_add in
@@ -533,8 +533,8 @@ let test_accept_offer_success_commission =
                 else (failwith "AcceptOffer - Success : This test should pass (err: Wrong percentage sent to fee address)" : unit)
     in
 
-    let new_gallery_account_bal = Test.get_balance gallery in
-    let () =    if new_gallery_account_bal - gallery_bal = Some (50tez)
+    let new_space_account_bal = Test.get_balance space in
+    let () =    if new_space_account_bal - space_bal = Some (50tez)
                 then unit   
                 else (failwith "AcceptOffer - Success : This test should pass (err: Wrong percentage sent to commission address)" : unit)
     in

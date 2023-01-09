@@ -13,7 +13,7 @@ let get_permission_manager_contract (new_minter, reset : address option * bool) 
             let str = {
                 admin_str  = admin_str;
                 minters = Big_map.literal([(m, ());]) ;
-                galleries = Big_map.literal([(m, ());]) ;
+                space_managers = Big_map.literal([(m, ());]) ;
                 metadata = ((Big_map.empty : (string, bytes) big_map));
             } in
 
@@ -25,7 +25,7 @@ let get_permission_manager_contract (new_minter, reset : address option * bool) 
             let str = {
                 admin_str  = admin_str;
                 minters = (Big_map.empty : (address, unit) big_map);
-                galleries = (Big_map.empty : (address, unit) big_map);
+                space_managers = (Big_map.empty : (address, unit) big_map);
                 metadata = ((Big_map.empty : (string, bytes) big_map));
             } in
 

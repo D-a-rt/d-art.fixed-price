@@ -2,7 +2,7 @@
     (or (or (or (or (or %admin
                        (or (list %accept_proposals nat) (bool %pause_minting))
                        (or (list %reject_proposals nat) (address %update_permission_manager)))
-                    (pair %burn_token (address %owner) (nat %token_id)))
+                    (nat %burn_token))
                 (or (pair %create_proposal
                        (bytes %edition_info)
                        (pair %license (bool %upgradeable) (bytes %hash))
@@ -328,21 +328,12 @@
                                  PAIR } } }
                        { DIG 2 ;
                          DROP ;
-                         PUSH string "NOT_OWNER" ;
-                         SENDER ;
-                         DUP 3 ;
-                         CAR ;
-                         COMPARE ;
-                         EQ ;
-                         NOT ;
-                         IF { FAILWITH } { DROP } ;
                          SWAP ;
                          DUP ;
                          DUG 2 ;
                          SWAP ;
                          DUP ;
                          DUG 2 ;
-                         CDR ;
                          SENDER ;
                          DIG 2 ;
                          CAR ;
@@ -378,7 +369,6 @@
                          CAR ;
                          CAR ;
                          DIG 5 ;
-                         CDR ;
                          NONE address ;
                          SWAP ;
                          UPDATE ;
@@ -447,6 +437,15 @@
                          EQ ;
                          NOT ;
                          IF { PUSH string "TOTAL_SPLIT_MUST_BE_100_PERCENT" ; FAILWITH } {} ;
+                         PUSH string "MAX_25_ADDRESS_IN_SPLIT" ;
+                         PUSH nat 25 ;
+                         DUP 3 ;
+                         GET 6 ;
+                         SIZE ;
+                         COMPARE ;
+                         LE ;
+                         NOT ;
+                         IF { FAILWITH } { DROP } ;
                          DUP ;
                          GET 6 ;
                          SWAP ;
@@ -1080,6 +1079,15 @@
                          EQ ;
                          NOT ;
                          IF { PUSH string "TOTAL_SPLIT_MUST_BE_100_PERCENT" ; FAILWITH } {} ;
+                         PUSH string "MAX_25_ADDRESS_IN_SPLIT" ;
+                         PUSH nat 25 ;
+                         DUP 3 ;
+                         GET 8 ;
+                         SIZE ;
+                         COMPARE ;
+                         LE ;
+                         NOT ;
+                         IF { FAILWITH } { DROP } ;
                          DUP ;
                          GET 8 ;
                          SWAP ;
@@ -1199,7 +1207,7 @@
                  PAIR } } } ;
   view "token_metadata"
        nat
-       (pair (nat %token_id) (map %token_info string bytes))
+       (option (pair (nat %token_id) (map %token_info string bytes)))
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1214,7 +1222,7 @@
          DUG 2 ;
          GET ;
          IF_NONE
-           { DROP 2 ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+           { DROP 2 ; NONE (pair nat (map string bytes)) }
            { DROP ;
              SWAP ;
              DUP ;
@@ -1237,7 +1245,7 @@
              DUG 2 ;
              GET ;
              IF_NONE
-               { DROP 3 ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+               { DROP 3 ; NONE (pair nat (map string bytes)) }
                { DUP 4 ;
                  CDR ;
                  CAR ;
@@ -1276,7 +1284,8 @@
                      SWAP ;
                      UPDATE ;
                      SWAP ;
-                     PAIR }
+                     PAIR ;
+                     SOME }
                    { SWAP ;
                      DUP ;
                      DUG 2 ;
@@ -1318,10 +1327,12 @@
                      SWAP ;
                      UPDATE ;
                      SWAP ;
-                     PAIR } } } } ;
+                     PAIR ;
+                     SOME } } } } ;
   view "royalty_distribution"
        nat
-       (pair address (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))))
+       (option
+          (pair address (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))))
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1340,11 +1351,21 @@
          SWAP ;
          GET ;
          IF_NONE
-           { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-           { DUP ; GET 10 ; SWAP ; DUP ; DUG 2 ; GET 9 ; PAIR ; SWAP ; CAR ; PAIR } } ;
+           { NONE (pair address (pair nat (list (pair address nat)))) }
+           { DUP ;
+             GET 10 ;
+             SWAP ;
+             DUP ;
+             DUG 2 ;
+             GET 9 ;
+             PAIR ;
+             SWAP ;
+             CAR ;
+             PAIR ;
+             SOME } } ;
   view "splits"
        nat
-       (list (pair (address %address) (nat %pct)))
+       (option (list (pair (address %address) (nat %pct))))
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1362,10 +1383,10 @@
          CDR ;
          SWAP ;
          GET ;
-         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 10 } } ;
+         IF_NONE { NONE (list (pair address nat)) } { GET 10 ; SOME } } ;
   view "royalty_splits"
        nat
-       (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct))))
+       (option (pair (nat %royalty) (list %splits (pair (address %address) (nat %pct)))))
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1384,11 +1405,11 @@
          SWAP ;
          GET ;
          IF_NONE
-           { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-           { DUP ; GET 10 ; SWAP ; GET 9 ; PAIR } } ;
+           { NONE (pair nat (list (pair address nat))) }
+           { DUP ; GET 10 ; SWAP ; GET 9 ; PAIR ; SOME } } ;
   view "royalty"
        nat
-       nat
+       (option nat)
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1406,10 +1427,10 @@
          CDR ;
          SWAP ;
          GET ;
-         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 9 } } ;
+         IF_NONE { NONE nat } { GET 9 ; SOME } } ;
   view "minter"
        nat
-       address
+       (option address)
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1427,10 +1448,10 @@
          CDR ;
          SWAP ;
          GET ;
-         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { CAR } } ;
+         IF_NONE { NONE address } { CAR ; SOME } } ;
   view "is_token_minter"
        (pair address nat)
-       bool
+       (option bool)
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1452,17 +1473,17 @@
          SWAP ;
          GET ;
          IF_NONE
-           { DROP ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+           { DROP ; NONE bool }
            { SWAP ;
              CAR ;
              SWAP ;
              CAR ;
              COMPARE ;
              EQ ;
-             IF { PUSH bool True } { PUSH bool False } } } ;
+             IF { PUSH bool True ; SOME } { PUSH bool False ; SOME } } } ;
   view "is_unique_edition"
        nat
-       bool
+       (option bool)
        { UNPAIR ;
          SWAP ;
          DUP ;
@@ -1481,11 +1502,11 @@
          SWAP ;
          GET ;
          IF_NONE
-           { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+           { NONE bool }
            { PUSH nat 1 ;
              SWAP ;
              GET 5 ;
              COMPARE ;
              GT ;
-             IF { PUSH bool False } { PUSH bool True } } } }
+             IF { PUSH bool False ; SOME } { PUSH bool True ; SOME } } } }
 

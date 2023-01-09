@@ -1,16 +1,16 @@
 
-// -- FA2 editions version originated from Gallery factory contract
+// -- FA2 editions version originated from Space factory contract
 
-#include "../../d-art.fa2-editions/compile_fa2_editions_gallery.mligo"
+#include "../../d-art.fa2-editions/compile_fa2_editions_space.mligo"
 
-let get_fa2_editions_gallery_contract () : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address * address ) = 
+let get_fa2_editions_space_contract () : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address * address ) = 
     let () = Test.reset_state 10n ([]: tez list) in
  
     let minter = Test.nth_bootstrap_account 7 in
-    let gallery = Test.nth_bootstrap_account 8 in
+    let space = Test.nth_bootstrap_account 8 in
 
     let admin_str : admin_storage = {
-        admins = Big_map.literal([(gallery, ());]);
+        admins = Big_map.literal([(space, ());]);
         minters = Big_map.literal([
             (minter, ());
         ]);
@@ -54,18 +54,18 @@ let get_fa2_editions_gallery_contract () : ( ((editions_entrypoints, editions_st
     } in
 
     let taddr, _, _ = Test.originate editions_main str 0tez in
-    taddr, gallery, owner1, minter, gallery
+    taddr, space, owner1, minter, space
 
 
-let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : address) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
+let get_fa2_editions_space_contract_fixed_price (fixed_price_contract : address) : ( ((editions_entrypoints, editions_storage) typed_address) * address * address * address ) = 
     let token_minter = Test.nth_bootstrap_account 3 in
     let token_split = Test.nth_bootstrap_account 5 in
     let token_buyer = Test.nth_bootstrap_account 1 in
 
-    let gallery = Test.nth_bootstrap_account 8 in
+    let space = Test.nth_bootstrap_account 8 in
 
     let admin_str : admin_storage = {
-        admins = Big_map.literal([(gallery, ());]);
+        admins = Big_map.literal([(space, ());]);
         minters = Big_map.literal([
             (token_minter, ());
         ]);
@@ -101,9 +101,9 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
                 address = token_split;
                 pct = 500n;
             } : split )];
-            gallery_commission = 500n;
-            gallery_commission_splits = [({
-                address = gallery;
+            space_commission = 500n;
+            space_commission_splits = [({
+                address = space;
                 pct = 1000n;
             } : split )];
         } : edition_metadata ) in
@@ -126,7 +126,7 @@ let get_fa2_editions_gallery_contract_fixed_price (fixed_price_contract : addres
     } in
 
     let michelson_str = Test.compile_value str in
-    let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fa2-editions/compile_fa2_editions_gallery.mligo" "editions_main" ([] : string list) michelson_str 0tez in
+    let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fa2-editions/compile_fa2_editions_space.mligo" "editions_main" ([] : string list) michelson_str 0tez in
     let t_addr : (editions_entrypoints, editions_storage) typed_address = Test.cast_address addr in
 
-    t_addr, gallery, addr, token_minter
+    t_addr, space, addr, token_minter

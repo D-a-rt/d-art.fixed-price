@@ -236,9 +236,9 @@ let test_buy_fixed_price_token_success =
     
     |   Fail _err -> failwith "Internal test failure"    
 
-// Success - verify fa2 gallery transfer, fee & royalties
+// Success - verify fa2 space transfer, fee & royalties
 let test_buy_fixed_price_token_success_commission =
-    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, true) in 
+    let _, t_add, space, fa2_add, t_fa2_add, admin = get_fixed_price_contract_space (false, true) in 
     
     let contract = Test.to_contract t_add in
 
@@ -252,7 +252,7 @@ let test_buy_fixed_price_token_success_commission =
     let token_split = Test.nth_bootstrap_account 5 in
     let token_split_bal = Test.get_balance token_split in
 
-    let gallery_bal = Test.get_balance gallery in
+    let space_bal = Test.get_balance space in
 
     let () = Test.set_source token_minter in
 
@@ -321,8 +321,8 @@ let test_buy_fixed_price_token_success_commission =
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
             in
 
-            let new_gallery_account_bal = Test.get_balance gallery in
-            let () =    if new_gallery_account_bal - gallery_bal = Some (50tez)
+            let new_space_account_bal = Test.get_balance space in
+            let () =    if new_space_account_bal - space_bal = Some (50tez)
                         then unit   
                         else (failwith "AcceptOffer - Success : This test should pass (err: Wrong percentage sent to commission address)" : unit)
             in
@@ -525,7 +525,7 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
 
 
 let test_buy_fixed_price_token_success_secondary_commission = 
-    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, true) in 
+    let _, t_add, space, fa2_add, t_fa2_add, admin = get_fixed_price_contract_space (false, true) in 
     
     let token_minter = Test.nth_bootstrap_account 3 in
     let () = Test.set_source token_minter in
@@ -573,7 +573,7 @@ let test_buy_fixed_price_token_success_secondary_commission =
     let token_split = Test.nth_bootstrap_account 5 in
     let token_split_bal = Test.get_balance token_split in
 
-    let gallery_bal = Test.get_balance gallery in
+    let space_bal = Test.get_balance space in
 
     let second_buyer = Test.nth_bootstrap_account 9 in
 
@@ -647,10 +647,10 @@ let test_buy_fixed_price_token_success_secondary_commission =
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
             in
 
-            let new_gallery_bal = Test.get_balance gallery in
-            let () =    if new_gallery_bal = gallery_bal
+            let new_space_bal = Test.get_balance space in
+            let () =    if new_space_bal = space_bal
                         then unit
-                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Gallery should not get any commission on the secondary market)" : unit)
+                        else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Space should not get any commission on the secondary market)" : unit)
             in
 
             // Check that seller got the right amount
@@ -709,9 +709,9 @@ let test_buy_fixed_price_token_fail_if_wrong_seller =
     |   Fail _ -> failwith "Internal test failure"    
 
 
-// Success - verify fa2 gallery transfer, fee & royalties, and referrer
+// Success - verify fa2 space transfer, fee & royalties, and referrer
 let test_buy_fixed_price_token_success_commission_referrer =
-    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, true) in 
+    let _, t_add, space, fa2_add, t_fa2_add, admin = get_fixed_price_contract_space (false, true) in 
     
     let contract = Test.to_contract t_add in
 
@@ -725,7 +725,7 @@ let test_buy_fixed_price_token_success_commission_referrer =
     let token_split = Test.nth_bootstrap_account 5 in
     let token_split_bal = Test.get_balance token_split in
 
-    let gallery_bal = Test.get_balance gallery in
+    let space_bal = Test.get_balance space in
 
     let () = Test.set_source token_minter in
 
@@ -804,8 +804,8 @@ let test_buy_fixed_price_token_success_commission_referrer =
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
             in
 
-            let new_gallery_account_bal = Test.get_balance gallery in
-            let () =    if new_gallery_account_bal - gallery_bal = Some (50tez)
+            let new_space_account_bal = Test.get_balance space in
+            let () =    if new_space_account_bal - space_bal = Some (50tez)
                         then unit   
                         else (failwith "AcceptOffer - Success : This test should pass (err: Wrong percentage sent to commission address)" : unit)
             in
@@ -834,9 +834,9 @@ let test_buy_fixed_price_token_success_commission_referrer =
         failwith "Internal test failure"        )
 
 
-// Success - verify fa2 gallery transfer, fee & royalties, and referrer
+// Success - verify fa2 space transfer, fee & royalties, and referrer
 let test_buy_fixed_price_token_success_commission_referrer_deactivated =
-    let _, t_add, gallery, fa2_add, t_fa2_add, admin = get_fixed_price_contract_gallery (false, false) in 
+    let _, t_add, space, fa2_add, t_fa2_add, admin = get_fixed_price_contract_space (false, false) in 
     
     let contract = Test.to_contract t_add in
 
@@ -850,7 +850,7 @@ let test_buy_fixed_price_token_success_commission_referrer_deactivated =
     let token_split = Test.nth_bootstrap_account 5 in
     let token_split_bal = Test.get_balance token_split in
 
-    let gallery_bal = Test.get_balance gallery in
+    let space_bal = Test.get_balance space in
 
     let () = Test.set_source token_minter in
 
@@ -929,8 +929,8 @@ let test_buy_fixed_price_token_success_commission_referrer_deactivated =
                         else (failwith "Buy_fixed_price_token - Success : This test should pass (err: Wrong percentage sent to royaltie address)" : unit)
             in
 
-            let new_gallery_account_bal = Test.get_balance gallery in
-            let () =    if new_gallery_account_bal - gallery_bal = Some (50tez)
+            let new_space_account_bal = Test.get_balance space in
+            let () =    if new_space_account_bal - space_bal = Some (50tez)
                         then unit   
                         else (failwith "AcceptOffer - Success : This test should pass (err: Wrong percentage sent to commission address)" : unit)
             in

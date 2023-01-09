@@ -1,5 +1,5 @@
 #import "../d-art.fa2-editions/storage.test.mligo" "FA2_STR"
-#import "../d-art.fa2-editions/storage_gallery.test.mligo" "FA2_GALLERY_STR"
+#import "../d-art.fa2-editions/storage_space.test.mligo" "FA2_SPACE_STR"
 #import "../d-art.permission-manager/storage.test.mligo" "PM_STR"
 
 #include "../../d-art.fixed-price/fixed_price_main.mligo"
@@ -181,7 +181,7 @@ let get_fixed_price_contract (signature_saved : bool) =
     addr, taddr, fa2_add, t_fa2_add, admin
     
 
-let get_fixed_price_contract_gallery (signature_saved, referral_activated : bool * bool ) =
+let get_fixed_price_contract_space (signature_saved, referral_activated : bool * bool ) =
     let () = Test.reset_state 10n ([233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez; 233710368547757mutez] : tez list) in
     
     let admin = Test.nth_bootstrap_account 0 in
@@ -227,6 +227,6 @@ let get_fixed_price_contract_gallery (signature_saved, referral_activated : bool
     let addr, _, _ = Test.originate_from_file "/Users/thedude/Documents/Pro/D.art/d-art.contracts/ligo/d-art.fixed-price/fixed_price_main.mligo" "fixed_price_main" ([] : string list) (Test.compile_value str) 0tez in
     let taddr : (fixed_price_entrypoints, storage) typed_address = Test.cast_address addr in
 
-    let t_fa2_gallery_add, gallery, fa2_gallery_add, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract_fixed_price (addr) in
-    addr, taddr, gallery, fa2_gallery_add, t_fa2_gallery_add, admin
+    let t_fa2_space_add, space, fa2_space_add, _ = FA2_SPACE_STR.get_fa2_editions_space_contract_fixed_price (addr) in
+    addr, taddr, space, fa2_space_add, t_fa2_space_add, admin
     

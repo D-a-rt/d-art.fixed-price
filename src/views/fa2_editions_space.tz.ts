@@ -1,4 +1,4 @@
-export const TokenMetadataViewGallery = {
+export const TokenMetadataViewSpace = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -71,7 +71,7 @@ export const TokenMetadataViewGallery = {
                 PAIR } } }`
 }
 
-export const RoyaltyDistributionViewGallery = {
+export const RoyaltyDistributionViewSpace = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -94,7 +94,7 @@ export const RoyaltyDistributionViewGallery = {
           { DUP ; GET 11 ; SWAP ; DUP ; DUG 2 ; GET 7 ; PAIR ; SWAP ; CAR ; PAIR } }`
 }
 
-export const SplitsViewGallery = {
+export const SplitsViewSpace = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -115,7 +115,7 @@ export const SplitsViewGallery = {
         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 11 } }`
 }
 
-export const RoyaltySplitsViewGallery = {
+export const RoyaltySplitsViewSpace = {
     code : `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -138,7 +138,7 @@ export const RoyaltySplitsViewGallery = {
           { DUP ; GET 11 ; SWAP ; GET 7 ; PAIR } }`
 }
 
-export const RoyaltyViewGallery = {
+export const RoyaltyViewSpace = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -159,7 +159,7 @@ export const RoyaltyViewGallery = {
         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 7 } }`
 }
 
-export const MinterViewGallery = {
+export const MinterViewSpace = {
     code : `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -180,7 +180,7 @@ export const MinterViewGallery = {
         IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { CAR } }`
 }
 
-export const IsTokenMinterViewGallery = {
+export const IsTokenMinterViewSpace = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -212,7 +212,7 @@ export const IsTokenMinterViewGallery = {
             IF { PUSH bool True } { PUSH bool False } } }`
 }
 
-export const IsUniqueEditionGallery = {
+export const IsUniqueEditionSpace = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;
@@ -240,7 +240,7 @@ export const IsUniqueEditionGallery = {
             IF { PUSH bool False } { PUSH bool True } } }`
 }
 
-export const CommissionSplitsViewGallery = {
+export const CommissionSplitsViewSpace = {
     code: `{ UNPAIR ;
         SWAP ;
         DUP ;

@@ -21,6 +21,6 @@ type storage =
 {
     admin_str: admin_storage;
     minters: (address, unit) big_map;
-    galleries: (address, unit) big_map;
+    space_managers: (address, unit) big_map;
     metadata: (string, bytes) big_map;
 }

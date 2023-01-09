@@ -1,8 +1,8 @@
 type admin_factory_entrypoints =
     |   Add_minter of address
     |   Remove_minter of address
-    |   Add_gallery of address
-    |   Remove_gallery of address
+    |   Add_space_manager of address
+    |   Remove_space_manager of address
     |   Send_admin_invitation of admin_invitation_param
     |   Revoke_admin_invitation of unit
 
@@ -26,13 +26,13 @@ let admin_main(param, storage : admin_factory_entrypoints * storage) : (operatio
         |   Remove_minter old_minter_addess ->
                 ([]: operation list), { storage with minters = Big_map.remove old_minter_addess storage.minters }
 
-        |   Add_gallery new_gallery ->
-                if Big_map.mem new_gallery storage.galleries
-                then (failwith "ALREADY_GALLERY" : operation list * storage)
-                else ([]: operation list), { storage with galleries = Big_map.add new_gallery unit storage.galleries}
+        |   Add_space_manager new_space_manager ->
+                if Big_map.mem new_space_manager storage.space_managers
+                then (failwith "ALREADY_SPACE_MANAGER" : operation list * storage)
+                else ([]: operation list), { storage with space_managers = Big_map.add new_space_manager unit storage.space_managers}
 
-        |   Remove_gallery old_gallery ->
-                ([]: operation list), { storage with galleries = Big_map.remove old_gallery storage.galleries }
+        |   Remove_space_manager old_space_manager ->
+                ([]: operation list), { storage with space_managers = Big_map.remove old_space_manager storage.space_managers }
 
         |   Send_admin_invitation param ->
                 ( []: operation list ), { storage with admin_str.pending_admin = Some(param.new_admin) }

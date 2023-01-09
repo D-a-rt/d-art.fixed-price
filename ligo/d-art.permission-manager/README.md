@@ -1,6 +1,6 @@
 # Permission manager contract 
 
-The permission manager is responsible to hold the addresses that will have access to the D A:RT system (admin, artists and galleries). The only purpose is to have a unique contract responsible to manage the permission of the ecosystem. Therefore the storage and the entrypoints are straightforward.
+The permission manager is responsible to hold the addresses that will have access to the D A:RT system (admin, artists and space_managers). The only purpose is to have a unique contract responsible to manage the permission of the ecosystem. Therefore the storage and the entrypoints are straightforward.
 
 ## Storage definition
 
@@ -17,7 +17,7 @@ type storage =
 {
     admin_str: admin_storage;
     minters: (address, unit) big_map;
-    galleries: (address, unit) big_map;
+    space_managers: (address, unit) big_map;
     metadata: (string, bytes) big_map;
 }
 ```
@@ -30,9 +30,9 @@ admin storage containing current admin and pending one in case we will change
 
 The big_map containing the minters having the right to access the serie factory contract as well as minting one token on the legacy D A:RT contract (FA2 editions version).
 
-### galleries
+### space_managers
 
-The big_map containing the galleries having the right to access the gallery factory contract and create their own curation on it.
+The big_map containing the space_managers having the right to access the space factory contract and create their own curation on it.
 
 ### metadata
 
@@ -46,8 +46,8 @@ The different entrypoint of the contract are defined by:
 type admin_factory_entrypoints =
     |   Add_minter of address
     |   Remove_minter of address
-    |   Add_gallery of address
-    |   Remove_gallery of address
+    |   Add_space_manager of address
+    |   Remove_space_manager of address
     |   Send_admin_invitation of admin_invitation_param
     |   Revoke_admin_invitation of unit
 
@@ -60,9 +60,9 @@ type art_permission_manager =
 
 These two entrypoints are responsible to manage the minters, they should fail if amount is sent to the contract, if it sis called by a non admin address or if minter already registered in the big_map, otherwise should pass.
 
-### Add & Remove gallery
+### Add & Remove space
 
-These two entrypoints are responsible to manage the galleries, they should fail if amount is sent to the contract, if it sis called by a non admin address or if gallery already registered in the big_map, otherwise should pass.
+These two entrypoints are responsible to manage the space_managers, they should fail if amount is sent to the contract, if it sis called by a non admin address or if space already registered in the big_map, otherwise should pass.
 
 ### Send_admin_invitation
 
@@ -80,7 +80,7 @@ Entrypoints only accessible to the pending admin in order to accept invitation
 
 This contract have two views:
 
-`is_gallery`: View responsible to return true if address is a gallery
+`is_space_manager`: View responsible to return true if address is a space
 
 `is_minter`: View responsible to return true if address is a minter
 

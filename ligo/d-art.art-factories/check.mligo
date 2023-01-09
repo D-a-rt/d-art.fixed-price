@@ -1,20 +1,20 @@
 [@inline]
 let assert_msg (condition, msg : bool * string ) : unit = if (not condition) then failwith(msg) else unit
 
-#if GALLERY_CONTRACT
+#if SPACE_CONTRACT
 
-(* Fails if sender is not gallery *)
-let fail_if_not_gallery (storage : storage) : unit =
-  match ((Tezos.call_view "is_gallery" (Tezos.get_sender()) storage.permission_manager ): bool option) with
-      None -> failwith "NOT_A_GALLERY"
-      | Some is_gallery -> 
-        if is_gallery
+(* Fails if sender is not space *)
+let fail_if_not_space_manager (storage : storage) : unit =
+  match ((Tezos.call_view "is_space_manager" (Tezos.get_sender()) storage.permission_manager ): bool option) with
+      None -> failwith "NOT_A_SPACE_MANAGER"
+      | Some is_space_manager -> 
+        if is_space_manager
         then unit
-        else failwith "NOT_A_GALLERY"
+        else failwith "NOT_A_SPACE_MANAGER"
 
-(* Fails if gallery already originated contract *)
+(* Fails if space already originated contract *)
 let fail_if_already_originated (storage : storage) : unit =
-    if Big_map.mem (Tezos.get_sender()) storage.galleries
+    if Big_map.mem (Tezos.get_sender()) storage.spaces
     then failwith "ALREADY_ORIGINATED"
     else unit
 

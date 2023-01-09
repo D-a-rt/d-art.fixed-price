@@ -1,6 +1,6 @@
 #import "storage.test.mligo" "FA2_STR"
 #import "storage_serie.test.mligo" "FA2_SERIE_STR"
-#import "storage_gallery.test.mligo" "FA2_GALLERY_STR"
+#import "storage_space.test.mligo" "FA2_SPACE_STR"
 
 #import "../../d-art.fa2-editions/views.mligo" "FA2_V"
 #import "../../d-art.fa2-editions/interface.mligo" "FA2_I"
@@ -247,10 +247,10 @@ let test_serie_factory_originated_royalty_distribution_view =
         | None -> "Views - Is minter : This test should pass, wrong distri specified"
 
 
-// -- FA2 editions version originated from Gallery factory contract
+// -- FA2 editions version originated from Space factory contract
 
-let test_gallery_factory_originated_commission_splits = 
-    let contract_add, _, _, minter, gallery = FA2_GALLERY_STR.get_fa2_editions_gallery_contract() in
+let test_space_factory_originated_commission_splits = 
+    let contract_add, _, _, minter, space = FA2_SPACE_STR.get_fa2_editions_space_contract() in
     let contract = Test.to_contract contract_add in
 
     let proposal_param = ([({
@@ -266,59 +266,59 @@ let test_gallery_factory_originated_commission_splits =
             address = minter;
             pct = 1000n;
         }] : FA2_I.split list);
-        gallery_commission = 300n;
-        gallery_commission_splits = ([{
-            address = gallery;
+        space_commission = 300n;
+        space_commission_splits = ([{
+            address = space;
             pct = 1000n;
         };] : FA2_I.split list);
-    } : FA2_GALLERY_STR.pre_mint_edition_param )] : FA2_GALLERY_STR.pre_mint_edition_param list ) in
+    } : FA2_SPACE_STR.pre_mint_edition_param )] : FA2_SPACE_STR.pre_mint_edition_param list ) in
 
-    let () = Test.set_source gallery in
-    let _gas = Test.transfer_to_contract_exn contract ((Create_proposals (proposal_param)) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let () = Test.set_source space in
+    let _gas = Test.transfer_to_contract_exn contract ((Create_proposals (proposal_param)) : FA2_SPACE_STR.editions_entrypoints) 0tez in
     
     let () = Test.set_source minter in
-    let result = Test.transfer_to_contract contract ((Mint_editions ([({proposal_id = 0n} : FA2_GALLERY_STR.proposal_param)])) : FA2_GALLERY_STR.editions_entrypoints) 0tez in
+    let result = Test.transfer_to_contract contract ((Mint_editions ([({proposal_id = 0n} : FA2_SPACE_STR.proposal_param)])) : FA2_SPACE_STR.editions_entrypoints) 0tez in
 
     match result with
         Success _gas -> (
             let new_str = Test.get_storage contract_add in
-            let commission_distribution = FA2_GALLERY_STR.commission_splits (0n, new_str) in
+            let commission_distribution = FA2_SPACE_STR.commission_splits (0n, new_str) in
 
             let commission_distri = ({
                 commission_pct = 300n;
                 splits = [({
-                    address = gallery;
+                    address = space;
                     pct = 1000n;
                 } : FA2_I.split )]
             } : FA2_V.commissions) in
 
             match commission_distribution with
                 | Some cd -> (
-                    let () = assert_with_error (cd = commission_distri) "Views Gallery - Commissions Splits : This test should pass " in
+                    let () = assert_with_error (cd = commission_distri) "Views Space - Commissions Splits : This test should pass " in
                     "Passed"
                 )
                 | None -> "Views - Is minter : This test should pass, wrong distri specified"
         )
     |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_PROPOSAL_UNDEFINED") ) "Admin (Gallery factory originated fa2 contract) -> Mint_editions - success : Should not work if minter is not sender" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "FA2_PROPOSAL_UNDEFINED") ) "Admin (Space factory originated fa2 contract) -> Mint_editions - success : Should not work if minter is not sender" in
             "Failed"
         )
     |   Fail _ -> failwith "Internal test failure"
 
 let test_token_metadata_view_symbol =
-    let t_fa2_gallery_add, _, _, _ = FA2_GALLERY_STR.get_fa2_editions_gallery_contract_fixed_price(("KT1DHceF5q3wuxBLAb6iYiocddpWv71A3Nhd" : address)) in
-    let strg = Test.get_storage t_fa2_gallery_add in
+    let t_fa2_space_add, _, _, _ = FA2_SPACE_STR.get_fa2_editions_space_contract_fixed_price(("KT1DHceF5q3wuxBLAb6iYiocddpWv71A3Nhd" : address)) in
+    let strg = Test.get_storage t_fa2_space_add in
 
-    let token_metadata = FA2_GALLERY_STR.token_metadata (0n, strg) in
+    let token_metadata = FA2_SPACE_STR.token_metadata (0n, strg) in
 
     let token_m = ({
         token_id = 0n;
         token_info = Map.literal [(("symbol"), ("4a3a504e" : bytes)); (("license") , ("ff7a7aff" : bytes)); (("edition_number"), Bytes.pack(1n));]
-    } : FA2_GALLERY_STR.token_metadata) in
+    } : FA2_SPACE_STR.token_metadata) in
 
     match token_metadata with
         | Some tm -> (
-            let () = assert_with_error (tm = token_m) "Views - Token metadata : This test should pass, wrong token_metadata for gallery FA2" in
+            let () = assert_with_error (tm = token_m) "Views - Token metadata : This test should pass, wrong token_metadata for space FA2" in
             "Passed"
         )
-        | None -> "Views - Token metadata : This test should pass, wrong token_metadata for gallery FA2"
+        | None -> "Views - Token metadata : This test should pass, wrong token_metadata for space FA2"

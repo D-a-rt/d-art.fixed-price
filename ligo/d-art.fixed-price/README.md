@@ -65,7 +65,6 @@ type storage =
 
 type admin_storage = {
   permission_manager : address;
-  pb_key : key;
   contract_will_update : bool;
 }
 ```

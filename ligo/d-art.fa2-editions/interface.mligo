@@ -111,7 +111,7 @@ type edition_metadata =
 
 #else
 
-#if GALLERY_CONTRACT
+#if SPACE_CONTRACT
 
 type edition_metadata =
 [@layout:comb]
@@ -122,8 +122,8 @@ type edition_metadata =
     royalty: nat;
     license : license;
     splits: split list;
-    gallery_commission: nat;
-    gallery_commission_splits: split list;
+    space_commission: nat;
+    space_commission_splits: split list;
 }
 
 type invitation_param = 
@@ -172,11 +172,9 @@ type admin_storage = {
 
 #else
 
-#if GALLERY_CONTRACT
+#if SPACE_CONTRACT
 
 type admin_storage = {
-    // In order for galleries to manage the artists from multiple addresses and 
-    // in case they lose access to any of these addresses
     admins: (address, unit) big_map;
     minters: (address, unit) big_map;
     pending_minters: (address, unit) big_map;
@@ -204,7 +202,7 @@ type nft_token_storage = {
 type editions_metadata = (nat, edition_metadata) big_map
 
 
-#if GALLERY_CONTRACT
+#if SPACE_CONTRACT
 
 type editions_storage =
 {

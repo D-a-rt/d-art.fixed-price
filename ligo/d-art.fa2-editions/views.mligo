@@ -14,15 +14,15 @@ type commissions =
   splits: split list;
 }
 
-#if GALLERY_CONTRACT
+#if SPACE_CONTRACT
 
 [@view]
 let commission_splits (token_id, storage : token_id * editions_storage) : commissions option =
     let edition_id = token_id_to_edition_id(token_id, storage) in
     match (Big_map.find_opt edition_id storage.editions_metadata) with
             Some edition_metadata -> Some ({
-                commission_pct = edition_metadata.gallery_commission;
-                splits = edition_metadata.gallery_commission_splits;
+                commission_pct = edition_metadata.space_commission;
+                splits = edition_metadata.space_commission_splits;
             })
         |   None -> (None : commissions option)
 

@@ -13,11 +13,11 @@ This contract has been extended, using the TQTezos Editions variant of the FA2 h
 ```
 -   Legacy D a:rt contract (where authorized minter of the system will be able to mint only one token as a one-off)
 -   Serie contract (the fa2-editions version that minters will be able to originate using the serie-factory contract and be admin on)
--   Gallery contract (the variant enabling administrators to manage their own artists and perform pre-minting for them)
+-   Space contract (the variant enabling administrators to manage their own artists and perform pre-minting for them)
 ```
 
 
-# FA2 editions - Legacy D a:rt gallery
+# FA2 editions - Legacy D a:rt space
 
 SERIE_CONTRACT is NOT defined here
 

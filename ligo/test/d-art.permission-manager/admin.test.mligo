@@ -158,165 +158,165 @@ let test_remove_minter_success =
 
 
 
-// -- Add_gallery --
+// -- Add_space_manager --
 
 // No amount
-let test_add_gallery_no_amount =
+let test_add_space_no_amount =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
-    let new_gallery = Test.nth_bootstrap_account 1 in
+    let new_space_manager = Test.nth_bootstrap_account 1 in
 
-    let result = Test.transfer_to_contract contract (Admin (Add_gallery (new_gallery))) 1tez in
+    let result = Test.transfer_to_contract contract (Admin (Add_space_manager (new_space_manager))) 1tez in
 
     match result with
-            Success _gas -> failwith "Admin -> Add_gallery - No amount : This test should fail"
+            Success _gas -> failwith "Admin -> Add_space_manager - No amount : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Add_gallery - No amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Add_space_manager - No amount : Should not work if amount specified" in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"    
 
 // Not an admin
-let test_add_gallery_not_admin =
+let test_add_space_not_admin =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
-    let new_gallery = Test.nth_bootstrap_account 1 in
-    let () = Test.set_source new_gallery in
+    let new_space_manager = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source new_space_manager in
 
-    let result = Test.transfer_to_contract contract (Admin (Add_gallery (new_gallery))) 0tez in
+    let result = Test.transfer_to_contract contract (Admin (Add_space_manager (new_space_manager))) 0tez in
 
     match result with
-            Success _gas -> failwith "Admin -> Add_gallery - Not admin : This test should fail"
+            Success _gas -> failwith "Admin -> Add_space_manager - Not admin : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Add_gallery - Not admin : Should not work if not admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Add_space_manager - Not admin : Should not work if not admin" in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"    
 
 // Success
-let test_add_gallery_success =
+let test_add_space_success =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
-    let new_gallery = Test.nth_bootstrap_account 1 in
+    let new_space_manager = Test.nth_bootstrap_account 1 in
 
     let admin = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin in
 
-    let result = Test.transfer_to_contract contract (Admin (Add_gallery (new_gallery))) 0tez in
+    let result = Test.transfer_to_contract contract (Admin (Add_space_manager (new_space_manager))) 0tez in
 
     match result with
             Success _gas -> (
                 let new_str = Test.get_storage contract_add in
-                match Big_map.find_opt new_gallery new_str.galleries with
+                match Big_map.find_opt new_space_manager new_str.space_managers with
                         Some _ -> "Passed"
-                    |   None -> "Admin -> Add_gallery - Success : This test should pass (no gallery saved)"
+                    |   None -> "Admin -> Add_space_manager - Success : This test should pass (no space saved)"
             )
-        |   Fail (Rejected (_err, _)) -> failwith "Admin -> Add_gallery - Success : This test should pass"
+        |   Fail (Rejected (_err, _)) -> failwith "Admin -> Add_space_manager - Success : This test should pass"
         |   Fail _ -> failwith "Internal test failure"
 
 
 
 // Already minter
-let test_add_gallery_already_minter =
+let test_add_space_already_minter =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None : address option), true) in
     let contract = Test.to_contract contract_add  in
 
-    let new_gallery = Test.nth_bootstrap_account 1 in
+    let new_space_manager = Test.nth_bootstrap_account 1 in
 
     let admin = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin in
 
-    let _gas = Test.transfer_to_contract_exn contract (Admin (Add_gallery (new_gallery))) 0tez in
-    let result = Test.transfer_to_contract contract (Admin (Add_gallery (new_gallery))) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract (Admin (Add_space_manager (new_space_manager))) 0tez in
+    let result = Test.transfer_to_contract contract (Admin (Add_space_manager (new_space_manager))) 0tez in
 
     match result with
-            Success _gas -> failwith "Admin -> Add_gallery - Already gallery : This test should fail"
+            Success _gas -> failwith "Admin -> Add_space_manager - Already space : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_GALLERY") ) "Admin -> Add_gallery - Already gallery : Should not work if aldready a gallery" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "ALREADY_SPACE_MANAGER") ) "Admin -> Add_space_manager - Already space : Should not work if aldready a space" in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"
 
 
-// -- Remove_gallery --
+// -- Remove_space_manager --
 
 // No amount
-let test_remove_gallery_no_amount =
+let test_remove_space_no_amount =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
-    let old_gallery = Test.nth_bootstrap_account 1 in
+    let old_space_manager = Test.nth_bootstrap_account 1 in
 
-    let result = Test.transfer_to_contract contract (Admin (Remove_gallery (old_gallery))) 1tez in
+    let result = Test.transfer_to_contract contract (Admin (Remove_space_manager (old_space_manager))) 1tez in
 
     match result with
-            Success _gas -> failwith "Admin -> Remove_gallery - No amount : This test should fail"
+            Success _gas -> failwith "Admin -> Remove_space_manager - No amount : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Remove_gallery - No amount : Should not work if amount specified" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "AMOUNT_SHOULD_BE_0TEZ") ) "Admin -> Remove_space_manager - No amount : Should not work if amount specified" in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"    
 
 // Not an admin
-let test_remove_gallery_not_admin =
+let test_remove_space_not_admin =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
-    let new_gallery = Test.nth_bootstrap_account 1 in
-    let () = Test.set_source new_gallery in
+    let new_space_manager = Test.nth_bootstrap_account 1 in
+    let () = Test.set_source new_space_manager in
 
-    let result = Test.transfer_to_contract contract (Admin (Remove_gallery (new_gallery))) 0tez in
+    let result = Test.transfer_to_contract contract (Admin (Remove_space_manager (new_space_manager))) 0tez in
 
     match result with
-            Success _gas -> failwith "Admin -> Remove_gallery - Not admin : This test should fail"
+            Success _gas -> failwith "Admin -> Remove_space_manager - Not admin : This test should fail"
         |   Fail (Rejected (err, _)) -> (
-            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Remove_gallery - Not admin : Should not work if not admin" in
+            let () = assert_with_error ( Test.michelson_equal err (Test.eval "NOT_AN_ADMIN") ) "Admin -> Remove_space_manager - Not admin : Should not work if not admin" in
                 "Passed"
             )
         |   Fail _ -> failwith "Internal test failure"    
 
-// Not a gallery
-let test_remove_gallery_not_found =
+// Not a space
+let test_remove_space_not_found =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None: address option), true) in
     let contract = Test.to_contract contract_add  in
 
-    let new_gallery = Test.nth_bootstrap_account 1 in
+    let new_space_manager = Test.nth_bootstrap_account 1 in
 
     let admin = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin in
 
-    let result = Test.transfer_to_contract contract (Admin (Remove_gallery (new_gallery))) 0tez in
+    let result = Test.transfer_to_contract contract (Admin (Remove_space_manager (new_space_manager))) 0tez in
 
     match result with
             Success _gas -> "Passed" 
-        |   Fail (Rejected (_err, _)) -> failwith "Admin -> Remove_gallery - Minter not found : This test should pass"
+        |   Fail (Rejected (_err, _)) -> failwith "Admin -> Remove_space_manager - Minter not found : This test should pass"
         |   Fail _ -> failwith "Internal test failure"
 
 // Success
-let test_remove_gallery_success =
+let test_remove_space_success =
     let contract_add, _ = PM_STR. get_permission_manager_contract((None : address option), true) in
     let contract = Test.to_contract contract_add  in
 
 
-    let new_gallery = Test.nth_bootstrap_account 1 in
+    let new_space_manager = Test.nth_bootstrap_account 1 in
 
     let admin = Test.nth_bootstrap_account 0 in
     let () = Test.set_source admin in
 
-    let _gas = Test.transfer_to_contract_exn contract (Admin (Add_gallery (new_gallery))) 0tez in
-    let result = Test.transfer_to_contract contract (Admin (Remove_gallery (new_gallery))) 0tez in
+    let _gas = Test.transfer_to_contract_exn contract (Admin (Add_space_manager (new_space_manager))) 0tez in
+    let result = Test.transfer_to_contract contract (Admin (Remove_space_manager (new_space_manager))) 0tez in
 
     match result with
             Success _gas -> (
                 let new_str = Test.get_storage contract_add in
-                match Big_map.find_opt new_gallery new_str.galleries with
-                        Some _ -> "Admin -> Remove_gallery - Success : This test should pass (error: minter not removed)"
+                match Big_map.find_opt new_space_manager new_str.space_managers with
+                        Some _ -> "Admin -> Remove_space_manager - Success : This test should pass (error: minter not removed)"
                     |   None -> "Passed"
             )
-        |   Fail (Rejected (_err, _)) -> failwith "Admin -> Remove_gallery - Success : This test should pass"
+        |   Fail (Rejected (_err, _)) -> failwith "Admin -> Remove_space_manager - Success : This test should pass"
         |   Fail _ -> failwith "Internal test failure"
 
 

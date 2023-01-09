@@ -1,14 +1,14 @@
 
 # Art factories contract
 
-The art factories contracts are both responsible to originate contract for authorized artists and galleries taking part of the D A:RT ecosystem.
+The art factories contracts are both responsible to originate contract for authorized artists and spaces taking part of the D A:RT ecosystem.
 
 The two type of contracts originated are :
 - FA2 serie version [See contract](../d-art.fa2-editions/README.md#fa2-editions---originated-from-factory)
-- FA2 gallery version [See contract](../d-art.fa2-editions/README.md#fa2-editions---originated-from-factory)
+- FA2 space version [See contract](../d-art.fa2-editions/README.md#fa2-editions---originated-from-factory)
 
 The serie_factory.mligo file represent the serie_factory
-The gallery_factory.mligo file represent the gallery_factory
+The space_factory.mligo file represent the space_factory
 
 
 ## Storage definition
@@ -26,17 +26,17 @@ type serie_factory_storage =
     next_serie_id: nat;
 }
 
-type gallery_factory_storage =
+type space_factory_storage =
 {
     permission_manager: address;
-    galleries: (admin, address) big_map;
+    spaces: (admin, address) big_map;
     metadata: (string, bytes) big_map;
 }
 
 ```
 
-The two storage are very close to each other the main difference take place in the series and gallery big_map.
-Galleries can only originate one contract that will represent their galleries and on which they will be able to curate their own artists. On the other hand artists can originate as many as series as they want.
+The two storage are very close to each other the main difference take place in the series and space big_map.
+Spaces can only originate one contract that will represent their spaces and on which they will be able to curate their own artists. On the other hand artists can originate as many as series as they want.
 
 ### permission_manager: 
 The address of the contract responsible to manage the permission for the origination of the contracts and the administration.
@@ -81,7 +81,7 @@ type storage =
 The list of originated series by the artists, note next_serie_id in order to auto increment the keys of the big_map. The value is represented by the serie type that define the address of the originated contract and the address of the originator of this contract (here called minter).
 
 
-## galleries big_map
+## spaces big_map
 
 ``` ocaml
 
@@ -90,13 +90,13 @@ type admin = address
 type storage =
 {
     ...
-    galleries : (admin, address) big_map;
+    spaces : (admin, address) big_map;
     ...
 }
 
 ```
 
-The list of originated galleries by the gallerist, the key of the big_map is the admin of the contract and the value represent the address of the contract, using such structure enable us to prevent administrator from originating multiple contracts.
+The list of originated spaces by the gallerist, the key of the big_map is the admin of the contract and the value represent the address of the contract, using such structure enable us to prevent administrator from originating multiple contracts.
 
 
 ## Entrypoints
@@ -114,7 +114,7 @@ type art_factory =
 #else
 
 type art_factory = 
-    |   Create_gallery of create_entrypoint
+    |   Create_space of create_entrypoint
     |   Update_permission_manager of admin_response_param 
 
 #endif

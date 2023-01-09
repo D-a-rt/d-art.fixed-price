@@ -13,17 +13,17 @@ import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 
 // -- View import
 
-// Fa2 gallery originated
+// Fa2 space originated
 import {
-    TokenMetadataViewGallery,
-    RoyaltyDistributionViewGallery,
-    SplitsViewGallery,
-    RoyaltySplitsViewGallery,
-    RoyaltyViewGallery,
-    MinterViewGallery,
-    IsTokenMinterViewGallery,
-    CommissionSplitsViewGallery
-} from './views/fa2_editions_gallery.tz';
+    TokenMetadataViewSpace,
+    RoyaltyDistributionViewSpace,
+    SplitsViewSpace,
+    RoyaltySplitsViewSpace,
+    RoyaltyViewSpace,
+    MinterViewSpace,
+    IsTokenMinterViewSpace,
+    CommissionSplitsViewSpace
+} from './views/fa2_editions_space.tz';
 
 // FA2 Legacy
 import {
@@ -97,14 +97,14 @@ export async function contracts(param: any, type: ContractAction): Promise<void>
         case "fa2-editions-serie":
             contractAction("Fa2 editions serie", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
             break;
-        case "fa2-editions-gallery":
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
+        case "fa2-editions-space":
+            contractAction("Fa2 editions space", type, "d-art.fa2-editions/compile_fa2_editions_space.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/space.tz")
             break;
         case "serie-factory":
             contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
             break;
-        case "gallery-factory":
-            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
+        case "space-factory":
+            contractAction("Space factory", type, "d-art.art-factories/space_factory.mligo", "space_factory_main", "d-art.art-factories/compile/space_factory.tz")
             break;
         case "permission-manager":
             contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
@@ -113,10 +113,10 @@ export async function contracts(param: any, type: ContractAction): Promise<void>
             contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_main", "d-art.fixed-price/compile/fixed_price_main.tz")
             contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
             contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
+            contractAction("Fa2 editions space", type, "d-art.fa2-editions/compile_fa2_editions_space.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/space.tz")
             contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
-            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
-            contractAction("Permission manager", type, "d-art.permission-manager/views.mligo", "permission_manager_main --views 'is_minter, is_gallery, is_admin'", "d-art.permission-manager/compile/permission_manager.tz")
+            contractAction("Space factory", type, "d-art.art-factories/space_factory.mligo", "space_factory_main", "d-art.art-factories/compile/space_factory.tz")
+            contractAction("Permission manager", type, "d-art.permission-manager/views.mligo", "permission_manager_main --views 'is_minter, is_space_manager, is_admin'", "d-art.permission-manager/compile/permission_manager.tz")
             break;
     }
 }
@@ -508,12 +508,12 @@ export async function deploySerieFactory(permisionManagerAdd: string): Promise<v
     }
 }
 
-export async function deployGalleryFactory(permisionManagerAdd: string): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/gallery_factory.tz'))
+export async function deploySpaceFactory(permisionManagerAdd: string): Promise<void> {
+    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/space_factory.tz'))
 
-    const galleryFactoryMetadata = {
-        name: 'A:RT - Gallery Factory',
-        description: 'This contract is responsible to originate new gallery contract to let them the possibilities to curate artists and create NFTs in collaboration with them on the D a:rt platform.',
+    const spaceFactoryMetadata = {
+        name: 'A:RT - Space Factory',
+        description: 'This contract is responsible to originate new space contract to let them the possibilities to curate artists and create NFTs in collaboration with them on the D a:rt platform.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -521,7 +521,7 @@ export async function deployGalleryFactory(permisionManagerAdd: string): Promise
     }
 
     const contractMetadata = await client.storeBlob(
-        new Blob([JSON.stringify(galleryFactoryMetadata)]),
+        new Blob([JSON.stringify(spaceFactoryMetadata)]),
     )
 
     if (!contractMetadata) {
@@ -533,7 +533,7 @@ export async function deployGalleryFactory(permisionManagerAdd: string): Promise
         code: code,
         storage: {
             permission_manager: permisionManagerAdd,
-            galleries: MichelsonMap.fromLiteral({}),
+            spaces: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
             })
@@ -551,11 +551,11 @@ export async function deployGalleryFactory(permisionManagerAdd: string): Promise
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
 
-        console.log('Gallery Factory contract deployed at: ', address)
+        console.log('Space Factory contract deployed at: ', address)
 
     } catch (error) {
         const jsonError = JSON.stringify(error);
-        console.log(kleur.red(`Gallery Factory origination error ${jsonError}`));
+        console.log(kleur.red(`Space Factory origination error ${jsonError}`));
     }
 }
 
@@ -588,7 +588,7 @@ export async function deployPermissionManager(): Promise<string | undefined> {
                 pending_admin: null,
             },
             minters: MichelsonMap.fromLiteral({}),
-            galleries: MichelsonMap.fromLiteral({}),
+            space_managers: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
             })
@@ -625,9 +625,9 @@ export const deployContracts = async (param: any) => {
         case "serie-factory":
             if (param.permissionManager) await deploySerieFactory(param.permissionManager)
             break;
-        case "gallery-factory":
+        case "space-factory":
             console.log(param.permissionManager)
-            if (param.permissionManager) await deployGalleryFactory(param.permissionManager)
+            if (param.permissionManager) await deploySpaceFactory(param.permissionManager)
             break;
         case "permission-manager":
             await deployPermissionManager()
@@ -637,7 +637,7 @@ export const deployContracts = async (param: any) => {
             if (permissionManagerAdd) await deployEditionContract(permissionManagerAdd)
             if (permissionManagerAdd) await deployFixedPriceContract(permissionManagerAdd)
             if (permissionManagerAdd) await deploySerieFactory(permissionManagerAdd)
-            if (permissionManagerAdd) await deployGalleryFactory(permissionManagerAdd)
+            if (permissionManagerAdd) await deploySpaceFactory(permissionManagerAdd)
             break;
     }
 }
@@ -828,10 +828,10 @@ async function testEditionContract(): Promise<void> {
     })
 
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_gallery...`))
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_space...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_gallery.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_space.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -885,12 +885,12 @@ async function testSerieFactoryContract(): Promise<void> {
     })
 }
 
-async function testGalleryFactoryContract(): Promise<void> {
+async function testSpaceFactoryContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing gallery factory main entrypoints...`))
+        console.log(kleur.green(`Testing space factory main entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/gallery_factory_main.test.mligo")}`),
+            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/space_factory_main.test.mligo")}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -955,8 +955,8 @@ export const testContracts = async (param: any) => {
         case "serie-factory":
             await testSerieFactoryContract()
             break;
-        case "gallery-factory":
-            await testGalleryFactoryContract()
+        case "space-factory":
+            await testSpaceFactoryContract()
             break;
         case "permission-manager":
             await testPermissionManagerContract()
@@ -971,9 +971,9 @@ export const testContracts = async (param: any) => {
             console.log(kleur.magenta(`Testing serie factory contracts:`))
             console.log(kleur.magenta(` `))
             await testSerieFactoryContract()
-            console.log(kleur.magenta(`Testing gallery factory contracts:`))
+            console.log(kleur.magenta(`Testing space factory contracts:`))
             console.log(kleur.magenta(` `))
-            await testGalleryFactoryContract()
+            await testSpaceFactoryContract()
             console.log(kleur.magenta(`Testing permission manager contracts:`))
             console.log(kleur.magenta(` `))
             await testPermissionManagerContract()
@@ -1221,7 +1221,7 @@ export const uploadContractMetadataSerie = async () => {
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewSerie.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT Gallery',
+        name: 'A:RT Space',
         description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],
@@ -1430,22 +1430,22 @@ export const uploadContractMetadataSerie = async () => {
     console.log(contractMetadata)
 }
 
-// Example metadata upload for gallery factory generated contracts
-export const uploadContractMetadataGallery = async () => {
+// Example metadata upload for space factory generated contracts
+export const uploadContractMetadataSpace = async () => {
 
     const p = new Parser();
 
-    const parsedSplitsMichelsonCode = p.parseMichelineExpression(SplitsViewGallery.code);
-    const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterViewGallery.code);
-    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(RoyaltyViewGallery.code);
-    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterViewGallery.code);
-    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplitsViewGallery.code);
-    const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(TokenMetadataViewGallery.code);
-    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewGallery.code);
-    const parsedCommissionSplitsGalleryMichelsonCode = p.parseMichelineExpression(CommissionSplitsViewGallery.code);
+    const parsedSplitsMichelsonCode = p.parseMichelineExpression(SplitsViewSpace.code);
+    const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterViewSpace.code);
+    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(RoyaltyViewSpace.code);
+    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterViewSpace.code);
+    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplitsViewSpace.code);
+    const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(TokenMetadataViewSpace.code);
+    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewSpace.code);
+    const parsedCommissionSplitsSpaceMichelsonCode = p.parseMichelineExpression(CommissionSplitsViewSpace.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT Gallery',
+        name: 'A:RT Space',
         description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],
@@ -1583,7 +1583,7 @@ export const uploadContractMetadataGallery = async () => {
             ],
         }, {
             name: 'commission_splits',
-            description: 'Get the commission and splits from the gallery for a token id',
+            description: 'Get the commission and splits from the space for a token id',
             pure: true,
             implementations: [
                 {
@@ -1611,7 +1611,7 @@ export const uploadContractMetadataGallery = async () => {
                                 }
                             ]
                         },
-                        code: parsedCommissionSplitsGalleryMichelsonCode,
+                        code: parsedCommissionSplitsSpaceMichelsonCode,
                     }
                 }
             ]

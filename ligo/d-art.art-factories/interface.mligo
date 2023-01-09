@@ -16,12 +16,12 @@ type serie =
 
 type admin = address
 
-#if GALLERY_CONTRACT
+#if SPACE_CONTRACT
 
 type storage =
 {
     permission_manager: address;
-    galleries : (admin, address) big_map;
+    spaces : (admin, address) big_map;
     metadata: (string, bytes) big_map;
 }
 
