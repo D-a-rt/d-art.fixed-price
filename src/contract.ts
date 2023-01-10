@@ -127,7 +127,7 @@ export async function deployFixedPriceContract(permissionManager: string): Promi
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'))
 
     const fixed_price_contract_metadata = {
-        name: 'A:RT - Marketplace (fixed price)',
+        name: 'THR - Marketplace (fixed price)',
         description: 'Marketplace contract in order to sell edition tokens.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
@@ -204,8 +204,8 @@ export async function deployEditionContract(permisionManagerAdd: string): Promis
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewLegacy.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT - Legacy',
-        description: 'The lecgacy contract for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create only one unique piece.',
+        name: 'THR - Legacy',
+        description: 'The lecgacy contract for THERE NFTs, is the genesis of THR tokens. Where all curated artist can create only one unique piece.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -431,7 +431,7 @@ export async function deployEditionContract(permisionManagerAdd: string): Promis
             },
             metadata: MichelsonMap.fromLiteral({
                 "": char2Bytes(`ipfs://${contractMetadata}`),
-                "symbol": "A:RT"
+                "symbol": char2Bytes("THR")
             })
         }
     }
@@ -459,8 +459,8 @@ export async function deploySerieFactory(permisionManagerAdd: string): Promise<v
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/serie_factory.tz'))
 
     const serieFactoryMetadata = {
-        name: 'A:RT - Serie Factory',
-        description: 'This contract is responsible to originate series for authorized artists on D a:rt.',
+        name: 'THR - Serie Factory',
+        description: 'This contract is responsible to originate series for authorized artists on THERE.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -512,8 +512,8 @@ export async function deploySpaceFactory(permisionManagerAdd: string): Promise<v
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/space_factory.tz'))
 
     const spaceFactoryMetadata = {
-        name: 'A:RT - Space Factory',
-        description: 'This contract is responsible to originate new space contract to let them the possibilities to curate artists and create NFTs in collaboration with them on the D a:rt platform.',
+        name: 'THR - Space Factory',
+        description: 'This contract is responsible to originate new space contract to let them the possibilities to curate artists and create NFTs in collaboration with them on the THERE platform.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -563,8 +563,8 @@ export async function deployPermissionManager(): Promise<string | undefined> {
     const code = await loadFile(path.join(__dirname, '../ligo/d-art.permission-manager/compile/permission_manager.tz'))
 
     const permissionManagerMetadata = {
-        name: 'A:RT - Permission Manager',
-        description: 'This contract is responsible to manage access to the D A:RT system.',
+        name: 'THR - Permission Manager',
+        description: 'This contract is responsible to manage access to the THERE system.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         homepage: 'https://github.com/D-a-rt/d-art.contracts',
         license: "MIT",
@@ -995,8 +995,8 @@ export const uploadContractMetadataLegacy = async () => {
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewLegacy.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT - Legacy',
-        description: 'The lecgacy contract for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create only one unique piece.',
+        name: 'THR - Legacy',
+        description: 'The lecgacy contract for THERE NFTs, is the genesis of THR tokens. Where all curated artist can create only one unique piece.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],
         imageUri: "ipfs://QmUxNNqSrsDK5JLk42u2iwwFkP8osFM2pcfYRuEZKsmwrL",
@@ -1221,7 +1221,7 @@ export const uploadContractMetadataSerie = async () => {
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewSerie.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT Space',
+        name: 'THR Space',
         description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],
@@ -1445,7 +1445,7 @@ export const uploadContractMetadataSpace = async () => {
     const parsedCommissionSplitsSpaceMichelsonCode = p.parseMichelineExpression(CommissionSplitsViewSpace.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT Space',
+        name: 'THR Space',
         description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
         authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
         interfaces: ['TZIP-012', 'TZIP-016'],

@@ -13,7 +13,7 @@ export const TokenMetadataViewSerie = {
       DUG 2 ;
       GET ;
       IF_NONE
-        { DROP 2 ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+        { DROP 2 ; NONE (pair nat (map string bytes)) }
         { DROP ;
           SWAP ;
           DUP ;
@@ -36,7 +36,7 @@ export const TokenMetadataViewSerie = {
           DUG 2 ;
           GET ;
           IF_NONE
-            { DROP 3 ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
+            { DROP 3 ; NONE (pair nat (map string bytes)) }
             { DUP 4 ;
               CDR ;
               CAR ;
@@ -74,7 +74,8 @@ export const TokenMetadataViewSerie = {
                   SWAP ;
                   UPDATE ;
                   SWAP ;
-                  PAIR }
+                  PAIR ;
+                  SOME }
                 { SWAP ;
                   DUP ;
                   DUG 2 ;
@@ -116,98 +117,109 @@ export const TokenMetadataViewSerie = {
                   SWAP ;
                   UPDATE ;
                   SWAP ;
-                  PAIR } } } }`
+                  PAIR ;
+                  SOME } } } }`
 }
 
 export const RoyaltyDistributionViewSerie = {
     code: `{ UNPAIR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CAR ;
-        CDR ;
-        CDR ;
-        SWAP ;
-        EDIV ;
-        IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
-        CAR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CAR ;
-        CDR ;
-        CAR ;
-        SWAP ;
-        GET ;
-        IF_NONE
-          { DROP ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-          { DUP ; GET 8 ; SWAP ; GET 7 ; PAIR ; SWAP ; CAR ; CAR ; CAR ; CAR ; PAIR } }`
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CAR ;
+      CDR ;
+      CDR ;
+      SWAP ;
+      EDIV ;
+      IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
+      CAR ;
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CAR ;
+      CDR ;
+      CAR ;
+      SWAP ;
+      GET ;
+      IF_NONE
+        { DROP ; NONE (pair address (pair nat (list (pair address nat)))) }
+        { DUP ;
+          GET 8 ;
+          SWAP ;
+          GET 7 ;
+          PAIR ;
+          SWAP ;
+          CAR ;
+          CAR ;
+          CAR ;
+          CAR ;
+          PAIR ;
+          SOME } }`
 }
 
 export const SplitsViewRoyalty = {
     code: `{ UNPAIR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CAR ;
-        CDR ;
-        CDR ;
-        SWAP ;
-        EDIV ;
-        IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
-        CAR ;
-        SWAP ;
-        CAR ;
-        CDR ;
-        CAR ;
-        SWAP ;
-        GET ;
-        IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 8 } }`
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CAR ;
+      CDR ;
+      CDR ;
+      SWAP ;
+      EDIV ;
+      IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
+      CAR ;
+      SWAP ;
+      CAR ;
+      CDR ;
+      CAR ;
+      SWAP ;
+      GET ;
+      IF_NONE { NONE (list (pair address nat)) } { GET 8 ; SOME } }`
 }
 
 export const RoyaltySplitsViewSerie = {
     code : `{ UNPAIR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CAR ;
-        CDR ;
-        CDR ;
-        SWAP ;
-        EDIV ;
-        IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
-        CAR ;
-        SWAP ;
-        CAR ;
-        CDR ;
-        CAR ;
-        SWAP ;
-        GET ;
-        IF_NONE
-          { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-          { DUP ; GET 8 ; SWAP ; GET 7 ; PAIR } }`
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CAR ;
+      CDR ;
+      CDR ;
+      SWAP ;
+      EDIV ;
+      IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
+      CAR ;
+      SWAP ;
+      CAR ;
+      CDR ;
+      CAR ;
+      SWAP ;
+      GET ;
+      IF_NONE
+        { NONE (pair nat (list (pair address nat))) }
+        { DUP ; GET 8 ; SWAP ; GET 7 ; PAIR ; SOME } }`
 }
 
 export const RoyaltyViewSerie = {
     code: `{ UNPAIR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CAR ;
-        CDR ;
-        CDR ;
-        SWAP ;
-        EDIV ;
-        IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
-        CAR ;
-        SWAP ;
-        CAR ;
-        CDR ;
-        CAR ;
-        SWAP ;
-        GET ;
-        IF_NONE { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } { GET 7 } } ;
- view "minter" nat address { CDR ; CAR ; CAR ; CAR ; CAR }`
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CAR ;
+      CDR ;
+      CDR ;
+      SWAP ;
+      EDIV ;
+      IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
+      CAR ;
+      SWAP ;
+      CAR ;
+      CDR ;
+      CAR ;
+      SWAP ;
+      GET ;
+      IF_NONE { NONE nat } { GET 7 ; SOME } }`
 }
 
 export const MinterViewSerie = {
@@ -216,63 +228,63 @@ export const MinterViewSerie = {
 
 export const IsTokenMinterViewSerie = {
     code : `{ UNPAIR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CAR ;
-        CDR ;
-        CDR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CDR ;
-        EDIV ;
-        IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
-        CAR ;
-        DUP 3 ;
-        CAR ;
-        CDR ;
-        CAR ;
-        SWAP ;
-        GET ;
-        IF_NONE
-          { DROP 2 ; PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-          { DROP ;
-            CAR ;
-            SWAP ;
-            CAR ;
-            CAR ;
-            CAR ;
-            CAR ;
-            COMPARE ;
-            EQ ;
-            IF { PUSH bool True } { PUSH bool False } } }`
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CAR ;
+      CDR ;
+      CDR ;
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CDR ;
+      EDIV ;
+      IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
+      CAR ;
+      DUP 3 ;
+      CAR ;
+      CDR ;
+      CAR ;
+      SWAP ;
+      GET ;
+      IF_NONE
+        { DROP 2 ; NONE bool }
+        { DROP ;
+          CAR ;
+          SWAP ;
+          CAR ;
+          CAR ;
+          CAR ;
+          CAR ;
+          COMPARE ;
+          EQ ;
+          IF { PUSH bool True ; SOME } { PUSH bool False ; SOME } } }`
 }
 
 export const IsUniqueEditionViewSerie = {
     code : `{ UNPAIR ;
-        SWAP ;
-        DUP ;
-        DUG 2 ;
-        CAR ;
-        CDR ;
-        CDR ;
-        SWAP ;
-        EDIV ;
-        IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
-        CAR ;
-        SWAP ;
-        CAR ;
-        CDR ;
-        CAR ;
-        SWAP ;
-        GET ;
-        IF_NONE
-          { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH }
-          { PUSH nat 1 ;
-            SWAP ;
-            GET 3 ;
-            COMPARE ;
-            GT ;
-            IF { PUSH bool False } { PUSH bool True } } }`
+      SWAP ;
+      DUP ;
+      DUG 2 ;
+      CAR ;
+      CDR ;
+      CDR ;
+      SWAP ;
+      EDIV ;
+      IF_NONE { PUSH string "DIV by 0" ; FAILWITH } {} ;
+      CAR ;
+      SWAP ;
+      CAR ;
+      CDR ;
+      CAR ;
+      SWAP ;
+      GET ;
+      IF_NONE
+        { NONE bool }
+        { PUSH nat 1 ;
+          SWAP ;
+          GET 3 ;
+          COMPARE ;
+          GT ;
+          IF { PUSH bool False ; SOME } { PUSH bool True ; SOME } } }`
 }

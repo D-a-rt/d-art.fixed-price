@@ -6,8 +6,8 @@
            (or (unit %revoke_admin_invitation) (address %send_admin_invitation)))) ;
   storage
     (pair (pair (pair %admin_str (address %admin) (option %pending_admin address))
-                (big_map %galleries address unit))
-          (pair (big_map %metadata string bytes) (big_map %minters address unit))) ;
+                (big_map %metadata string bytes))
+          (pair (big_map %minters address unit) (big_map %space_managers address unit))) ;
   code { UNPAIR ;
          PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
          PUSH mutez 0 ;
@@ -89,7 +89,7 @@
                          DUP ;
                          DUG 2 ;
                          CDR ;
-                         CDR ;
+                         CAR ;
                          SWAP ;
                          DUP ;
                          DUG 2 ;
@@ -100,17 +100,15 @@
                               DUG 2 ;
                               CDR ;
                               CDR ;
+                              DUP 3 ;
+                              CDR ;
+                              CAR ;
                               UNIT ;
-                              DIG 2 ;
+                              DIG 3 ;
                               SWAP ;
                               SOME ;
                               SWAP ;
                               UPDATE ;
-                              SWAP ;
-                              DUP ;
-                              DUG 2 ;
-                              CDR ;
-                              CAR ;
                               PAIR ;
                               SWAP ;
                               CAR ;
@@ -120,7 +118,7 @@
                        { SWAP ;
                          DUP ;
                          DUG 2 ;
-                         CAR ;
+                         CDR ;
                          CDR ;
                          SWAP ;
                          DUP ;
@@ -131,19 +129,21 @@
                               DUP ;
                               DUG 2 ;
                               CDR ;
-                              DUP 3 ;
-                              CAR ;
                               CDR ;
                               UNIT ;
-                              DIG 3 ;
+                              DIG 2 ;
                               SWAP ;
                               SOME ;
                               SWAP ;
                               UPDATE ;
-                              DIG 2 ;
-                              CAR ;
+                              SWAP ;
+                              DUP ;
+                              DUG 2 ;
+                              CDR ;
                               CAR ;
                               PAIR ;
+                              SWAP ;
+                              CAR ;
                               PAIR ;
                               NIL operation ;
                               PAIR } } }
@@ -153,15 +153,13 @@
                          DUG 2 ;
                          CDR ;
                          CDR ;
-                         SWAP ;
+                         DUP 3 ;
+                         CDR ;
+                         CAR ;
+                         DIG 2 ;
                          NONE unit ;
                          SWAP ;
                          UPDATE ;
-                         SWAP ;
-                         DUP ;
-                         DUG 2 ;
-                         CDR ;
-                         CAR ;
                          PAIR ;
                          SWAP ;
                          CAR ;
@@ -172,17 +170,19 @@
                          DUP ;
                          DUG 2 ;
                          CDR ;
-                         DUP 3 ;
-                         CAR ;
                          CDR ;
-                         DIG 2 ;
+                         SWAP ;
                          NONE unit ;
                          SWAP ;
                          UPDATE ;
-                         DIG 2 ;
-                         CAR ;
+                         SWAP ;
+                         DUP ;
+                         DUG 2 ;
+                         CDR ;
                          CAR ;
                          PAIR ;
+                         SWAP ;
+                         CAR ;
                          PAIR ;
                          NIL operation ;
                          PAIR } } }
@@ -229,7 +229,7 @@
        { UNPAIR ;
          SWAP ;
          CDR ;
-         CDR ;
+         CAR ;
          SWAP ;
          GET ;
          IF_NONE { PUSH bool False } { DROP ; PUSH bool True } } ;
@@ -238,7 +238,7 @@
        bool
        { UNPAIR ;
          SWAP ;
-         CAR ;
+         CDR ;
          CDR ;
          SWAP ;
          GET ;

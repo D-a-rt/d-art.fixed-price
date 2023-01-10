@@ -2,8 +2,8 @@
     (or (pair %create_space (bytes %metadata) (bytes %symbol))
         (address %update_permission_manager)) ;
   storage
-    (pair (pair (big_map %galleries address address) (big_map %metadata string bytes))
-          (address %permission_manager)) ;
+    (pair (pair (big_map %metadata string bytes) (address %permission_manager))
+          (big_map %spaces address address)) ;
   code { UNPAIR ;
          PUSH string "AMOUNT_SHOULD_BE_0TEZ" ;
          PUSH mutez 0 ;
@@ -16,6 +16,7 @@
            { SWAP ;
              DUP ;
              DUG 2 ;
+             CAR ;
              CDR ;
              SENDER ;
              VIEW "is_space_manager" bool ;
@@ -25,8 +26,7 @@
              SWAP ;
              DUP ;
              DUG 2 ;
-             CAR ;
-             CAR ;
+             CDR ;
              SENDER ;
              MEM ;
              IF { PUSH string "ALREADY_ORIGINATED" ; FAILWITH } {} ;
@@ -2175,13 +2175,9 @@
              DUP ;
              DUG 2 ;
              CDR ;
-             DUP 3 ;
-             CAR ;
-             CDR ;
-             DIG 3 ;
-             CAR ;
-             CAR ;
-             DUP 4 ;
+             SWAP ;
+             DUP ;
+             DUG 2 ;
              CDR ;
              SENDER ;
              PAIR 3 ;
@@ -2190,7 +2186,8 @@
              SOME ;
              SWAP ;
              UPDATE ;
-             PAIR ;
+             DIG 2 ;
+             CAR ;
              PAIR ;
              NIL operation ;
              DIG 2 ;
@@ -2200,6 +2197,7 @@
            { SWAP ;
              DUP ;
              DUG 2 ;
+             CAR ;
              CDR ;
              SENDER ;
              VIEW "is_admin" bool ;
@@ -2207,7 +2205,14 @@
                { PUSH string "NOT_AN_ADMIN" ; FAILWITH }
                { IF {} { PUSH string "NOT_AN_ADMIN" ; FAILWITH } } ;
              SWAP ;
+             DUP ;
+             DUG 2 ;
+             CDR ;
+             SWAP ;
+             DIG 2 ;
              CAR ;
+             CAR ;
+             PAIR ;
              PAIR ;
              NIL operation ;
              PAIR } } }
