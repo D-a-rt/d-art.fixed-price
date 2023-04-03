@@ -1,15 +1,15 @@
 {
-  "name": "d-art.contracts",
-  "version": "1.2.0-beta",
+  "name": "there.contracts",
+  "version": "1.2.0-audited",
   "description": "CLI tool that interact with smart contracts, and set of smart contracts to build NFT marketplace on tezos",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w -p",
-    "d-art.contracts": "./lib/d-art.contracts.js",
+    "there.contracts": "./lib/there.contracts.js",
     "test": "mocha -r ts-node/register test/*.ts --timeout 90000000"
   },
   "bin": {
-    "d-art.contracts": "./lib/d-art.contracts.js"
+    "there.contracts": "./lib/there.contracts.js"
   },
   "author": "Tristan Nicolaides",
   "license": "MIT",
@@ -20,6 +20,8 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "@ledgerhq/hw-transport-node-hid": "^6.27.12",
+    "@taquito/ledger-signer": "^16.0.1",
     "@taquito/signer": "^11.2.0",
     "@taquito/taquito": "^11.2.0",
     "@taquito/tzip16": "^12.1.1",
