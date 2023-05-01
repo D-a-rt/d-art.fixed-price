@@ -13,17 +13,17 @@ import { MichelsonMap, TezosToolkit } from '@taquito/taquito';
 
 // -- View import
 
-// Fa2 gallery originated
+// Fa2 space originated
 import {
-    TokenMetadataViewGallery,
-    RoyaltyDistributionViewGallery,
-    SplitsViewGallery,
-    RoyaltySplitsViewGallery,
-    RoyaltyViewGallery,
-    MinterViewGallery,
-    IsTokenMinterViewGallery,
-    CommissionSplitsViewGallery
-} from './views/fa2_editions_gallery.tz';
+    TokenMetadataViewSpace,
+    RoyaltyDistributionViewSpace,
+    SplitsViewSpace,
+    RoyaltySplitsViewSpace,
+    RoyaltyViewSpace,
+    MinterViewSpace,
+    IsTokenMinterViewSpace,
+    CommissionSplitsViewSpace
+} from './views/fa2_editions_space.tz';
 
 // FA2 Legacy
 import {
@@ -46,6 +46,9 @@ import {
     MinterViewSerie,
     IsTokenMinterViewSerie
 } from './views/fa2_editions_serie.tz';
+import { sendJSONToIPFS } from './ipfs';
+import { LedgerSigner } from '@taquito/ledger-signer';
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid';
 
 
 const client = new NFTStorage({
@@ -60,7 +63,7 @@ export enum ContractAction {
 async function contractAction(contractName: string, action: ContractAction, pathString: string, mainFunction: string, compilePath?: string): Promise<void> {
     await new Promise<void>((resolve, reject) =>
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo ${action} ` + path.join(__dirname, `../ligo/${pathString}`) + ` -e ${mainFunction}`),
+            path.join(`./ligo/exec_ligo ${action} ` + path.join(`./ligo/${pathString}`) + ` -e ${mainFunction}`),
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to compile the contract.'));
@@ -70,8 +73,8 @@ async function contractAction(contractName: string, action: ContractAction, path
                     // Write json contract into json file
                     if (action === ContractAction.COMPILE) {
                         console.log(kleur.green(`Compiled ${contractName} contract succesfully at: `))
-                        console.log('  ' + path.join(__dirname, `../ligo/${compilePath}`))
-                        fs.writeFileSync(path.join(__dirname, `../ligo/${compilePath}`), stdout)
+                        console.log('  ' + `./ligo/${compilePath}`)
+                        fs.writeFileSync(`./ligo/${compilePath}`, stdout)
                     }
 
                     if (action === ContractAction.SIZE) {
@@ -89,34 +92,34 @@ async function contractAction(contractName: string, action: ContractAction, path
 export async function contracts(param: any, type: ContractAction): Promise<void> {
     switch (param.title) {
         case "fixed-price":
-            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_main", "d-art.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fixed-price", type, "there.fixed-price/fixed_price_main.mligo", "fixed_price_main", "there.fixed-price/compile/fixed_price_main.tz")
             break;
         case "fa2-editions":
-            contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions", type, "there.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "there.fa2-editions/compile/multi_nft_token_editions.tz")
             break;
         case "fa2-editions-serie":
-            contractAction("Fa2 editions serie", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
+            contractAction("Fa2 editions serie", type, "there.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "there.art-factories/compile/serie.tz")
             break;
-        case "fa2-editions-gallery":
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
+        case "fa2-editions-space":
+            contractAction("Fa2 editions space", type, "there.fa2-editions/compile_fa2_editions_space.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "there.art-factories/compile/space.tz")
             break;
         case "serie-factory":
-            contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
+            contractAction("Serie factory", type, "there.art-factories/serie_factory.mligo", "serie_factory_main", "there.art-factories/compile/serie_factory.tz")
             break;
-        case "gallery-factory":
-            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
+        case "space-factory":
+            contractAction("Space factory", type, "there.art-factories/space_factory.mligo", "space_factory_main", "there.art-factories/compile/space_factory.tz")
             break;
         case "permission-manager":
-            contractAction("Permission manager", type, "d-art.permission-manager/permission_manager.mligo", "permission_manager_main", "d-art.permission-manager/compile/permission_manager.tz")
+            contractAction("Permission manager", type, "there.permission-manager/permission_manager.mligo", "permission_manager_main", "there.permission-manager/compile/permission_manager.tz")
             break;
         default:
-            contractAction("Fixed-price", type, "d-art.fixed-price/fixed_price_main.mligo", "fixed_price_main", "d-art.fixed-price/compile/fixed_price_main.tz")
-            contractAction("Fa2 editions", type, "d-art.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.fa2-editions/compile/multi_nft_token_editions.tz")
-            contractAction("Fa2 editions factory", type, "d-art.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "d-art.art-factories/compile/serie.tz")
-            contractAction("Fa2 editions gallery", type, "d-art.fa2-editions/compile_fa2_editions_gallery.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "d-art.art-factories/compile/gallery.tz")
-            contractAction("Serie factory", type, "d-art.art-factories/serie_factory.mligo", "serie_factory_main", "d-art.art-factories/compile/serie_factory.tz")
-            contractAction("Gallery factory", type, "d-art.art-factories/gallery_factory.mligo", "gallery_factory_main", "d-art.art-factories/compile/gallery_factory.tz")
-            contractAction("Permission manager", type, "d-art.permission-manager/views.mligo", "permission_manager_main --views 'is_minter, is_gallery, is_admin'", "d-art.permission-manager/compile/permission_manager.tz")
+            contractAction("Fixed-price", type, "there.fixed-price/fixed_price_main.mligo", "fixed_price_main", "there.fixed-price/compile/fixed_price_main.tz")
+            contractAction("Fa2 editions", type, "there.fa2-editions/compile_fa2_editions.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "there.fa2-editions/compile/multi_nft_token_editions.tz")
+            contractAction("Fa2 editions factory", type, "there.fa2-editions/compile_fa2_editions_serie.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition'", "there.art-factories/compile/serie.tz")
+            contractAction("Fa2 editions space", type, "there.fa2-editions/compile_fa2_editions_space.mligo", "editions_main --views 'token_metadata, royalty_distribution, splits, royalty_splits, royalty, minter, is_token_minter, is_unique_edition, commission_splits'", "there.art-factories/compile/space.tz")
+            contractAction("Serie factory", type, "there.art-factories/serie_factory.mligo", "serie_factory_main", "there.art-factories/compile/serie_factory.tz")
+            contractAction("Space factory", type, "there.art-factories/space_factory.mligo", "space_factory_main", "there.art-factories/compile/space_factory.tz")
+            contractAction("Permission manager", type, "there.permission-manager/views.mligo", "permission_manager_main --views 'is_minter, is_space_manager, is_auction_house_manager, is_admin'", "there.permission-manager/compile/permission_manager.tz")
             break;
     }
 }
@@ -124,23 +127,21 @@ export async function contracts(param: any, type: ContractAction): Promise<void>
 // -- Deploy contracts --
 
 export async function deployFixedPriceContract(permissionManager: string): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.fixed-price/compile/fixed_price_main.tz'))
+    const code = await loadFile('./ligo/there.fixed-price/compile/fixed_price_main.tz')
 
     const fixed_price_contract_metadata = {
-        name: 'A:RT - Marketplace (fixed price)',
-        description: 'Marketplace contract in order to sell edition tokens.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
-        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        name: 'there. - Marketplace (fixed price)',
+        description: 'Marketplace contract focus on fixed price sales and schedule sales.',
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
+        homepage: 'https://there.art',
         license: "MIT",
         interfaces: ['TZIP-016'],
-        imageUri: "ipfs://bafkreidnvjk6h7w7a6lp27t2tkmrzoqyjizedqnr5ojf525sm5jkfel2yy"
+        imageUri: "ipfs://QmawwNzA6twuCcWFfaS1TNm5rAntYHpsfjXNFg7w4TjYmT"
     }
 
-    const contractMetadata = await client.storeBlob(
-        new Blob([JSON.stringify(fixed_price_contract_metadata)]),
-    )
+    const contractMetaHash = await sendJSONToIPFS(fixed_price_contract_metadata, "there_fixed_price_contract_v1_metadata")
 
-    if (!contractMetadata) {
+    if (!contractMetaHash) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
         return;
     }
@@ -150,8 +151,6 @@ export async function deployFixedPriceContract(permissionManager: string): Promi
         storage: {
             admin: {
                 permission_manager: permissionManager,
-                pb_key: process.env.SIGNER_PUBLIC_KEY,
-                signed_message_used: new MichelsonMap(),
                 contract_will_update: false
             },
             for_sale: MichelsonMap.fromLiteral({}),
@@ -160,26 +159,39 @@ export async function deployFixedPriceContract(permissionManager: string): Promi
             fa2_dropped: MichelsonMap.fromLiteral({}),
             offers: MichelsonMap.fromLiteral({}),
             fee_primary: {
-                address: process.env.ADMIN_PUBLIC_KEY_HASH,
+                address: process.env.ENV === 'PROD' ? process.env.TREASURY_PROD_PUBLIC_KEY_HASH : process.env.TREASURY_PUBLIC_KEY_HASH,
                 percent: 100,
             },
             fee_secondary: {
-                address: process.env.ADMIN_PUBLIC_KEY_HASH,
+                address: process.env.ENV === 'PROD' ? process.env.TREASURY_PROD_PUBLIC_KEY_HASH : process.env.TREASURY_PUBLIC_KEY_HASH,
                 percent: 25,
             },
             stable_coin: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
-                "": char2Bytes(`ipfs://${contractMetadata}`),
+                "": char2Bytes(`ipfs://${contractMetaHash}`),
             })
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+        if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
+        if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
+        
+        const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
-        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+        const transport = await TransportNodeHid.create();
+        const ledgerSigner = new LedgerSigner(transport);
 
-        const originationOp = await toolkit.contract.originate(originateParam);
+        Tezos.setProvider({ signer: process.env.ENV === 'DEV' ? await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) : ledgerSigner });
+
+        //Get the public key and the public key hash from the Ledger
+        const publicKey = await Tezos.signer.publicKey();
+        const publicKeyHash = await Tezos.signer.publicKeyHash();
+
+        console.log('Public key: ', publicKey)
+        console.log('Public key hash: ', publicKeyHash)
+
+        const originationOp = await Tezos.contract.originate(originateParam);
 
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
@@ -192,8 +204,8 @@ export async function deployFixedPriceContract(permissionManager: string): Promi
     }
 }
 
-export async function deployEditionContract(permisionManagerAdd: string): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.fa2-editions/compile/multi_nft_token_editions.tz'))
+export async function deployLegacyContract(permisionManagerAdd: string): Promise<void> {
+    const code = await loadFile('./ligo/there.fa2-editions/compile/multi_nft_token_editions.tz')
 
     const p = new Parser();
 
@@ -206,13 +218,13 @@ export async function deployEditionContract(permisionManagerAdd: string): Promis
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewLegacy.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT - Legacy',
-        description: 'The lecgacy contract for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create only one unique piece.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
-        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        name: 'Legacy',
+        description: "The Legacy Series stands as a tribute to the spirit of our platform. A one-of-a-kind serie that belongs to us all, each accepted creator is invited to mint a single, unique edition to make their mark in the annals of our community. Come and see the history we're making together.",
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
+        homepage: 'https://there.art',
         license: "MIT",
         interfaces: ['TZIP-012', 'TZIP-016'],
-        imageUri: "ipfs://bafkreidnvjk6h7w7a6lp27t2tkmrzoqyjizedqnr5ojf525sm5jkfel2yy",
+        imageUri: "ipfs://QmRUTXrfMxytNNh9WtZDeqp3TihSn29BgktWEssrf2cVvJ",
         views: [{
             name: 'token_metadata',
             description: 'Get the metadata for the tokens minted using this contract',
@@ -405,11 +417,9 @@ export async function deployEditionContract(permisionManagerAdd: string): Promis
         }],
     };
 
-    const contractMetadata = await client.storeBlob(
-        new Blob([JSON.stringify(editions_contract_metadata)]),
-    )
+    const contractMetaHash = await sendJSONToIPFS(editions_contract_metadata, "there_legacy_metadata")
 
-    if (!contractMetadata) {
+    if (!contractMetaHash) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
         return;
     }
@@ -432,18 +442,24 @@ export async function deployEditionContract(permisionManagerAdd: string): Promis
                 permission_manager: permisionManagerAdd,
             },
             metadata: MichelsonMap.fromLiteral({
-                "": char2Bytes(`ipfs://${contractMetadata}`),
+                "": char2Bytes(`ipfs://${contractMetaHash}`),
+                "symbol": char2Bytes("th:r")
             })
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+        if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
+        if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
+        
+        const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
-        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+        const transport = await TransportNodeHid.create();
+        const ledgerSigner = new LedgerSigner(transport);
 
+        Tezos.setProvider({ signer: process.env.ENV === 'DEV' ? await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) : ledgerSigner });
 
-        const originationOp = await toolkit.contract.originate(originateParam);
+        const originationOp = await Tezos.contract.originate(originateParam);
 
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
@@ -457,22 +473,20 @@ export async function deployEditionContract(permisionManagerAdd: string): Promis
 }
 
 export async function deploySerieFactory(permisionManagerAdd: string): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/serie_factory.tz'))
+    const code = await loadFile('./ligo/there.art-factories/compile/serie_factory.tz')
 
     const serieFactoryMetadata = {
-        name: 'A:RT - Serie Factory',
-        description: 'This contract is responsible to originate series for authorized artists on D a:rt.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
-        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        name: 'there. - Serie factory',
+        description: 'The Serie Factory contract is the backbone of our platform, allowing creators to launch their own smart contracts and mint unique digital artworks. With this powerful tool, our creators can unleash their boundless imagination and bring their artistic vision to life.',
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
+        homepage: 'https://there.art',
         license: "MIT",
         interfaces: ['TZIP-016']
     }
 
-    const contractMetadata = await client.storeBlob(
-        new Blob([JSON.stringify(serieFactoryMetadata)]),
-    )
+    const contractMetaHash = await sendJSONToIPFS(serieFactoryMetadata, "there_serie_factory_metadata")
 
-    if (!contractMetadata) {
+    if (!contractMetaHash) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
         return;
     }
@@ -480,23 +494,27 @@ export async function deploySerieFactory(permisionManagerAdd: string): Promise<v
     const originateParam = {
         code: code,
         storage: {
-            admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
             permission_manager: permisionManagerAdd,
             series: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
-                "": char2Bytes(`ipfs://${contractMetadata}`),
+                "": char2Bytes(`ipfs://${contractMetaHash}`),
             }),
             next_serie_id: 0
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+        if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
+        if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
+        
+        const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
-        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+        const transport = await TransportNodeHid.create();
+        const ledgerSigner = new LedgerSigner(transport);
 
+        Tezos.setProvider({ signer: process.env.ENV === 'DEV' ? await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) : ledgerSigner });
 
-        const originationOp = await toolkit.contract.originate(originateParam);
+        const originationOp = await Tezos.contract.originate(originateParam);
 
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
@@ -509,23 +527,21 @@ export async function deploySerieFactory(permisionManagerAdd: string): Promise<v
     }
 }
 
-export async function deployGalleryFactory(permisionManagerAdd: string): Promise<void> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.art-factories/compile/gallery_factory.tz'))
+export async function deploySpaceFactory(permisionManagerAdd: string): Promise<void> {
+    const code = await loadFile('./ligo/there.art-factories/compile/space_factory.tz')
 
-    const galleryFactoryMetadata = {
-        name: 'A:RT - Gallery Factory',
-        description: 'This contract is responsible to originate new gallery contract to let them the possibilities to curate artists and create NFTs in collaboration with them on the D a:rt platform.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
-        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+    const spaceFactoryMetadata = {
+        name: 'there. - Space factory',
+        description: 'Introducing the Space Factory - the innovative smart contract that empowers curators to create their own curated spaces on our platform. With the Space Factory, curators can customize their spaces, manage their creators, and showcase their unique curation to the world. Join us today and discover the endless possibilities of digital curation!',
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
+        homepage: 'https://there.art',
         license: "MIT",
         interfaces: ['TZIP-016']
     }
 
-    const contractMetadata = await client.storeBlob(
-        new Blob([JSON.stringify(galleryFactoryMetadata)]),
-    )
+    const contractMetaHash = await sendJSONToIPFS(spaceFactoryMetadata, "there_space_factory_metadata")
 
-    if (!contractMetadata) {
+    if (!contractMetaHash) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
         return;
     }
@@ -534,49 +550,52 @@ export async function deployGalleryFactory(permisionManagerAdd: string): Promise
         code: code,
         storage: {
             permission_manager: permisionManagerAdd,
-            galleries: MichelsonMap.fromLiteral({}),
+            spaces: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
-                "": char2Bytes(`ipfs://${contractMetadata}`),
+                "": char2Bytes(`ipfs://${contractMetaHash}`),
             })
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+        if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
+        if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
+        
+        const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
-        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+        const transport = await TransportNodeHid.create();
+        const ledgerSigner = new LedgerSigner(transport);
 
+        Tezos.setProvider({ signer: process.env.ENV === 'DEV' ? await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) : ledgerSigner });
 
-        const originationOp = await toolkit.contract.originate(originateParam);
+        const originationOp = await Tezos.contract.originate(originateParam);
 
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
 
-        console.log('Gallery Factory contract deployed at: ', address)
+        console.log('Space Factory contract deployed at: ', address)
 
     } catch (error) {
         const jsonError = JSON.stringify(error);
-        console.log(kleur.red(`Gallery Factory origination error ${jsonError}`));
+        console.log(kleur.red(`Space Factory origination error ${jsonError}`));
     }
 }
 
 export async function deployPermissionManager(): Promise<string | undefined> {
-    const code = await loadFile(path.join(__dirname, '../ligo/d-art.permission-manager/compile/permission_manager.tz'))
+    const code = await loadFile('./ligo/there.permission-manager/compile/permission_manager.tz')
 
     const permissionManagerMetadata = {
-        name: 'A:RT - Permission Manager',
-        description: 'This contract is responsible to manage access to the D A:RT system.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
-        homepage: 'https://github.com/D-a-rt/d-art.contracts',
+        name: 'there. - Permission manager',
+        description: 'This contract is responsible to manage access on there.',
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
+        homepage: 'https://there.art',
         license: "MIT",
         interfaces: ['TZIP-016']
     }
 
-    const contractMetadata = await client.storeBlob(
-        new Blob([JSON.stringify(permissionManagerMetadata)]),
-    )
+    const contractMetaHash = await sendJSONToIPFS(permissionManagerMetadata, "there_permission_manager_metadata")
 
-    if (!contractMetadata) {
+    if (!contractMetaHash) {
         console.log(kleur.red(`An error happened while uploading the ipfs metadata of the contract.`));
         throw Error('Unable to upload data to ipfs')
     }
@@ -585,24 +604,30 @@ export async function deployPermissionManager(): Promise<string | undefined> {
         code: code,
         storage: {
             admin_str: {
-                admin: "tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd",
+                admin: process.env.ENV === 'PROD' ? process.env.ADMIN_PROD_PUBLIC_KEY_HASH : process.env.ADMIN_PUBLIC_KEY_HASH,
                 pending_admin: null,
             },
             minters: MichelsonMap.fromLiteral({}),
-            galleries: MichelsonMap.fromLiteral({}),
+            space_managers: MichelsonMap.fromLiteral({}),
+            auction_house_managers: MichelsonMap.fromLiteral({}),
             metadata: MichelsonMap.fromLiteral({
-                "": char2Bytes(`ipfs://${contractMetadata}`),
+                "": char2Bytes(`ipfs://${contractMetaHash}`),
             })
         }
     }
 
     try {
-        const toolkit = await new TezosToolkit('https://ghostnet.ecadinfra.com');
+        if (!process.env.RPC_URL) throw console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
+        if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.ENV === 'DEV') throw console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
+        
+        const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
-        toolkit.setProvider({ signer: await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) });
+        const transport = await TransportNodeHid.create();
+        const ledgerSigner = new LedgerSigner(transport);
 
+        Tezos.setProvider({ signer: process.env.ENV === 'DEV' ? await InMemorySigner.fromSecretKey(process.env.ORIGINATOR_PRIVATE_KEY!) : ledgerSigner });
 
-        const originationOp = await toolkit.contract.originate(originateParam);
+        const originationOp = await Tezos.contract.originate(originateParam);
 
         await originationOp.confirmation();
         const { address } = await originationOp.contract()
@@ -621,24 +646,24 @@ export const deployContracts = async (param: any) => {
             if (param.permissionManager) await deployFixedPriceContract(param.permissionManager)
             break;
         case "fa2-editions":
-            if (param.permissionManager) await deployEditionContract(param.permissionManager)
+            if (param.permissionManager) await deployLegacyContract(param.permissionManager)
             break;
         case "serie-factory":
             if (param.permissionManager) await deploySerieFactory(param.permissionManager)
             break;
-        case "gallery-factory":
+        case "space-factory":
             console.log(param.permissionManager)
-            if (param.permissionManager) await deployGalleryFactory(param.permissionManager)
+            if (param.permissionManager) await deploySpaceFactory(param.permissionManager)
             break;
         case "permission-manager":
             await deployPermissionManager()
             break;
         default:
             const permissionManagerAdd = await deployPermissionManager()
-            if (permissionManagerAdd) await deployEditionContract(permissionManagerAdd)
+            if (permissionManagerAdd) await deployLegacyContract(permissionManagerAdd)
             if (permissionManagerAdd) await deployFixedPriceContract(permissionManagerAdd)
             if (permissionManagerAdd) await deploySerieFactory(permissionManagerAdd)
-            if (permissionManagerAdd) await deployGalleryFactory(permissionManagerAdd)
+            if (permissionManagerAdd) await deploySpaceFactory(permissionManagerAdd)
             break;
     }
 }
@@ -649,8 +674,7 @@ async function testFixedPriceContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing admin entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/admin_main.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fixed-price/admin_main.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -667,8 +691,7 @@ async function testFixedPriceContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fixed_price_sale entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_sale.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fixed-price/fixed_price_main_sale.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -685,8 +708,7 @@ async function testFixedPriceContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fixed_price_drop entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_drop.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fixed-price/fixed_price_main_drop.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -703,8 +725,7 @@ async function testFixedPriceContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing buy_fixed_price entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_buy_sale.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fixed-price/fixed_price_main_buy_sale.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -721,8 +742,7 @@ async function testFixedPriceContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing buy_dropped entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fixed-price/fixed_price_main_buy_drop.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fixed-price/fixed_price_main_buy_drop.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -741,8 +761,7 @@ async function testEditionContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fa2 admin entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/admin.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fa2-editions/admin.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -759,8 +778,7 @@ async function testEditionContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fa2 operator entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/operator_lib.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fa2-editions/operator_lib.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -777,8 +795,7 @@ async function testEditionContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fa2 standard entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/standard.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fa2-editions/standard.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -795,8 +812,7 @@ async function testEditionContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fa2-editions/fa2_editions.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -813,8 +829,7 @@ async function testEditionContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_serie...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_serie.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.fa2-editions/fa2_editions_serie.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -829,10 +844,10 @@ async function testEditionContract(): Promise<void> {
     })
 
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_gallery...`))
+        console.log(kleur.green(`Testing fa2 main (mint and burn) entrypoints for fa2_editions_space...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/fa2_editions_gallery.test.mligo")}`),
+            `./ligo/exec_ligo run test ./ligo/test/there.fa2-editions/fa2_editions_space.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -850,7 +865,7 @@ async function testEditionContract(): Promise<void> {
         console.log(kleur.green(`Testing fa2 views entrypoints...`))
 
         child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.fa2-editions/views.test.mligo")}`),
+            `./ligo/exec_ligo run test ./ligo/test/there.fa2-editions/views.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -870,8 +885,7 @@ async function testSerieFactoryContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing serie factory main entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/serie_factory_main.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.art-factories/serie_factory_main.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -886,12 +900,11 @@ async function testSerieFactoryContract(): Promise<void> {
     })
 }
 
-async function testGalleryFactoryContract(): Promise<void> {
+async function testSpaceFactoryContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-        console.log(kleur.green(`Testing gallery factory main entrypoints...`))
+        console.log(kleur.green(`Testing space factory main entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.art-factories/gallery_factory_main.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.art-factories/space_factory_main.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -911,8 +924,7 @@ async function testPermissionManagerContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing permission manager main entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/permission_manager.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.permission-manager/permission_manager.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -929,8 +941,24 @@ async function testPermissionManagerContract(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         console.log(kleur.green(`Testing permission manager views entrypoints...`))
 
-        child.exec(
-            path.join(__dirname, `../ligo/exec_ligo run test ${path.join(__dirname, "../ligo/test/d-art.permission-manager/views.test.mligo")}`),
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.permission-manager/views.test.mligo`,
+            (err, stdout) => {
+                if (err) {
+                    console.log(kleur.red('Failed to run tests.'));
+                    console.log(kleur.yellow().dim(err.toString()))
+                    reject();
+                } else {
+                    console.log(`Results: ${stdout}`)
+                    resolve()
+                }
+            }
+        )
+    })
+
+    await new Promise<void>((resolve, reject) => {
+        console.log(kleur.green(`Testing permission manager admin entrypoints...`))
+
+        child.exec(`./ligo/exec_ligo run test ./ligo/test/there.permission-manager/admin.test.mligo`,
             (err, stdout) => {
                 if (err) {
                     console.log(kleur.red('Failed to run tests.'));
@@ -956,8 +984,8 @@ export const testContracts = async (param: any) => {
         case "serie-factory":
             await testSerieFactoryContract()
             break;
-        case "gallery-factory":
-            await testGalleryFactoryContract()
+        case "space-factory":
+            await testSpaceFactoryContract()
             break;
         case "permission-manager":
             await testPermissionManagerContract()
@@ -972,9 +1000,9 @@ export const testContracts = async (param: any) => {
             console.log(kleur.magenta(`Testing serie factory contracts:`))
             console.log(kleur.magenta(` `))
             await testSerieFactoryContract()
-            console.log(kleur.magenta(`Testing gallery factory contracts:`))
+            console.log(kleur.magenta(`Testing space factory contracts:`))
             console.log(kleur.magenta(` `))
-            await testGalleryFactoryContract()
+            await testSpaceFactoryContract()
             console.log(kleur.magenta(`Testing permission manager contracts:`))
             console.log(kleur.magenta(` `))
             await testPermissionManagerContract()
@@ -996,9 +1024,9 @@ export const uploadContractMetadataLegacy = async () => {
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewLegacy.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT - Legacy',
-        description: 'The lecgacy contract for D a:rt NFTs, is the genesis of A:RT tokens. Where all curated artist can create only one unique piece.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        name: 'THR - Legacy',
+        description: 'The lecgacy contract for THERE NFTs, is the genesis of THR tokens. Where all curated artist can create only one unique piece.',
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
         interfaces: ['TZIP-012', 'TZIP-016'],
         imageUri: "ipfs://QmUxNNqSrsDK5JLk42u2iwwFkP8osFM2pcfYRuEZKsmwrL",
         imageUriSvg: true, // Or false if not
@@ -1222,14 +1250,11 @@ export const uploadContractMetadataSerie = async () => {
     const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewSerie.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT Gallery',
+        name: 'THR Space',
         description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
         interfaces: ['TZIP-012', 'TZIP-016'],
         imageUri: "ipfs://QmUxNNqSrsDK5JLk42u2iwwFkP8osFM2pcfYRuEZKsmwrL",
-        imageUriSvg: true,
-        headerLogo: "ipfs://Qmf4LS9HgwYSWVq73AL1HVaaeW1s44qJvZuUDJkVyTEKze",
-        headerLogoSvg: true,
         views: [{
             name: 'token_metadata',
             description: 'Get the metadata for the tokens minted using this contract',
@@ -1434,24 +1459,24 @@ export const uploadContractMetadataSerie = async () => {
     console.log(contractMetadata)
 }
 
-// Example metadata upload for gallery factory generated contracts
-export const uploadContractMetadataGallery = async () => {
+// Example metadata upload for space factory generated contracts
+export const uploadContractMetadataSpace = async () => {
 
     const p = new Parser();
 
-    const parsedSplitsMichelsonCode = p.parseMichelineExpression(SplitsViewGallery.code);
-    const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterViewGallery.code);
-    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(RoyaltyViewGallery.code);
-    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterViewGallery.code);
-    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplitsViewGallery.code);
-    const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(TokenMetadataViewGallery.code);
-    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewGallery.code);
-    const parsedCommissionSplitsGalleryMichelsonCode = p.parseMichelineExpression(CommissionSplitsViewGallery.code);
+    const parsedSplitsMichelsonCode = p.parseMichelineExpression(SplitsViewSpace.code);
+    const parsedMinterMichelsonCode = p.parseMichelineExpression(MinterViewSpace.code);
+    const parsedRoyaltyMichelsonCode = p.parseMichelineExpression(RoyaltyViewSpace.code);
+    const parsedIsTokenMinterMichelsonCode = p.parseMichelineExpression(IsTokenMinterViewSpace.code);
+    const parsedRoyaltySplitsMichelsonCode = p.parseMichelineExpression(RoyaltySplitsViewSpace.code);
+    const parsedEditionMetadataMichelsonCode = p.parseMichelineExpression(TokenMetadataViewSpace.code);
+    const parsedRoyaltyDistributionMichelsonCode = p.parseMichelineExpression(RoyaltyDistributionViewSpace.code);
+    const parsedCommissionSplitsSpaceMichelsonCode = p.parseMichelineExpression(CommissionSplitsViewSpace.code);
 
     const editions_contract_metadata = {
-        name: 'A:RT Gallery',
+        name: 'THR Space',
         description: 'We present work across all media including painting, drawing, sculpture, installation, photography and video and we seek to cultivate the lineages that run between emerging and established artists.',
-        authors: 'tz1KhMoukVbwDXRZ7EUuDm7K9K5EmJSGewxd',
+        authors: 'tz1PpLjzEpGgozBVrjMVG6iEfsM3nKyrqbN2',
         interfaces: ['TZIP-012', 'TZIP-016'],
         imageUri: "ipfs://QmUxNNqSrsDK5JLk42u2iwwFkP8osFM2pcfYRuEZKsmwrL",
         imageUriSvg: true,
@@ -1587,7 +1612,7 @@ export const uploadContractMetadataGallery = async () => {
             ],
         }, {
             name: 'commission_splits',
-            description: 'Get the commission and splits from the gallery for a token id',
+            description: 'Get the commission and splits from the space for a token id',
             pure: true,
             implementations: [
                 {
@@ -1615,7 +1640,7 @@ export const uploadContractMetadataGallery = async () => {
                                 }
                             ]
                         },
-                        code: parsedCommissionSplitsGalleryMichelsonCode,
+                        code: parsedCommissionSplitsSpaceMichelsonCode,
                     }
                 }
             ]
