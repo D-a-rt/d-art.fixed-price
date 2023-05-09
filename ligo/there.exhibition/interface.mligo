@@ -52,7 +52,7 @@ type admin_storage = {
 type storage =
 [@layout:comb]
 {
-    admin: admin_storage;
+    admin_str: admin_storage;
     exhibition: (fa2_base * minter, synthetic_id) big_map;
     next_synthetic_id: nat;
     metadata : (string, bytes) big_map;

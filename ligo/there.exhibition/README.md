@@ -92,22 +92,22 @@ type sale_info =
 type storage =
 [@layout:comb]
 {
-    admin: admin_storage;
+    admin_str: admin_storage;
     exhibition: (fa2_base * minter, synthetic_id) big_map;
     next_synthetic_id: nat;
     metadata : (string, bytes) big_map;
 }
 ```
 
-## admin
+## admin_str
 
-The first field is `admin` and has it's own definition:
+The first field is `admin_str` and has it's own definition:
 
 ```ocaml
 type storage =
 [@layout:comb]
 {
-    admin: admin_storage;
+    admin_str: admin_storage;
     ...
 }
 

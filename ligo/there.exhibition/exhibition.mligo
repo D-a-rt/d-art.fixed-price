@@ -6,4 +6,3 @@
 type exhibition_entrypoints = 
     | Admin of admin_entrypoints
     | Creator of creator_entrypoints
-    

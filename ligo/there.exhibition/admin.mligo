@@ -10,3 +10,6 @@ type admin_entrypoints =
     | Edit_listings of sale_configuration
     | Start_grace_period
     | Reset_exhibition
+
+[@inline]
+let fail_if_not_admin (storage : storage) : unit = if Tezos.get_sender() <> storage.admin_str.admin then failwith "NOT_AN_ADMIN"
