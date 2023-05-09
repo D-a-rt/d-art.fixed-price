@@ -23,9 +23,9 @@ $ npm install -g
 
 The different available commands are:
 
-`contract-title`: ***fixed-price | fa2-editions | fa2-editions-serie | fa2-editions-space | serie-factory | space-factory | permission-manager*** 
+`contract-title`: ***fixed-price | fa2-editions | fa2-editions-serie | fa2-editions-space | serie-factory | space-factory | permission-manager | exhibition*** 
 
-`contract-deploy-title` : ***fixed-price | fa2-editions | serie-factory | space-factory | permission-manager*** 
+`contract-deploy-title` : ***fixed-price | fa2-editions | serie-factory | space-factory | permission-manager | exhibition-factory*** 
 
 Note: these commands has been tested with the version 0.43 of ligo.
 ```
@@ -71,6 +71,8 @@ $ ligo run test ligo/test/there.fixed-price/fixed_price_main_buy_drop.test.mligo
 - [FA2 Editions](./ligo/there.fa2-editions)
 - [Serie Factory](./ligo/there.art-factories/serie_factory.mligo)
 - [Space Factory](./ligo/there.art-factories/space_factory.mligo)
+- [Exhibition](./ligo/there.exhibition/)
+- [Exhibition Factory](./ligo/there.art-factories/exhibition_factory.mligo)
 - [Permission manager](./ligo/there.permission-manager)
 
 ### Tests 
@@ -80,5 +82,6 @@ $ ligo run test ligo/test/there.fixed-price/fixed_price_main_buy_drop.test.mligo
 - [Serie Factory](./ligo/test/there.art-factories/serie_factory_main.test.mligo)
 - [Space Factory](./ligo/test/there.art-factories/space_factory_main.test.mligo)
 - [Permission manager](./ligo/test/there.permission-manager)
+- [Exhibition](./ligo/test/there.exhibition/)
 
 
