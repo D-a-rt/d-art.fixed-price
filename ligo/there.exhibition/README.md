@@ -131,7 +131,7 @@ type admin_storage = {
 }
 ```
 
-- `start_date`: The start date of the exhibition
+- `start_date`: The start date of the exhibition65
 - `end_date`: The end date of the exhibition
 - `grace_period`: The period during which the exhibition is pre-locked and creators can pull-out artworks from it, after this period the exhibition will be locked until the end-date unless the curator unlock-it before the start date
 - `grace_started`: The moment at wich the grace period has been started.
@@ -139,6 +139,7 @@ type admin_storage = {
 - `commission_split`: list of commission split
 - `split`: address and correcponding percentage, the total number of pct should be = 1000
 - `pending_invites`: Pending artworks invitations.
+- `pending_listings`: Pending listings invitations.
 
 ## exhibition
 
