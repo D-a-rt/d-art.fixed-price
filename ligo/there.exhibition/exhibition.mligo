@@ -1,4 +1,9 @@
+#include interface.mligo
+#include common.mligo
+#include admin.mligo
+#include creator.mligo
+
 type exhibition_entrypoints = 
     | Admin of admin_entrypoints
-    | Accept_invitation of bool
+    | Creator of creator_entrypoints
     
