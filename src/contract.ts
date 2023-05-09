@@ -176,7 +176,7 @@ export async function deployFixedPriceContract(permissionManager: string): Promi
     try {
         if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
         if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
-        
+
         const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
         const transport = await TransportNodeHid.create();
@@ -451,7 +451,7 @@ export async function deployLegacyContract(permisionManagerAdd: string): Promise
     try {
         if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
         if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
-        
+
         const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
         const transport = await TransportNodeHid.create();
@@ -506,7 +506,7 @@ export async function deploySerieFactory(permisionManagerAdd: string): Promise<v
     try {
         if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
         if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
-        
+
         const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
         const transport = await TransportNodeHid.create();
@@ -560,7 +560,7 @@ export async function deploySpaceFactory(permisionManagerAdd: string): Promise<v
     try {
         if (!process.env.RPC_URL) return console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
         if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.RPC_URL === '') return console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
-        
+
         const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
         const transport = await TransportNodeHid.create();
@@ -619,7 +619,7 @@ export async function deployPermissionManager(): Promise<string | undefined> {
     try {
         if (!process.env.RPC_URL) throw console.log(kleur.red(`Please set the RPC_URL in the .env file.`));
         if (!process.env.ORIGINATOR_PRIVATE_KEY && process.env.ENV === 'DEV') throw console.log(kleur.red(`Please set the ORIGINATOR_PRIVATE_KEY in the .env file.`));
-        
+
         const Tezos = await new TezosToolkit(process.env.RPC_URL);
 
         const transport = await TransportNodeHid.create();
