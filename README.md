@@ -1,5 +1,10 @@
 # there.contracts
 
+#### Link to Audit:
+
+The audit of the smart-contracts is available following this [https://github.com/InferenceAG/ReportPublications/blob/master/Inference%20AG%20-%20THERE%20-%20curated%20art%20platform%20smart%20contracts%20-%20v1.0.pdf][link]
+
+
 #### Introduction:
 
 This set of contracts contain 5 different types of contract: fa2-editions (three variants), fixed-price and serie-factory, space-factory and permission-manager.
